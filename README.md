@@ -1,6 +1,6 @@
 QTLToolKit
 ============
-
+[![DOI](https://zenodo.org/badge/101641410.svg)](https://zenodo.org/badge/latestdoi/101641410)
 
 --------------
 
