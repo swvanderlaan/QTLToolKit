@@ -190,7 +190,8 @@ else
 	SNPTEST252=${SOFTWARE}/snptest_v2.5.2_CentOS6.5_x86_64_static/snptest_v2.5.2
 	FASTQTL=${SOFTWARE}/fastqtl_v2.184
 	QTL=${SOFTWARE}/QTLTools/QTLtools_1.0_CentOS6.8_x86_64
-	QTLTOOLKIT=${SOFTWARE}/QTLToolKit
+	#QTLTOOLKIT=${SOFTWARE}/QTLToolKit
+	QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
 	FASTQCTLADDON=${SOFTWARE}/fastQTLToolKit
 	FASTQTLPARSER=${FASTQCTLADDON}/NominalResultsParser.py
 	LZ13=${SOFTWARE}/locuszoom_1.3/bin/locuszoom
@@ -229,7 +230,7 @@ else
 	### SOURCE THE CONFIGURATION FILE
 	source ${11}
 	QTL_TYPE=${12} # CIS or TRANS
-	
+	echo "${QTL_TYPE}"
 	### QSUB SETTINGS
 	### --- THESE COULD BE ARGUMENTS --- ###
 	QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
@@ -923,7 +924,7 @@ else
 	module load python
 	echo ""
 	echo "* Parsing region file for trans analysis..."
-	python /hpc/dhl_ec/jschaap/fastQTLToolKit/parse_input.py "${PROJECT}" "${REGIONS}"
+	python ${QTLTOOLKIT}/parse_input.py "${PROJECT}" "${REGIONS}"
 	
 	REGIONS_TRANS=${PROJECT}/chromosomes.list
 	echo ""
@@ -1128,13 +1129,13 @@ else
 			echo "Creating bash-script to submit 'QTL RESULTS QUALITY CONTROL & PARSER v2' on >>> nominal <<< pass results..."
 			### FOR DEBUGGING
 			###Rscript ${FASTQCTLADDON}/fastQTL_QC.R -p ${PROJECT} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q MQTL -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats 
-			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q MQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats  "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
+			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q MQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			echo ""
 			echo "Creating bash-script to submit 'fastQTL RESULTS QUALITY CONTROL & PARSER v2' on >>> permutation <<< pass results..."
 			### FOR DEBUGGING
 			###Rscript ${FASTQCTLADDON}/fastQTL_QC.R -p ${PROJECT} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t PERM -q MQTL -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats 
-			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t PERM -q MQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats  "> ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${CHR}_excl_${EXCLUSION_TYPE}.sh
+			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t PERM -q MQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${ORIGINALS}/IlluminaMethylation450K.annotation.txt.gz -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${CHR}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${CHR}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			echo ""
 		elif [[ ${STUDY_TYPE} == "CTMM" ]]; then
@@ -1143,7 +1144,7 @@ else
 			###Rscript ${FASTQCTLADDON}/fastQTL_QC.R -p ${PROJECT} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q EQTL -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats 
 			
 			#old
-			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q EQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats  "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
+			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q EQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
 			
 			# right clumped
