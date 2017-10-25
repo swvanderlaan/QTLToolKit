@@ -112,6 +112,8 @@ echo "Today's date and time: "$(date)
 TODAY=$(date +"%Y%m%d")
 echo ""
 
+echo "${11}"
+
 ### SET STUDY AND SAMPLE TYPE
 ### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
 ###       You can set the exclusion criteria 'NONAEGS/FEMALES/MALES' if you want to analyse
@@ -135,6 +137,7 @@ EXCLUSION_TYPE=${9} # The exclusion type -- refer to fastQTLAnalyzer.sh for info
 CLUMPDIR=${10} # Directory with clump information
 
 STYPE=${11} # CIS or TRANS
+
 
 ### START of if-else statement for the number of command-line arguments passed ###
 if [[ $# -lt 11 ]]; then 

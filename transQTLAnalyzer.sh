@@ -1063,7 +1063,7 @@ else
 			echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 		echo "Parse trans hit files to workable files."
 		echo ""
-		echo "python ${QTLTOOLKIT} trans_hit_parser.py ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${CHR}_excl_${EXCLUSION_TYPE}_${QTL_TYPE}.hits.txt.gz ${REGIONALDIR} ${REGIONS} ${CHR}" > ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
+		echo "python ${QTLTOOLKIT}/trans_hit_parser.py ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${CHR}_excl_${EXCLUSION_TYPE}_${QTL_TYPE}.hits.txt.gz ${REGIONALDIR} ${REGIONS} ${CHR}" > ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
 		qsub -S /bin/bash -N ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser -hold_jid QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME}_${QTL_TYPE} -e ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.error -o ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.log -l h_rt=03:00:00 -l h_vmem=64G -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
 		
 	done < ${REGIONS_TRANS}
