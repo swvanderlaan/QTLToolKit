@@ -30,17 +30,6 @@ def search():
     	        line = regel.split(',')
     	        # print line[23]
     	        try:
-    	            # if float(line[23]) > '0.05': # pval
-    	            #     print line
-    	            #     continue
-    	            # if line[3] == 'NR': # no rsquared > 0.6
-    	            #     continue
-    	            # if clump == 'Y': # in case clumped results are asked filter the lows out
-    	            #     if line[3] < '0.8': # no rsquared > 0.8
-    	            #     # print line
-    	            #         continue
-    	            # with open('/Users/slidetoolkit/Desktop/Jacco/scriptie_data/CADsnps_st_covs_rsquare_0.8/' + line[0] + '.txt', 'a+') as outfile: # write file with info per lead snp
-    	            #     outfile.write(regel)
     	            snp = line[0]
     	            var = line[2]
     	            nom_pval = float(line[23])
@@ -80,11 +69,6 @@ def search():
     	        # print top_variant
     	        for item in data:
     	            if item['snp'] == SNP:
-    	                # print item
-    	                # print lowest_pval
-    	                # print item['nom_pval']
-    	                # nom
-    	                # if item['nom_pval'] < lowest_pval:
     	                if item['approx_pval'] < lowest_pval:
     	                    # print lowest_pval
     	                    # nom
@@ -110,7 +94,6 @@ def search():
     	        print top_variant
     	        print lowest_pval
     	        print RSQ
-    	        # print inf_list
     	        # outfile.write('\n' + SNP + ',' + top_variant + ',' + str(lowest_pval) + ',' + str(RSQ))
     	        # nom
     	        # with gzip.open("qtl_summary/ctmm_QC_qtlnom_clumped_summary.txt.gz", 'r') as file:  # debugging
@@ -174,20 +157,10 @@ def second():
             	pass
             # print line[23]
             try:
-                # if float(line[23]) > '0.05': # pval
-                #     print line
-                #     continue
-                # if line[3] == 'NR': # no rsquared > 0.6
-                #     continue
-                # if clump == 'Y': # in case clumped results are asked filter the lows out
-                #     if line[3] < '0.8': # no rsquared > 0.8
-                #     # print line
-                #         continue
-                # with open('/Users/slidetoolkit/Desktop/Jacco/scriptie_data/CADsnps_st_covs_rsquare_0.8/' + line[0] + '.txt', 'a+') as outfile: # write file with info per lead snp
-                #     outfile.write(regel)
-# 0 Locus, 1 ProbeID, 2 VARIANT, 3 Chr, 4 BP, 5 OtherAlleleA, 6 CodedAlleleA, 7 MAF, 8 MAC, 9 CAF, 10 HWE,
-# 11 Info, 12 Imputation, 13 N, 14 GeneName, 15 EntrezID, 16 Distance_VARIANT_GENE, 17 Chr, 18 GeneTxStart, 19 GeneTxEnd, 20 Beta,
-# 21 SE, 22 Nominal_P, 23 Bonferroni, 24 BenjHoch, 25 Q
+
+				# 0 Locus, 1 ProbeID, 2 VARIANT, 3 Chr, 4 BP, 5 OtherAlleleA, 6 CodedAlleleA, 7 MAF, 8 MAC, 9 CAF, 10 HWE,
+				# 11 Info, 12 Imputation, 13 N, 14 GeneName, 15 EntrezID, 16 Distance_VARIANT_GENE, 17 Chr, 18 GeneTxStart, 19 GeneTxEnd, 20 Beta,
+				# 21 SE, 22 Nominal_P, 23 Bonferroni, 24 BenjHoch, 25 Q
 
                 if qtl_type == 'CIS':
 					snp = line[0]
@@ -208,10 +181,6 @@ def second():
 					chr = line[3]
 					probe = line[1]
 					fdr = line[25]    		
-                # nominal
-                # if snp not in snp_list and snp != 'Locus' and snp not in perm_snps:
-                #     snp_list.append(snp)
-                # permuted
                 if snp not in snp_list and snp != 'Locus': #All SNP's in list, skipping header
                     snp_list.append(snp)
                 data.append(
@@ -224,8 +193,6 @@ def second():
         interesting_genes = []  # save eqtl genes
         print 'Parsing data, results so far:'
         for SNP in snp_list:  # find all top tag SNPs for the lead SNP's with LD buddies.
-            # if SNP != 'rs4593108':
-            #     continue
             lowest_pval_1 = 1
             top_variant_1 = ''
             RSQ_1 = ''
@@ -235,16 +202,7 @@ def second():
             # print top_variant
             for item in data:
                 if item['snp'] == SNP:
-                    # print item
-                    # print lowest_pval
-                    # print item['nom_pval']
-                    # nom
-                    # if item['nom_pval'] < lowest_pval:
                     if item['nom_pval'] < lowest_pval_1:
-                        # print lowest_pval
-                        # nom
-                        # lowest_pval = item['nom_pval']
-                        # perm
                         lowest_pval_1 = item['nom_pval']
                         nom_pval = item['nom_pval']
                         # print top_variant
@@ -259,7 +217,6 @@ def second():
                     else:
                         continue
             print '\n' + SNP
-            # inf_list = top_variant + '\t' + chr + '\t' + pos + '\n'
             print top_variant_1
             print lowest_pval_1
             print RSQ_1
@@ -292,11 +249,6 @@ def second():
                             + ',' + str(line[3]) + ',' + str(  # commend for nom
                                 float(line[25])) + '\n') 
 
-            # nom
-            # with open('r06_nominal_interesting_variants.list', 'w') as igfile, open('r06_nominal_interesting_genes.list', 'w') as ivfile:
-            # perm
-            # with open('r06_perm_interesting_variants.list', 'w') as igfile, open('r06_perm_interesting_genes.list',
-            #                                                                      'w') as ivfile:
             with open(summary_direct + '/interesting_variants_nominal.list', 'w') as ivfile, open(summary_direct + '/interesting_genes_nominal.list', 'w') as igfile:
 
                 for isnp in interesting_snps:
@@ -305,6 +257,5 @@ def second():
                 for gen in set(interesting_genes):
                     igfile.write(gen + '\n')             
         
-
 
 main()
