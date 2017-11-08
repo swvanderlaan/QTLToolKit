@@ -241,18 +241,31 @@ else
 		WINDOWSIZE=$(echo "${LINE}" | awk '{print $7}')
 		TYPE=$(echo "${LINE}" | awk '{print $8}')
 		PHENOTYPE=$(echo "${LINE}" | awk '{print $9}')
-	
-		echo "===================================================================="
-		echo "Processing ${VARIANT} locus on ${CHR} between ${START} and ${END}..."
-		### Make directories for script if they do not exist yet (!!!PREREQUISITE!!!)
-		if [ ! -d ${RESULTS}/${CHR}_${PROJECTNAME} ]; then
-			echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
-			mkdir -v ${RESULTS}/${CHR}_${PROJECTNAME}
-		else
-			echo "The regional directory already exists."
-		fi
 		
-		REGIONALDIR=${RESULTS}/${CHR}_${PROJECTNAME}
+		if [[ ${STYPE} == "CIS" ]]; then
+			echo "===================================================================="
+			echo "Processing ${VARIANT} locus on ${CHR} between ${START} and ${END}..."
+			### Make directories for script if they do not exist yet (!!!PREREQUISITE!!!)
+			if [ ! -d ${RESULTS}/${VARIANT}_${PROJECTNAME} ]; then
+				echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
+				mkdir -v ${RESULTS}/${VARIANT}_${PROJECTNAME}
+			else
+				echo "The regional directory already exists."
+			fi
+			REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
+			
+		elif [[ ${STYPE} == "TRANS" ]]; then
+			echo "===================================================================="
+			echo "Processing ${VARIANT} locus on ${CHR} between ${START} and ${END}..."
+			### Make directories for script if they do not exist yet (!!!PREREQUISITE!!!)
+			if [ ! -d ${RESULTS}/${CHR}_${PROJECTNAME} ]; then
+				echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
+				mkdir -v ${RESULTS}/${CHR}_${PROJECTNAME}
+			else
+				echo "The regional directory already exists."
+			fi
+			REGIONALDIR=${RESULTS}/${CHR}_${PROJECTNAME}
+		fi
 		echo ""
 		echo "Copying results to the Summary Directory..."	
 		# Also copies the clumped file, so this is fine
