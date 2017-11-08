@@ -1051,7 +1051,7 @@ else
 		qsub -S /bin/bash -N CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_clump.errors -o ${REGIONALDIR}/${STUDYNAME}_clump.output -l h_rt=00:20:00 -l h_vmem=6G -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.py
 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 		
-		### Running fastQTL for clumped results
+		### Running QTLTool
 		if [[ ${CHR} -lt 10 ]]; then 
 			echo "Processing a variant in clumped region of 0${CHR}:${START}-${END}."
 			### Running nominal and permutation passes of fastQTL, respectively
