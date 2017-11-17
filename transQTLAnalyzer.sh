@@ -130,8 +130,8 @@ echobold "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echobold "+                                      QUANTITATIVE TRAIT LOCUS ANALYZER                                +"
 echobold "+                                                                                                       +"
 echobold "+                                                                                                       +"
-echobold "+ * Written by  : Sander W. van der Laan                                                                +"
-echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
+echobold "+ * Written by  : Sander W. van der Laan | Jacco Schaap                                                 +"
+echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl | jacco_schaap@hotmail.com                             +"
 echobold "+ * Last update : 2017-03-10                                                                            +"
 echobold "+ * Version     : 2.1.0                                                                                 +"
 echobold "+                                                                                                       +"
@@ -1063,7 +1063,7 @@ else
 			echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 		echo "Parse trans hit files to workable files."
 		echo ""
-		echo "python ${QTLTOOLKIT} trans_hit_parser.py ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${CHR}_excl_${EXCLUSION_TYPE}_${QTL_TYPE}.hits.txt.gz ${REGIONALDIR} ${REGIONS} ${CHR}" > ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
+		echo "python ${QTLTOOLKIT}/trans_hit_parser.py ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${CHR}_excl_${EXCLUSION_TYPE}_${QTL_TYPE}.hits.txt.gz ${REGIONALDIR} ${REGIONS} ${CHR}" > ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
 		qsub -S /bin/bash -N ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser -hold_jid QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME}_${QTL_TYPE} -e ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.error -o ${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.log -l h_rt=03:00:00 -l h_vmem=64G -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_${CHR}_excl_${EXCLUSION_TYPE}_result_parser.sh
 		
 	done < ${REGIONS_TRANS}
@@ -1144,8 +1144,8 @@ else
 			###Rscript ${FASTQCTLADDON}/fastQTL_QC.R -p ${PROJECT} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q EQTL -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats 
 			
 			#old
-			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q EQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
-			qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.sh
+			echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECT} -r ${RESULT_FILE} -t NOM -q EQTL -z ${QTL_TYPE} -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${CHR}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}_${VARIANT}.sh
+			qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${CHR}_excl_${EXCLUSION_TYPE}_${VARIANT}.sh
 			
 			# right clumped
 			#echo "Rscript /hpc/dhl_ec/jschaap/fastQTLToolKit/second_trans.R -p ${PROJECT} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -z ${QTL_TYPE} -q EQTL -o ${REGIONALDIR}/ -a ${CTMMEXPRESSIONDATA}/annotation_ctmm_all.csv -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats  "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
