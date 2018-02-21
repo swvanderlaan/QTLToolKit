@@ -30,7 +30,7 @@ import gzip
 import sys
 
 plink = '/hpc/local/CentOS7/dhl_ec/software/plink_v1.9'
-metalfile = '/hpc/dhl_ec/jschaap/scripts/locuszoom/metal.txt'
+metalfile = '/hpc/dhl_ec/jschaap/scripts/locuszoom/metal.txt' # FIGURE OUT WHAT THIS???
 nominal_data_file = sys.argv[3]
 ld_nominal_data_file = sys.argv[4]
 
