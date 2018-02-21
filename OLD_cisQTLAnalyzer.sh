@@ -1,29 +1,9 @@
 #!/bin/bash
 #
-#$ -S /bin/bash 																			# the type of BASH you'd like to use
-#$ -N cisQTLAnalyzer_v2  																	# the name of this script
-#$ -hold_jid some_other_basic_bash_script  													# the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
-#$ -o /hpc/dhl_ec/svanderlaan/projects/test_eqtl/cisQTLAnalyzer_v2.log						# the log file of this job
-#$ -e /hpc/dhl_ec/svanderlaan/projects/test_eqtl/cisQTLAnalyzer_v2.errors					# the error file of this job
-#$ -l h_rt=00:30:00  																		# h_rt=[max time, e.g. 02:02:01] - this is the time you think the script will take
-#$ -l h_vmem=4G  																			#  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
-# -l tmpspace=64G  																		# this is the amount of temporary space you think your script will use
-#$ -M s.w.vanderlaan-2@umcutrecht.nl  														# you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
-#$ -m a  																					# you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
-#$ -cwd  																					# set the job start to the current directory - so all the things in this script are relative to the current directory!!!
-#
-# You can use the variables above (indicated by "#$") to set some things for the submission system.
-# Another useful tip: you can set a job to run after another has finished. Name the job 
-# with "-N SOMENAME" and hold the other job with -hold_jid SOMENAME". 
-# Further instructions: https://wiki.bioinformatics.umcutrecht.nl/bin/view/HPC/HowToS#Run_a_job_after_your_other_jobs
-#
-# It is good practice to properly name and annotate your script for future reference for
-# yourself and others. Trust me, you'll forget why and how you made this!!!
-
 # CHANGES MADE BY JACCO SCHAAP 
-# Removed rootdir path in region and covariate file specification 
-# Also for v3 changed dataset to a pruned one
-# Besides that the jobnames aren't unique so we can't run multiple fastQTL's at the same time
+# - Removed rootdir path in region and covariate file specification 
+# - Also for v3 changed dataset to a pruned one
+# - Besides that the jobnames aren't unique so we can't run multiple fastQTL's at the same time
 
 ### REGARDING NOTES ###
 ### Please note that uncommented notes can be found at the end of this script.
@@ -36,9 +16,12 @@
 ### Creating display functions
 ### Setting colouring
 NONE='\033[00m'
-BOLD='\033[1m'
+OPAQUE='\033[2m'
 FLASHING='\033[5m'
+BOLD='\033[1m'
+ITALIC='\033[3m'
 UNDERLINE='\033[4m'
+STRIKETHROUGH='\033[9m'
 
 RED='\033[01;31m'
 GREEN='\033[01;32m'
@@ -50,11 +33,24 @@ WHITE='\033[01;37m'
 function echobold { #'echobold' is the function name
     echo -e "${BOLD}${1}${NONE}" # this is whatever the function needs to execute, note ${1} is the text for echo
 }
+function echoitalic { 
+    echo -e "${ITALIC}${1}${NONE}" 
+}
+function echonooption { 
+    echo -e "${OPAQUE}${RED}${1}${NONE}"
+}
 function echoerrorflash { 
     echo -e "${RED}${BOLD}${FLASHING}${1}${NONE}" 
 }
 function echoerror { 
     echo -e "${RED}${1}${NONE}"
+}
+# errors no option
+function echoerrornooption { 
+    echo -e "${YELLOW}${1}${NONE}"
+}
+function echoerrorflashnooption { 
+    echo -e "${YELLOW}${BOLD}${FLASHING}${1}${NONE}"
 }
 
 script_copyright_message() {
@@ -91,34 +87,35 @@ script_arguments_error() {
 	echoerror "========================================================================================================="
 	echoerror "                                              OPTION LIST"
 	echoerror ""
-	echoerror " * Argument #1   indicate which study type you want to analyze, so either [AEMS450K1/AEMS450K2/CTMM]:"
-	echoerror "                 - AEMS450K1: methylation quantitative trait locus (mQTL) analysis "
-	echoerror "                              on plaques or blood in the Athero-Express Methylation "
-	echoerror "                              Study 450K prune100 1."
-	echoerror "                 - AEMS450K2: mQTL analysis on plaques or blood in the Athero-Express"
-	echoerror "                              Methylation Study 450K prune100 2."
-	echoerror "                 - CTMM:      expression QTL (eQTL) analysis in monocytes from CTMM."
-	echoerror " * Argument #2   the sample type must be [AEMS450K1: PLAQUES/BLOOD], "
-	echoerror "                 [AEMS450K2: PLAQUES], or [CTMM: MONOCYTES]."
-	echoerror " * Argument #3   the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
-	echoerror " * Argument #4   where you want stuff to be save inside the rootdir, "
-	echoerror "                 e.g. mqtl_aems450k1"
-	echoerror " * Argument #5   project name, e.g. 'CAD'."
-	echoerror " * Argument #6   text file with on each line the regions of interest, refer to "
-	echoerror "                 example file."
-	echoerror " * Argument #7   the type of exclusion to apply: "
-	echoerror "                 - AEMS/CTMM:     DEFAULT/SMOKER/NONSMOKER/MALES/FEMALES/T2D/NONT2D/NONMONOCYTE "
-	echoerror "                 - AEMS-specific: CKD/NONCKD/PRE2007/POST2007/NONAEGS/NONAEGSFEMALES/NONAEGSMALES."
-	echoerror " * Argument #8   text file with excluded covariates, refer to example file."
-	echoerror " * Argument #9   qsub e-mail address, e.g. s.w.vanderlaan-2@umcutrecht.nl."
-	echoerror " * Argument #10  qsub mail settings, e.g. 'beas' - refer to qsub manual."
-	echoerror " * Argument #11  configurationfile: fastqtl.config.txt."
-	echoerror " * Argument #12  CIS or TRANS? [CIS/TRANS]"
-	echoerror " * Argument #13  plot clumped set? [Y/N]"
-	echoerror " * Argument #14  Threshold for rsquared, optional"
+	echoerror " * Argument #11  configurationfile: qtl.config."
+# 	echoerror " * Argument #1   indicate which study type you want to analyze, so either [AEMS450K1/AEMS450K2/CTMM]:"
+# 	echoerror "                 - AEMS450K1: methylation quantitative trait locus (mQTL) analysis "
+# 	echoerror "                              on plaques or blood in the Athero-Express Methylation "
+# 	echoerror "                              Study 450K prune100 1."
+# 	echoerror "                 - AEMS450K2: mQTL analysis on plaques or blood in the Athero-Express"
+# 	echoerror "                              Methylation Study 450K prune100 2."
+# 	echoerror "                 - CTMM:      expression QTL (eQTL) analysis in monocytes from CTMM."
+# 	echoerror " * Argument #2   the sample type must be [AEMS450K1: PLAQUES/BLOOD], "
+# 	echoerror "                 [AEMS450K2: PLAQUES], or [CTMM: MONOCYTES]."
+# 	echoerror " * Argument #3   the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
+# 	echoerror " * Argument #4   where you want stuff to be save inside the rootdir, "
+# 	echoerror "                 e.g. mqtl_aems450k1"
+# 	echoerror " * Argument #5   project name, e.g. 'CAD'."
+# 	echoerror " * Argument #6   text file with on each line the regions of interest, refer to "
+# 	echoerror "                 example file."
+# 	echoerror " * Argument #7   the type of exclusion to apply: "
+# 	echoerror "                 - AEMS/CTMM:     DEFAULT/SMOKER/NONSMOKER/MALES/FEMALES/T2D/NONT2D/NONMONOCYTE "
+# 	echoerror "                 - AEMS-specific: CKD/NONCKD/PRE2007/POST2007/NONAEGS/NONAEGSFEMALES/NONAEGSMALES."
+# 	echoerror " * Argument #8   text file with excluded covariates, refer to example file."
+# 	echoerror " * Argument #9   qsub e-mail address, e.g. s.w.vanderlaan-2@umcutrecht.nl."
+# 	echoerror " * Argument #10  qsub mail settings, e.g. 'beas' - refer to qsub manual."
+# 	echoerror " * Argument #11  configurationfile: qtl.config."
+# 	echoerror " * Argument #12  CIS or TRANS? [CIS/TRANS]"
+# 	echoerror " * Argument #13  plot clumped set? [Y/N]"
+# 	echoerror " * Argument #14  Threshold for rsquared, optional"
 	echoerror ""
 	echoerror " An example command would be: "
-	echoerror "./fastQTLAnalyzer.sh [arg1] [arg2] [arg3] [arg4] [arg5] [arg6] [arg7] [arg8] [arg9] [arg10] [arg11] [arg12]"
+	echoerror "./QTLAnalyzer.sh [arg1]"
 	echoerror ""
 	echoerror "========================================================================================================="
   	# The wrong arguments are passed, so we'll exit the script now!
@@ -127,7 +124,7 @@ script_arguments_error() {
 }
 
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echobold "+                                   is-QUANTITATIVE TRAIT LOCUS ANALYZER                                +"
+echobold "+                                       QUANTITATIVE TRAIT LOCUS ANALYZER                               +"
 echobold "+                                                                                                       +"
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
@@ -135,17 +132,52 @@ echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail
 echobold "+ * Last update : 2018-02-21                                                                            +"
 echobold "+ * Version     : 2.2.0                                                                                 +"
 echobold "+                                                                                                       +"
-echobold "+ * Description : This script will set some directories, and execute a QTL analysis according to your   +"
-echobold "+                 specifications. You can run an cis- or trans-QTL analysis.                            +"
+echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
+echobold "+                 according to your specifications and using either [your/AE/CTMM] methylation          +"
+echobold "+                 or expression data.                                                                   +"
 echobold "+                                                                                                       +"
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's date and time: "$(date)
 TODAY=$(date +"%Y%m%d")
 echo ""
 
-# set name automatically
-CLUMP=${13}
-CLUMP_THRESH=${14}
+### SETTING DIRECTORIES (from configuration file).
+# Loading the configuration file (please refer to the GWASToolKit-Manual for specifications of this file). 
+source "$1" # Depends on arg1.
+
+### REQUIRED | GENERALS	
+CONFIGURATIONFILE="$1" # Depends on arg1 -- but also on where it resides!!!
+
+### MAIL SETTINGS -- PLEASE CHANGE TO YOUR SITUATION
+### --- THESE COULD BE ARGUMENTS --- ###
+EMAIL=${YOUREMAIL} # e.g. "s.w.vanderlaan-2@umcutrecht.nl"
+MAILTYPE=${MAILSETTINGS} # e.g. "as"; you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
+
+### SOURCE THE CONFIGURATION FILE
+QTL_TYPE=${QTL_TYPE} # CIS or TRANS
+echo "${QTL_TYPE}"
+### QSUB SETTINGS
+### --- THESE COULD BE ARGUMENTS --- ###
+QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
+VMEM_QCTOOL=${VMEM_QCTOOL_CONFIG}
+QUEUE_NOM=${QUEUE_NOM_CONFIG}
+VMEM_NOM=${VMEM_NOM_CONFIG}
+QUEUE_PERM=${QUEUE_PERM_CONFIG}
+VMEM_PERM=${VMEM_PERM_CONFIG}
+
+### FASTQTL SETTINGS
+### --- THESE COULD BE ARGUMENTS --- ###
+SEEDNO=${SEEDNO_CONFIG}
+PERMSTART=${PERMSTART_CONFIG}
+PERMEND=${PERMEND_CONFIG}
+
+### QCTOOL SETTINGS
+### --- THESE COULD BE ARGUMENTS --- ###
+MAF=${MAF_CONFIG}
+INFO=${INFO_CONFIG}
+HWE=${HWE_CONFIG}
+
+
 
 ### SET STUDY AND SAMPLE TYPE
 ### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
@@ -185,23 +217,26 @@ SAMPLE_TYPE [arg2]!"
 else
 	
 	### GENERIC SETTINGS
-	SOFTWARE=/hpc/local/CentOS7/dhl_ec/software
-	QCTOOL=${SOFTWARE}/qctool_v1.5-linux-x86_64-static/qctool
-	SNPTEST252=${SOFTWARE}/snptest_v2.5.2_CentOS6.5_x86_64_static/snptest_v2.5.2
-	FASTQTL=${SOFTWARE}/fastqtl_v2.184
-	QTL=${SOFTWARE}/QTLTools/QTLtools_1.0_CentOS6.8_x86_64
-	#QTLTOOLKIT=${SOFTWARE}/QTLToolKit
-	QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
-	FASTQCTLADDON=${SOFTWARE}/fastQTLToolKit
-	FASTQTLPARSER=${FASTQCTLADDON}/NominalResultsParser.py
-	LZ13=${SOFTWARE}/locuszoom_1.3/bin/locuszoom
-	BGZIP=${SOFTWARE}/htslib-1.3/bgzip
-	TABIX=${SOFTWARE}/htslib-1.3/tabix
-	PLINK=/hpc/local/CentOS7/dhl_ec/software/plink_v1.9
+	SOFTWARE=${SOFTWARE}
+	QTLTOOLKIT=${QTLTOOLKIT}
+	### FOR DEBUG
+	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
+	### FOR DEBUG
+	QCTOOL=${QCTOOL}
+	SNPTEST252=${SNPTEST252}
+	FASTQTL=${FASTQTL}
+	QTL=${QTL}
+	FASTQCTLADDON=${FASTQCTLADDON}
+	FASTQTLPARSER=${FASTQTLPARSER}
+	LZ13=${LZ13}
+	BGZIP=${BGZIP}
+	TABIX=${TABIX}
+	PLINK=${PLINK}
 
 	### PROJECT SPECIFIC 
 	ROOTDIR=${3} # the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl; [arg3]
 	PROJECTDIR=${4} # where you want stuff to be save inside the rootdir, e.g. mqtl_aems450k1; [arg4]
+	
 	if [ ! -d ${ROOTDIR}/${PROJECTDIR} ]; then
 				echo "The project directory doesn't exist; Mr. Bourne will make it for you."
 				mkdir -v ${ROOTDIR}/${PROJECTDIR}
@@ -222,37 +257,6 @@ else
 	
 	EXCLUSION_COV="${8}" # e.g. "excl_cov.txt"
 	
-	### MAIL SETTINGS -- PLEASE CHANGE TO YOUR SITUATION
-	### --- THESE COULD BE ARGUMENTS --- ###
-	EMAIL=${9} # e.g. "s.w.vanderlaan-2@umcutrecht.nl"
-	MAILTYPE=${10} # e.g. "as"; you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
-
-	### SOURCE THE CONFIGURATION FILE
-	source ${11}
-	QTL_TYPE=${12} # CIS or TRANS
-	echo "${QTL_TYPE}"
-	### QSUB SETTINGS
-	### --- THESE COULD BE ARGUMENTS --- ###
-	QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
-	VMEM_QCTOOL=${VMEM_QCTOOL_CONFIG}
-	QUEUE_NOM=${QUEUE_NOM_CONFIG}
-	VMEM_NOM=${VMEM_NOM_CONFIG}
-	QUEUE_PERM=${QUEUE_PERM_CONFIG}
-	VMEM_PERM=${VMEM_PERM_CONFIG}
-
-	### FASTQTL SETTINGS
-	### --- THESE COULD BE ARGUMENTS --- ###
-	SEEDNO=${SEEDNO_CONFIG}
-	PERMSTART=${PERMSTART_CONFIG}
-	PERMEND=${PERMEND_CONFIG}
-	
-	### QCTOOL SETTINGS
-	### --- THESE COULD BE ARGUMENTS --- ###
-	MAF=${MAF_CONFIG}
-	INFO=${INFO_CONFIG}
-	HWE=${HWE_CONFIG}
-
-
 	### Check parameters for existence 
 
 	if [ -s ${REGIONS} ]; then
@@ -1215,11 +1219,6 @@ else
 	fi
 
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	#echo "Auto_run for variant_analysis."
-	#echo ""
-	#echo "/hpc/dhl_ec/jschaap/GWASToolKit/run_analysis_auto_variant.sh ${SUMMARY}/ctmm_qtl_tophits.txt"> ${SUMMARY}/${STUDYNAME}_GWAS_var_analysis_excl_${EXCLUSION_TYPE}.sh
-	#qsub -S /bin/bash -N GWAS_var_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLParser_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/GWAS_var_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME}.errors -o ${SUMMARY}/GWAS_var_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME}.log -l h_rt=00:15:00 -l h_vmem=4G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_GWAS_var_analysis_excl_${EXCLUSION_TYPE}.sh
-
 
 	echo ""
 	echo ""
@@ -1229,7 +1228,7 @@ else
 		echo ""
 		### Creating a job that will aid in plotting the data.
 		### FOR DEBUGGING
-		###${FASTQCTLADDON}/fastQTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME}
+		###${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}
 		# Jacco: extra parameter for the directory with clumped data (same level as qtl/qtl_summary dirs). Also extra parameter to tell script wich data must be plotted
 		echo "${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}"> ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh
 		qsub -S /bin/bash -N QTLPlot_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.log -l h_rt=04:00:00 -l h_vmem=16G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh

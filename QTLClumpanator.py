@@ -1,5 +1,28 @@
 #!/usr/bin/python
 
+print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+print "                              QTLTools Clumpanator"
+print ""
+print ""
+print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
+print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
+print "* Last update        : 2018-02-21"
+print "* Name               : QTLClumpanator"
+print "* Version            : v1.0.0"
+print ""
+# print "* Description        : In case of a CTMM eQTL analysis this script will collect all "
+# print "                       analysed genes and list their associated ProbeIDs as well as the"
+# print "                       number of variants analysed."
+# print "                       In case of a AEMS mQTL analysis this script will collect all "
+# print "                       analysed CpGs and their associated genes, as well as the "
+# print "                       the number of variants analysed."
+# print "                       In both cases it will produce a LocusZoom (v1.2+) input file"
+# print "                       which contains the variant associated (MarkerName) and the "
+# print "                       p-value (P-value)."
+print ""
+print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
+
 from subprocess import call
 from datetime import datetime
 from os.path import isfile, isdir
