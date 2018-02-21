@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 #$ -S /bin/bash 																			# the type of BASH you'd like to use
-#$ -N fastQTLAnalyzer_v2  																	# the name of this script
+#$ -N cisQTLAnalyzer_v2  																	# the name of this script
 #$ -hold_jid some_other_basic_bash_script  													# the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
-#$ -o /hpc/dhl_ec/svanderlaan/projects/test_mqtl/fastQTLAnalyzer_v2.log						# the log file of this job
-#$ -e /hpc/dhl_ec/svanderlaan/projects/test_mqtl/fastQTLAnalyzer_v2.errors					# the error file of this job
+#$ -o /hpc/dhl_ec/svanderlaan/projects/test_eqtl/cisQTLAnalyzer_v2.log						# the log file of this job
+#$ -e /hpc/dhl_ec/svanderlaan/projects/test_eqtl/cisQTLAnalyzer_v2.errors					# the error file of this job
 #$ -l h_rt=00:30:00  																		# h_rt=[max time, e.g. 02:02:01] - this is the time you think the script will take
 #$ -l h_vmem=4G  																			#  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
 # -l tmpspace=64G  																		# this is the amount of temporary space you think your script will use
@@ -127,18 +127,16 @@ script_arguments_error() {
 }
 
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echobold "+                                      QUANTITATIVE TRAIT LOCUS ANALYZER                                +"
+echobold "+                                   is-QUANTITATIVE TRAIT LOCUS ANALYZER                                +"
 echobold "+                                                                                                       +"
 echobold "+                                                                                                       +"
-echobold "+ * Written by  : Sander W. van der Laan                                                                +"
-echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echobold "+ * Updated by  : Jacco Schaap			                                                              +"
-echobold "+ * E-mail      : j.schaap-2@umcutrecht.nl             	                                              +"
-echobold "+ * Last update : 2017-08-28                                                                            +"
-echobold "+ * Version     : 2.1.0                                                                                 +"
+echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
+echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
+echobold "+ * Last update : 2018-02-21                                                                            +"
+echobold "+ * Version     : 2.2.0                                                                                 +"
 echobold "+                                                                                                       +"
-echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
-echobold "+                 submit this in a job.                                                                 +"
+echobold "+ * Description : This script will set some directories, and execute a QTL analysis according to your   +"
+echobold "+                 specifications. You can run an cis- or trans-QTL analysis.                            +"
 echobold "+                                                                                                       +"
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's date and time: "$(date)

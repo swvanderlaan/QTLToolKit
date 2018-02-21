@@ -126,13 +126,13 @@ script_arguments_error() {
 }
 
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echobold "+                                      QUANTITATIVE TRAIT LOCUS ANALYZER                                +"
+echobold "+                                    QUANTITATIVE TRAIT LOCUS ANALYZER                                  +"
 echobold "+                                                                                                       +"
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan                                                                +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echobold "+ * Last update : 2017-03-10                                                                            +"
-echobold "+ * Version     : 2.1.0                                                                                 +"
+echobold "+ * Last update : 2018-02-21                                                                            +"
+echobold "+ * Version     : 2.2.0                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echobold "+                 submit this in a job.                                                                 +"
