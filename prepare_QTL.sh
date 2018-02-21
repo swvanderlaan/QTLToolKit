@@ -27,11 +27,10 @@ echo ""
 echo ""
 echo "* Written by  : Sander W. van der Laan"
 echo "* E-mail      : s.w.vanderlaan-2@umcutrecht.nl"
-echo "* Last update : 2017-11-17"
-echo "* Version     : v1.1.0"
+echo "* Last update : 2018-02-21"
+echo "* Version     : v1.2.0"
 echo ""
-echo "* Description : This script will prepare biobank data "
-echo "                for use with fastQTL/QTLTool."
+echo "* Description : This script will prepare biobank data for use with QTLTool."
 echo ""
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's: "$(date)
@@ -114,7 +113,7 @@ echo "Convert the phenotype files and index these..."
 # zcat ${PHENOTYPESAEMS450K2}/aems450k2_QC_443872_blood.bed.gz | tail
 # echo ""
 # echo ""
-echo "Converting to VCF...."
+# echo "Converting to VCF...."
 # echo "* AEGS..."
 # for CHR in $(seq 1 22) X; do 
 # 	echo "* submitting conversion job for chromosome ${CHR}..."
@@ -122,20 +121,20 @@ echo "Converting to VCF...."
 # 	qsub -S /bin/bash -N prep.QTL.makeVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR} -e ${AEGSIMPUTEDDATA}/prep.QTL.makeVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AEGSIMPUTEDDATA}/prep.QTL.makeVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AEGSIMPUTEDDATA}/prep.QTL.makeVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
-echo "* AAAGS..."
-for CHR in $(seq 1 22) X; do 
-	echo "* submitting conversion job for chromosome ${CHR}..."
-	echo "${QCTOOL} -g ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
-	qsub -S /bin/bash -N prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
-	echo ""
-done
-# echo "* CTMMGS..."
+# echo "* AAAGS..."
 # for CHR in $(seq 1 22) X; do 
 # 	echo "* submitting conversion job for chromosome ${CHR}..."
-# 	echo "${QCTOOL} -g ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-# 	qsub -S /bin/bash -N prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	echo "${QCTOOL} -g ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	qsub -S /bin/bash -N prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
+echo "* CTMMGS..."
+for CHR in $(seq 1 22) X; do 
+	echo "* submitting conversion job for chromosome ${CHR}..."
+	echo "${QCTOOL} -g ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+	qsub -S /bin/bash -N prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+	echo ""
+done
 echo ""
 echo "Indexing VCF..."
 # echo "* AEGS..."
@@ -145,20 +144,20 @@ echo "Indexing VCF..."
 # 	qsub -S /bin/bash -N prep.QTL.indexVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR} -e ${AEGSIMPUTEDDATA}/prep.QTL.indexVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AEGSIMPUTEDDATA}/prep.QTL.indexVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AEGSIMPUTEDDATA}/prep.QTL.indexVCF.aegs_combo_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
-echo "* AAAGS..."
-for CHR in $(seq 1 22) X; do 
-	echo "* submitting indexing job for chromosome ${CHR}..."
-	echo "${SOFTWARE}/bgzip_v1.3 ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
-	qsub -S /bin/bash -N prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
-	echo ""
-done
-# echo "* CTMMGS..."
+# echo "* AAAGS..."
 # for CHR in $(seq 1 22) X; do 
 # 	echo "* submitting indexing job for chromosome ${CHR}..."
-# 	echo "${SOFTWARE}/bgzip_v1.3 ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-# 	qsub -S /bin/bash -N prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	echo "${SOFTWARE}/bgzip_v1.3 ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${AAAGSIMPUTEDDATA}/aaags_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	qsub -S /bin/bash -N prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
+echo "* CTMMGS..."
+for CHR in $(seq 1 22) X; do 
+	echo "* submitting indexing job for chromosome ${CHR}..."
+	echo "${SOFTWARE}/bgzip_v1.3 ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+	qsub -S /bin/bash -N prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+	echo ""
+done
 echo ""
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Wow. I'm all done buddy. What a job! let's have a beer!"

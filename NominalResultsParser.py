@@ -1,17 +1,15 @@
 #!/usr/bin/python
 
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-print "                         fastQTL NOMINAL RESULTS PARSER"
+print "                         QTLTools NOMINAL RESULTS PARSER"
 print ""
 print ""
-print "* Written by         : Tim Bezemer"
-print "* Updated by         : Jacco Schaap"
-
-print "* E-mail             : t.bezemer-2@umcutrecht.nl"
+print "* Written by         : Tim Bezemer | t.bezemer-2@umcutrecht.nl"
+print "* Updated by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2016-10-28"
+print "* Last update        : 2018-02-21"
 print "* Name               : NominalResultsParser"
-print "* Version            : v1.2.1"
+print "* Version            : v1.2.3"
 print ""
 print "* Description        : In case of a CTMM eQTL analysis this script will collect all "
 print "                       analysed genes and list their associated ProbeIDs as well as the"
@@ -32,8 +30,8 @@ from os import mkdir
 from os.path import isdir, isfile
 from subprocess import call
 
-fn_nom = argv[1] # Nominal data. Ether clumped or normal
-#fn_perm = argv[2] # Permuted data. Ether clumped or normal
+fn_nom = argv[1] # Nominal data. Either clumped or normal
+#fn_perm = argv[2] # Permuted data. Either clumped or normal
 #fn2 = argv[3] # Directory were clumped data can be found
 #clump = argv[4] # Yes for plotting clumped set, N for plotting normal set
 

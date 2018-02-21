@@ -32,13 +32,49 @@ if [ -d ~/git/QTLToolKit/.git ]; then \
 --------------
 
 #### USAGE 
+The only script the user should use is the `[cis/trans]QTLAnalyzer.sh` script in conjunction with a configuration file `qtl.conf`. 
+
+By typing...
+
+```
+bash [cis/trans]QTLAnalyzer.sh $(pwd)/qtl.conf
+```
+
+...the user will control what analysis will be done. Simply typing `bash [cis/trans]QTLAnalyzer.sh` will produce an extensive error-message explaining what arguments are expected. Note: it is absolutely pivotal to use `$(pwd)` to indicate the whole path to the configuration file, because this is used by the script(s) for the creation of directories _etc._ 
+
+In addition, there are multiple scripts that work in union or solo. Below a description of each.
+
+- *prepare_QTL.sh*
+You can use this scripts to prepare the input-data. This script will 
+    - create, and index the 'phenotype' bed-file, _i.e._ the expression or methylation data.
+    - convert VCF files from bgen-files.
+    
 
 \*Further instructions will follow\*.
+
+
+--------------
+
+#### COMMON WORKFLOW 
+
+\*A schematic will be put here\*.
+
+
+--------------
+
+#### TO DO
+There are definitely improvements needed. Below of things I'd like to add or edit in the (near) future.
+
+- simplify the configuration using a config-file, similar to [GWASToolKit](http://swvanderlaan.github.io/GWASToolKit/)
+- add proper `--help` flag
+- clean up codes further, especially with respect to the various error-flags
+- add in checks of the environment, similar to `slideToolkit` scripts
+- add in some code to produce a simple report
 
 --------------
 
 #### The MIT License (MIT)
-##### Copyright (c) 2014-2017 Sander W. van der Laan | s.w.vanderlaan [at] gmail [dot] com.
+##### Copyright (c) 2014-2018 Sander W. van der Laan | s.w.vanderlaan [at] gmail [dot] com.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:   
 
