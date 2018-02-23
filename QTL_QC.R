@@ -192,7 +192,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
   if (opt$qtltype == "EQTL") { 
     cat("\n...for a CTMM based eQTL analysis in monocytes...\n")
-    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE)
+    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE, sep = "\t", na.strings = "")
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
