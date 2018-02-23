@@ -192,12 +192,12 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
   if (opt$qtltype == "EQTL") { 
     cat("\n...for a CTMM based eQTL analysis in monocytes...\n")
-    ANNOTATIONSFILE = fread(opt$annotfile, head = TRUE, stringsAsFactors = FALSE)
+    ANNOTATIONSFILE = fread(opt$annotfile, header = TRUE, stringsAsFactors = FALSE)
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
     cat("\n...for an Athero-Express based MQTL analysis...\n")
-    ANNOTATIONSFILE = read.table(opt$annotfile, head = TRUE, stringsAsFactors = FALSE, sep = ",", na.strings = "")
+    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE, sep = ",", na.strings = "")
     
     colnames(ANNOTATIONSFILE) = c("IlmnID", "ProbeID", 
                                   "AddressA_ID", "AlleleA_ProbeSeq", "AddressB_ID", "AlleleB_ProbeSeq", 
@@ -213,7 +213,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   }
   
   cat("\nLoading variant statistics...\n")
-  VARIANTSTATS.RAW = fread(opt$genstats, head = TRUE, stringsAsFactors = FALSE)
+  VARIANTSTATS.RAW = fread(opt$genstats, header = TRUE, stringsAsFactors = FALSE)
   cat("\n* calculating 'minor allele count' (MAC)...")
   # calculate MAC
   VARIANTSTATS.RAW$MAC <- (VARIANTSTATS.RAW[,19]*VARIANTSTATS.RAW[,18]*2)
@@ -248,7 +248,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                              "AvgMAxPostCall", "Info", "HWE", "N", "Imputation")
   
   ### Loading *nominal* results
-  RESULTS = read.table(opt$resultfile, head = FALSE, stringsAsFactors = FALSE)
+  RESULTS = read.table(opt$resultfile, header = FALSE, stringsAsFactors = FALSE)
   if (opt$resulttype == "NOM") { # argument 3
     cat("\n\nLoading data from 'nominal pass'...\n")
     
@@ -305,7 +305,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\nLoading data from 'permutation pass'...\n")
     # old RESULTS = RESULTS[ , c(1, 4, 3, 7, 9)]
     # full pass
-    if(opt$analysetype == "CIS") {
+    if (opt$analysetype == "CIS") {
       # 1. The phenotype ID
       # 2. The chromosome ID of the phenotype
       # 3. The start position of the phenotype
