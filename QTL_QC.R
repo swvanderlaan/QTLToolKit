@@ -1,19 +1,19 @@
-#!/hpc/local/CentOS7/dhl_ec/software/R-3.3.1/bin/Rscript --vanilla
+#!/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript --vanilla
 
 # Alternative shebang for local Mac OS X: "#!/usr/local/bin/Rscript --vanilla"
-# Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.3.1/bin/Rscript --vanilla
+# Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript --vanilla
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    QTL RESULTS QUALITY CONTROL & PARSER v2
-    \n
-    * Version: v2.2.2
-    * Last edit: 2018-02-23
-    * Created by: J. Schaap | j.schaap-2@umcutrecht.nl
-    \n
-    * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
-    Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
-    R 3+ installed, Mac OS X and Windows.
-    
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                                         QTL RESULTS QUALITY CONTROL & PARSER v2
+\n
+* Version: v2.2.2
+* Last edit: 2018-02-23
+* Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
+\n
+* Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
+Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
+R 3+ installed, Mac OS X and Windows.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
 # usage: ./QTL_QC.R -p projectdir -r resultfile -o outputdir -t resulttype -q qtltype -a annotfile -j genstatsfile [OPTIONAL: -v verbose (DEFAULT) -q quiet]
 #        ./QTL_QC.R --projectdir projectdir --resultsfile resultfile --outputdir outputdir --resulttype resulttype --qtltype qtltype --annotfile annotfile --genstats genestatfile [OPTIONAL: --verbose verbose (DEFAULT) -quiet quiet]
