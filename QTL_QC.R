@@ -3,10 +3,10 @@
 # Alternative shebang for local Mac OS X: "#!/usr/local/bin/Rscript --vanilla"
 # Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.3.1/bin/Rscript --vanilla
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    fastQTL RESULTS QUALITY CONTROL & PARSER v2
+    QTL RESULTS QUALITY CONTROL & PARSER v2
     \n
-    * Version: v2.2.1
-    * Last edit: 2017-18-10
+    * Version: v2.2.2
+    * Last edit: 2018-02-23
     * Created by: J. Schaap | j.schaap-2@umcutrecht.nl
     \n
     * Description:  Results parsing and quality control from fastQTL results using CTMM (eQTL) or 
@@ -15,8 +15,8 @@ cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
-# usage: ./fastQTL_QC.R -p projectdir -r resultfile -o outputdir -t resulttype -q qtltype -a annotfile -j genstatsfile [OPTIONAL: -v verbose (DEFAULT) -q quiet]
-#        ./fastQTL_QC.R --projectdir projectdir --resultsfile resultfile --outputdir outputdir --resulttype resulttype --qtltype qtltype --annotfile annotfile --genstats genestatfile [OPTIONAL: --verbose verbose (DEFAULT) -quiet quiet]
+# usage: ./QTL_QC.R -p projectdir -r resultfile -o outputdir -t resulttype -q qtltype -a annotfile -j genstatsfile [OPTIONAL: -v verbose (DEFAULT) -q quiet]
+#        ./QTL_QC.R --projectdir projectdir --resultsfile resultfile --outputdir outputdir --resulttype resulttype --qtltype qtltype --annotfile annotfile --genstats genestatfile [OPTIONAL: --verbose verbose (DEFAULT) -quiet quiet]
 
 #--------------------------------------------------------------------------
 # 1. Phenotype ID
@@ -138,9 +138,6 @@ opt = parse_args(OptionParser(option_list=option_list))
 #opt$annotfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/annotation_ctmm_all.csv"
 
 #genstatistics=read.table("/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7.newstats.stats")
-
-
-
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 
