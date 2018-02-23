@@ -9,7 +9,7 @@ cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     * Last edit: 2018-02-23
     * Created by: J. Schaap | j.schaap-2@umcutrecht.nl
     \n
-    * Description:  Results parsing and quality control from fastQTL results using CTMM (eQTL) or 
+    * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
     Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
     R 3+ installed, Mac OS X and Windows.
     
@@ -31,7 +31,7 @@ cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #--------------------------------------------------------------------------
 cat("\n* Clearing the environment...\n\n")
 ### CLEAR THE BOARD
-rm(list=ls())
+rm(list = ls())
 
 cat("\n* Loading function to install packages...\n\n")
 ### Prerequisite: 'optparse'-library
@@ -46,15 +46,17 @@ cat("\n* Loading function to install packages...\n\n")
 ### FUNCTION TO INSTALL PACKAGES
 install.packages.auto <- function(x) { 
   x <- as.character(substitute(x)) 
-  if(isTRUE(x %in% .packages(all.available = TRUE))) { 
+  if (isTRUE(x %in% .packages(all.available = TRUE))) { 
     eval(parse(text = sprintf("require(\"%s\")", x)))
   } else { 
     # Update installed packages - this may mean a full upgrade of R, which in turn
     # may not be warrented. 
     #update.packages(ask = FALSE) 
-    eval(parse(text = sprintf("install.packages(\"%s\", dependencies = TRUE)", x)))
+    eval(parse(text = sprintf("install.packages(\"%s\", 
+                              dependencies = TRUE, 
+                              repos = \"https://cloud.r-project.org/\")", x)))
   }
-  if(isTRUE(x %in% .packages(all.available = TRUE))) { 
+  if (isTRUE(x %in% .packages(all.available = TRUE))) { 
     eval(parse(text = sprintf("require(\"%s\")", x)))
   } else {
     source("http://bioconductor.org/biocLite.R")
@@ -70,6 +72,7 @@ cat("\n* Checking availability of required packages and installing if needed...\
 ### INSTALL PACKAGES WE NEED
 install.packages.auto("optparse")
 install.packages.auto("tools")
+install.packages.auto("data.table")
 install.packages.auto("qvalue") # Needed for multiple-testing correction
 
 cat("\nDone! Required packages installed and loaded.\n\n")
@@ -77,65 +80,65 @@ cat("\nDone! Required packages installed and loaded.\n\n")
 cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
 cat("\n* Setting colours...\n\n")
-uithof_color=c("#FBB820","#F59D10","#E55738","#DB003F","#E35493","#D5267B",
-               "#CC0071","#A8448A","#9A3480","#8D5B9A","#705296","#686AA9",
-               "#6173AD","#4C81BF","#2F8BC9","#1290D9","#1396D8","#15A6C1",
-               "#5EB17F","#86B833","#C5D220","#9FC228","#78B113","#49A01D",
-               "#595A5C","#A2A3A4")
+uithof_color = c("#FBB820","#F59D10","#E55738","#DB003F","#E35493","#D5267B",
+                 "#CC0071","#A8448A","#9A3480","#8D5B9A","#705296","#686AA9",
+                 "#6173AD","#4C81BF","#2F8BC9","#1290D9","#1396D8","#15A6C1",
+                 "#5EB17F","#86B833","#C5D220","#9FC228","#78B113","#49A01D",
+                 "#595A5C","#A2A3A4", "#D7D8D7", "#ECECEC", "#FFFFFF", "#000000")
 #--------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------
 ### OPTION LISTING
 option_list = list(
-  make_option(c("-p", "--projectdir"), action="store", default=NA, type='character',
-              help="Path to the project directory."),
-  make_option(c("-r", "--resultfile"), action="store", default=NA, type='character',
-              help="Path to the results directory, relative to the project directory."),
-  make_option(c("-t", "--resulttype"), action="store", default=NA, type='character',
-              help="The result type, either [NOM/PERM] for nominal or permutation results, respectively."),
-  make_option(c("-q", "--qtltype"), action="store", default=NA, type='character',
-              help="The quantitative trait locus (QTL) analysis type , either [EQTL/MQTL] for expression or methylation QTL analysis, respectively."),
-  make_option(c("-o", "--outputdir"), action="store", default=NA, type='character',
-              help="Path to the output directory."),
-  make_option(c("-a", "--annotfile"), action="store", default=NA, type='character',
-              help="Path to the annotation file."),
-  make_option(c("-j", "--genstats"), action="store", default=NA, type='character',
-              help="Path to the summary statistics of the genotypes."),
-  make_option(c("-z", "--analysetype"), action="store", default=NA, type='character',
-              help="Cis or trans [CIS/TRANS] analyse ."), 
-  make_option(c("-v", "--verbose"), action="store_true", default=TRUE,
-              help="Should the program print extra stuff out? [default %default]"),
-  make_option(c("-s", "--silent"), action="store_false", dest="verbose",
-              help="Make the program not be verbose.")
+  make_option(c("-p", "--projectdir"), action = "store", default = NA, type = 'character',
+              help = "Path to the project directory."),
+  make_option(c("-r", "--resultfile"), action = "store", default = NA, type = 'character',
+              help = "Path to the results directory, relative to the project directory."),
+  make_option(c("-t", "--resulttype"), action = "store", default = NA, type = 'character',
+              help = "The result type, either [NOM/PERM] for nominal or permutation results, respectively."),
+  make_option(c("-q", "--qtltype"), action = "store", default = NA, type = 'character',
+              help = "The quantitative trait locus (QTL) analysis type , either [EQTL/MQTL] for expression or methylation QTL analysis, respectively."),
+  make_option(c("-o", "--outputdir"), action = "store", default = NA, type = 'character',
+              help = "Path to the output directory."),
+  make_option(c("-a", "--annotfile"), action = "store", default = NA, type = 'character',
+              help = "Path to the annotation file."),
+  make_option(c("-j", "--genstats"), action = "store", default = NA, type = 'character',
+              help = "Path to the summary statistics of the genotypes."),
+  make_option(c("-z", "--analysetype"), action = "store", default = NA, type = 'character',
+              help = "Cis or trans [CIS/TRANS] analyse ."), 
+  make_option(c("-v", "--verbose"), action = "store_true", default = TRUE,
+              help = "Should the program print extra stuff out? [default %default]"),
+  make_option(c("-s", "--silent"), action = "store_false", dest = "verbose",
+              help = "Make the program not be verbose.")
   #make_option(c("-c", "--cvar"), action="store", default="this is c",
   #            help="a variable named c, with a default [default %default]")  
 )
-opt = parse_args(OptionParser(option_list=option_list))
-
-#opt$projectdir="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data"
-#opt$outputdir="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/qtltool_qc_result/"
-#opt$resulttype="NOM"
-#opt$resulttype="PERM"
-#opt$qtltype="EQTL"
+opt = parse_args(OptionParser(option_list = option_list))
+# 
+# opt$projectdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
+# opt$outputdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
+# opt$resulttype = "NOM"
+# opt$resulttype="PERM"
+# opt$qtltype = "EQTL"
 
 ### QTLTool
-#opt$analysetype="CIS"
-# nom
-#opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/first_qtltoolkit_data/ctmm_QC_qtlnom_clumped_rs10953541_excl_NONMONOCYTE.txt.gz"
-#opt$genstats="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/first_qtltoolkit_data/ctmm_1kGp3GoNL5_QC_rs10953541_excl_NONMONOCYTE.stats"
-# perm
-#opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/first_qtltoolkit_data/ctmm_QC_qtlperm_clumped_rs10953541_excl_NONMONOCYTE.txt.gz"
+# opt$analysetype = "CIS"
+### nom
+# opt$resultfile = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/ctmm_QC_qtlnom_rs7528419_excl_EXCL_DEFAULT.txt.gz"
+# opt$genstats = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/ctmm_1kGp3GoNL5_QC_rs7528419_excl_EXCL_DEFAULT.stats"
+### perm
+# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/first_qtltoolkit_data/ctmm_QC_qtlperm_clumped_rs10953541_excl_NONMONOCYTE.txt.gz"
 
-#opt$analysetype="TRANS"
-#opt$genstats="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/ctmm_1kGp3GoNL5_RAW_chr7.stats"
-# nom
-#opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/final_chr7_p0.05_trans.txt.hits_cut.txt.gz"
-#opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_nominal.hits.txt.gz"
-# perm
-#opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_permuted_cis.txt.gz"
+# opt$analysetype="TRANS"
+# opt$genstats="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/ctmm_1kGp3GoNL5_RAW_chr7.stats"
+### nom
+# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/final_chr7_p0.05_trans.txt.hits_cut.txt.gz"
+# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_nominal.hits.txt.gz"
+### perm
+# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_permuted_cis.txt.gz"
 
 ### End result_data
-#opt$annotfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/annotation_ctmm_all.csv"
+# opt$annotfile = "/Users/swvanderlaan/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/ctmm.humanhtv4r2.annotation.txt"
 
 #genstatistics=read.table("/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7.newstats.stats")
 
@@ -164,7 +167,7 @@ if (opt$verbose) {
   cat("\n\n")
 }
 cat("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-cat("Wow, we are all set. Starting \"fastQTL Results Quality Control & Parser\".")
+cat("Wow, we are all set. Starting \"QTL Results Quality Control & Parser\".")
 #--------------------------------------------------------------------------
 ### START OF THE PROGRAM
 # main point of program is here, do this whether or not "verbose" is set
@@ -173,7 +176,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   
   #--------------------------------------------------------------------------
   ### GENERAL SETUP
-  Today=format(as.Date(as.POSIXlt(Sys.time())), "%Y%m%d")
+  Today = format(as.Date(as.POSIXlt(Sys.time())), "%Y%m%d")
   cat(paste("\nToday's date is: ", Today, ".\n", sep = ''))
   
   #--------------------------------------------------------------------------
@@ -189,7 +192,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
   if(opt$qtltype == "EQTL") { 
     cat ("\n...for a CTMM based eQTL analysis in monocytes...\n")
-    ANNOTATIONSFILE = read.csv(opt$annotfile, head = TRUE, stringsAsFactors = FALSE, sep = ",")
+    ANNOTATIONSFILE = fread(opt$annotfile, head = TRUE, stringsAsFactors = FALSE)
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
@@ -291,14 +294,14 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                file_path_sans_ext(basename(opt$resultfile), compression = TRUE), # get the basename file without the extension and any compression extensions
                "_histogram_nominal_beta.pdf"), onefile = TRUE)
-    hist(RESULTS$Beta, 
-         breaks = 10000,
-         xlab="Effect size", ylab="Distribution", 
-         main="Overall distribution of effect size", 
-         col = "#1290D9")
-    abline(v = mean(RESULTS$Beta), col="#E55738")
-    abline(v = (mean(RESULTS$Beta)-4*sd(RESULTS$Beta)), col="#E55738", lty = 2)
-    abline(v = (mean(RESULTS$Beta)+4*sd(RESULTS$Beta)), col="#E55738", lty = 2)
+      hist(RESULTS$Beta, 
+           breaks = 10000,
+           xlab = "Effect size", ylab = "Distribution", 
+           main = "Overall distribution of effect size", 
+           col = "#1290D9")
+      abline(v = mean(RESULTS$Beta), col = "#E55738")
+      abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+      abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
     dev.off()
     
   } else if (opt$resulttype == "PERM") { ### Loading *permutation* results 
@@ -342,21 +345,21 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                file_path_sans_ext(basename(opt$resultfile), compression = TRUE), # get the basename file without the extension and any compression extensions
                "_comparing_permutation_pvalues.pdf"), onefile = TRUE)
     
-    plot(RESULTS$Perm_P, RESULTS$Approx_Perm_P, 
-         xlab="Direct method", ylab="Beta approximation", 
-         main="Comparing permuted p-values", bty = "n", 
-         pch = 20, col = "#1290D9")
-    abline(0, 1, col="#E55738")
-    hist(RESULTS$Beta, 
-         breaks = 25,
-         xlab="Effect size", ylab="Distribution", 
-         main="Overall distribution of effect size", 
-         #bty = "n", 
-         col = "#1290D9"
-    )
-    abline(v = mean(RESULTS$Beta), col="#E55738")
-    abline(v = (mean(RESULTS$Beta)-4*sd(RESULTS$Beta)), col="#E55738", lty = 2)
-    abline(v = (mean(RESULTS$Beta)+4*sd(RESULTS$Beta)), col="#E55738", lty = 2)
+      plot(RESULTS$Perm_P, RESULTS$Approx_Perm_P, 
+           xlab = "Direct method", ylab = "Beta approximation", 
+           main = "Comparing permuted p-values", bty = "n", 
+           pch = 20, col = "#1290D9")
+      abline(0, 1, col = "#E55738")
+      hist(RESULTS$Beta, 
+           breaks = 25,
+           xlab = "Effect size", ylab = "Distribution", 
+           main = "Overall distribution of effect size", 
+           #bty = "n", 
+           col = "#1290D9"
+      )
+      abline(v = mean(RESULTS$Beta), col = "#E55738")
+      abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+      abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
     dev.off()
     
   } else {
@@ -415,15 +418,19 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   ###     - http://en.wikipedia.org/wiki/False_discovery_rate
   ###     - http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html
   ### Requires a bioconductor package: "qvalue"
-  #if(opt$resulttype == "NOM") {
-   # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues
-  #} else if(opt$resulttype == "PERM") {
+  # if(opt$resulttype == "NOM") {
+  #   # min(RESULTS$Nominal_P)
+  #   # install.packages("devtools")
+  #   # library(devtools)
+  #   # install_github("jdstorey/qvalue")  
+  # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues
+  # } else if(opt$resulttype == "PERM") {
   #  RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues
-  #} else {
-  #  cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+  # } else {
+  #  cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
   #       file=stderr()) # print error messages to stder
-  #}
-  RESULTS$Q = 1
+  # }
+  RESULTS$Q = "not calculated due to a bug in the package"
   #--------------------------------------------------------------------------
   #### ADD IN THE ANNOTATIONS ###
   cat("\nApplying annotations.\n")
@@ -535,20 +542,20 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                                      "GeneName","EntrezID", "Distance_VARIANT_GENE", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
     } else {
-      cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file=stderr()) # print error messages to stder
+      cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+           file = stderr()) # print error messages to stder
     }
     
-  } else if(opt$qtltype == "MQTL") {
-    cat ("\n...for results of an Athero-Express mQTL analysis...\n")
-    if(opt$resulttype == "NOM") {
+  } else if (opt$qtltype == "MQTL") {
+    cat("\n...for results of an Athero-Express mQTL analysis...\n")
+    if (opt$resulttype == "NOM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "Distance_VARIANT_CpG", "Chr_CpG", "BP_CpG",
                                      "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
                                      "CpG_Island_Relation_UCSC", "Phantom", "DMR", "Enhancer", "HMM_Island",
                                      "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
-    } else if(opt$resulttype == "PERM") {
+    } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "Distance_VARIANT_CpG", "Chr_CpG", "BP_CpG",
                                      "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
@@ -556,13 +563,13 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                                      "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
     } else {
-      cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file=stderr()) # print error messages to stder
+      cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+           file = stderr()) # print error messages to stder
     }
     
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+         file = stderr()) # print error messages to stder
   }
   
   cat("\n* Remove temporary files...\n")
@@ -571,7 +578,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   #--------------------------------------------------------------------------
   ### SAVE NEW DATA ###
   cat("\n* Saving parsed data...\n")
-  if(opt$resulttype == "NOM") {
+  if (opt$resulttype == "NOM") {
     #write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$Q <= 0.05), ], # with filtering on Q-value 
     write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # without filtering on Q-value
                 #paste0(opt$outputdir, "/", 
@@ -583,7 +590,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                        file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
                        "_nominal.all.txt"),
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
-  } else if(opt$resulttype == "PERM") {
+  } else if (opt$resulttype == "PERM") {
     write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # with filtering on Q-value 
                 #write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$Q != "NA"), ], # without filtering on Q-value
                 paste0(opt$outputdir, "/", 
@@ -596,8 +603,8 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                 #       "_perm.all.txt"),
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+         file = stderr()) # print error messages to stder
   }
   
 } else {
@@ -609,7 +616,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
       - --q/qtltype    : the QTL analysis type (EQTL for expression QTL; MQTL for methylation QTL)\n
       - --a/annotfile  : path to annotation file of genes\n
       - --j/genstats   : path to summary statistics of variants\n\n", 
-      file=stderr()) # print error messages to stderr
+      file = stderr()) # print error messages to stderr
 }
 
 #--------------------------------------------------------------------------
