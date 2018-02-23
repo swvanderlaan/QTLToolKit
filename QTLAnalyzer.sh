@@ -141,68 +141,11 @@ echo "Today's date and time: "$(date)
 TODAY=$(date +"%Y%m%d")
 echo ""
 
-### SETTING DIRECTORIES (from configuration file).
-# Loading the configuration file (please refer to the GWASToolKit-Manual for specifications of this file). 
-source "$1" # Depends on arg1.
-
-### REQUIRED | GENERALS	
-CONFIGURATIONFILE="$1" # Depends on arg1 -- but also on where it resides!!!
-
-### MAIL SETTINGS -- PLEASE CHANGE TO YOUR SITUATION
-EMAIL=${YOUREMAIL}
-MAILTYPE=${MAILSETTINGS}
-
-### SOURCE THE CONFIGURATION FILE
-QTL_TYPE=${QTL_TYPE} # CIS or TRANS
-echo "${QTL_TYPE}"
-### QSUB SETTINGS
-QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
-VMEM_QCTOOL=${VMEM_QCTOOL_CONFIG}
-QUEUE_NOM=${QUEUE_NOM_CONFIG}
-VMEM_NOM=${VMEM_NOM_CONFIG}
-QUEUE_PERM=${QUEUE_PERM_CONFIG}
-VMEM_PERM=${VMEM_PERM_CONFIG}
-
-### FASTQTL SETTINGS
-SEEDNO=${SEEDNO_CONFIG}
-PERMSTART=${PERMSTART_CONFIG}
-PERMEND=${PERMEND_CONFIG}
-
-### QCTOOL SETTINGS
-MAF=${MAF_CONFIG}
-INFO=${INFO_CONFIG}
-HWE=${HWE_CONFIG}
-
-### SET STUDY AND SAMPLE TYPE
-### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
-###       You can set the exclusion criteria 'NONAEGS/FEMALES/MALES' if you want to analyse
-###       all AE data!
-### Set the analysis type.
-STUDY_TYPE=${STUDY_TYPE} # AEMS450K1/AEMS450K2/CTMM
-
-### Set the analysis type.
-SAMPLE_TYPE=${SAMPLE_TYPE} # AE: PLAQUES/BLOOD; CTMM: MONOCYTES
-
-### GENERIC SETTINGS
-SOFTWARE=${SOFTWARE}
-QTLTOOLKIT=${QTLTOOLKIT}
-### FOR DEBUG
-### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
-### FOR DEBUG
-QCTOOL=${QCTOOL}
-SNPTEST252=${SNPTEST252}
-QTLTOOLS=${QTLTOOLS}
-LZ13=${LZ13}
-BGZIP=${BGZIP}
-TABIX=${TABIX}
-PLINK=${PLINK}
-PYTHON=${PYTHON}
-
 ### START of if-else statement for the number of command-line arguments passed ###
 if [[ $# -lt 1 ]]; then 
 	echoerrorflash "                                     *** Oh no! Computer says no! ***"
 	echo ""
-	script_arguments_error "You must supply at least [10] arguments when running a mQTL or eQTL analysis using Athero-Express 
+	script_arguments_error "You must supply at least [1] argument when running a mQTL or eQTL analysis using Athero-Express 
 or CTMM data!"
 	
 elif [[ (${STUDY_TYPE} = "AEMS450K1" || ${STUDY_TYPE} = "AEMS450K2") && ${SAMPLE_TYPE} = "MONOCYTES" ]]; then 
@@ -225,6 +168,60 @@ SAMPLE_TYPE!"
 	
 else
 
+	### LOADING CONFIGURATION FILE
+	# Loading the configuration file (please refer to the QTLToolKit-Manual for specifications of this file). 
+	source "$1" # Depends on arg1.
+	
+	### REQUIRED | GENERALS	
+	CONFIGURATIONFILE="$1" # Depends on arg1 -- but also on where it resides!!!
+	
+	### MAIL SETTINGS
+	EMAIL=${YOUREMAIL}
+	MAILTYPE=${MAILSETTINGS}
+	
+	### QSUB SETTINGS
+	QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
+	VMEM_QCTOOL=${VMEM_QCTOOL_CONFIG}
+	QUEUE_NOM=${QUEUE_NOM_CONFIG}
+	VMEM_NOM=${VMEM_NOM_CONFIG}
+	QUEUE_PERM=${QUEUE_PERM_CONFIG}
+	VMEM_PERM=${VMEM_PERM_CONFIG}
+
+	### QTL SETTINGS
+	SEEDNO=${SEEDNO_CONFIG}
+	PERMSTART=${PERMSTART_CONFIG}
+	PERMEND=${PERMEND_CONFIG}
+	
+	### QCTOOL SETTINGS
+	MAF=${MAF_CONFIG}
+	INFO=${INFO_CONFIG}
+	HWE=${HWE_CONFIG}
+	
+	### SET STUDY AND SAMPLE TYPE
+	### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
+	###       You can set the exclusion criteria 'NONAEGS/FEMALES/MALES' if you want to analyse
+	###       all AE data!
+	### Set the analysis type.
+	STUDY_TYPE=${STUDY_TYPE} # AEMS450K1/AEMS450K2/CTMM
+	
+	### Set the analysis type.
+	SAMPLE_TYPE=${SAMPLE_TYPE} # AE: PLAQUES/BLOOD; CTMM: MONOCYTES
+	
+	### GENERIC SETTINGS
+	SOFTWARE=${SOFTWARE}
+	QTLTOOLKIT=${QTLTOOLKIT}
+	### FOR DEBUG
+	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
+	### FOR DEBUG
+	QCTOOL=${QCTOOL}
+	SNPTEST252=${SNPTEST252}
+	QTLTOOLS=${QTLTOOLS}
+	LZ13=${LZ13}
+	BGZIP=${BGZIP}
+	TABIX=${TABIX}
+	PLINK=${PLINK}
+	PYTHON=${PYTHON}
+
 	### PROJECT SPECIFIC 
 	ROOTDIR=${ROOTDIR} # the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl
 	PROJECTNAME=${PROJECTNAME} # e.g. "CAD"
@@ -239,7 +236,7 @@ else
 	PROJECT=${ROOTDIR}/${PROJECTDIR}
 
 	### DEFINE REGION(S)
-	REGIONS=${REGIONS_FILE} # regions_for_eqtl.txt OR regions_for_qtl.small.txt; [arg5]
+	REGIONS=${REGIONS_FILE} # regions_for_eqtl.txt OR regions_for_qtl.small.txt
 	
 	### SET EXCLUSION TYPE & COVARIATES
 	EXCLUSION_TYPE=${EXCLUSION_TYPE} # e.g. "DEFAULT" -- DEFAULT/SMOKER/NONSMOKER/MALES/FEMALES/T2D/NONT2D [CKD/NONCKD/PRE2007/POST2007/NONAEGS/NONAEGSFEMALES/NONAEGSMALES -- these are AE-specific!!!]
@@ -255,11 +252,12 @@ else
 	QTLDATA=${QTLDATA}
 	QTLINDEX=${QTLINDEX}
 	ANALYSISTYPE=${ANALYSISTYPE} # indicates the type of analysis, needed for the QC-R-script [MQTL/EQTL]
-	#
-	# Indicate the COVARIATE-data to use
+	QTL_TYPE=${QTL_TYPE} # CIS or TRANS
+
+	### COVARIATES FILE
 	COVARIATES=${COVARIATES}
-	#
-	# Indicate the ANNOTATION-file to use
+
+	### ANNOTATION FILE
 	ANNOTATIONFILE=${ANNOTATIONFILE}
 
 
@@ -285,6 +283,8 @@ else
 	echo "Annotation file accompanying expression or methylation data           ${ANNOTATIONFILE}"
 	echo ""     
 	echo "Project directory                                                     ${PROJECT}"
+	echo ""
+	echo "The analysis type and QTL type are                                    ${QTL_TYPE}-${ANALYSISTYPE}"
 	echo ""
 	
 	echo "Additional QTLTools specific settings:"     

@@ -1,5 +1,9 @@
 Sex
 AgeSQR
+DiagnosisCode
+Diagnosis
+Diagnosis_revCode
+InflammatoryStateCode
 CenterCode
 Hb
 Hct
