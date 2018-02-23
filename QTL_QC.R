@@ -192,7 +192,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
   if (opt$qtltype == "EQTL") { 
     cat("\n...for a CTMM based eQTL analysis in monocytes...\n")
-    ANNOTATIONSFILE = fread(opt$annotfile, header = TRUE, stringsAsFactors = FALSE)
+    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE)
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
@@ -213,7 +213,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   }
   
   cat("\nLoading variant statistics...\n")
-  VARIANTSTATS.RAW = fread(opt$genstats, header = TRUE, stringsAsFactors = FALSE)
+  VARIANTSTATS.RAW = read.table(opt$genstats, header = TRUE, stringsAsFactors = FALSE)
   cat("\n* calculating 'minor allele count' (MAC)...")
   # calculate MAC
   VARIANTSTATS.RAW$MAC <- (VARIANTSTATS.RAW[,19]*VARIANTSTATS.RAW[,18]*2)
