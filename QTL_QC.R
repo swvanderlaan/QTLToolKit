@@ -171,8 +171,8 @@ cat("Wow, we are all set. Starting \"QTL Results Quality Control & Parser\".")
 #--------------------------------------------------------------------------
 ### START OF THE PROGRAM
 # main point of program is here, do this whether or not "verbose" is set
-if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is.na(opt$annotfile) & !is.na(opt$resulttype) & !is.na(opt$qtltype) & !is.na(opt$genstats)) {
-  cat(paste("\nWe are going to make some graphs for quality control of you fastQTL analysis. \n\nAnalysing these results...............: '",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"'\nParsed results will be saved here.....: '", opt$outputdir, "'.\n",sep=''))
+if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is.na(opt$annotfile) & !is.na(opt$resulttype) & !is.na(opt$qtltype) & !is.na(opt$genstats)) {
+  cat(paste("\nWe are going to make some graphs for quality control of you fastQTL analysis. \n\nAnalysing these results...............: '",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"'\nParsed results will be saved here.....: '", opt$outputdir, "'.\n",sep = ''))
   
   #--------------------------------------------------------------------------
   ### GENERAL SETUP
@@ -190,13 +190,13 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   cat("\nLoading annotations...\n")
   ### Location of is set by 'opt$annotfile' # argument 5
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
-  if(opt$qtltype == "EQTL") { 
-    cat ("\n...for a CTMM based eQTL analysis in monocytes...\n")
+  if (opt$qtltype == "EQTL") { 
+    cat("\n...for a CTMM based eQTL analysis in monocytes...\n")
     ANNOTATIONSFILE = fread(opt$annotfile, head = TRUE, stringsAsFactors = FALSE)
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
-    cat ("\n...for an Athero-Express based MQTL analysis...\n")
+    cat("\n...for an Athero-Express based MQTL analysis...\n")
     ANNOTATIONSFILE = read.table(opt$annotfile, head = TRUE, stringsAsFactors = FALSE, sep = ",", na.strings = "")
     
     colnames(ANNOTATIONSFILE) = c("IlmnID", "ProbeID", 
@@ -208,8 +208,8 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                                   "Phantom", "DMR", "Enhancer", "HMM_Island", "Regulatory_Feature_Name", "Regulatory_Feature_Group", "DHS", 
                                   "UCSC_RefGene_Dist")
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+         file = stderr()) # print error messages to stder
   }
   
   cat("\nLoading variant statistics...\n")
@@ -220,15 +220,15 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   
   cat("\n* calculating 'coded allele frequency' (CAF)...")
   # calculate caf
-  VARIANTSTATS.RAW$CAF <- (((2*VARIANTSTATS.RAW[,16])+VARIANTSTATS.RAW[,15])/(VARIANTSTATS.RAW[,18]*2))
+  VARIANTSTATS.RAW$CAF <- (((2*VARIANTSTATS.RAW[,16]) + VARIANTSTATS.RAW[,15])/(VARIANTSTATS.RAW[,18]*2))
   
   cat("\n* determining which variants are solely 'imputed'...")
   # make imputation column
-  if(opt$analysetype == "TRANS") {
+  if (opt$analysetype == "TRANS") {
     VARIANTSTATS.RAW$Imputation <- ifelse(VARIANTSTATS.RAW$alternate_ids == "---", 
                                           c("imputed"), c("genotyped")) 
   }
-  if(opt$analysetype == "CIS") {
+  if (opt$analysetype == "CIS") {
     VARIANTSTATS.RAW$Imputation <- ifelse(VARIANTSTATS.RAW$alternate_ids == "---", 
                                           c("imputed"), c("genotyped")) 
   }
@@ -249,10 +249,10 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   
   ### Loading *nominal* results
   RESULTS = read.table(opt$resultfile, head = FALSE, stringsAsFactors = FALSE)
-  if(opt$resulttype == "NOM") { # argument 3
+  if (opt$resulttype == "NOM") { # argument 3
     cat("\n\nLoading data from 'nominal pass'...\n")
     
-    if(opt$analysetype == "CIS") {
+    if (opt$analysetype == "CIS") {
       # 1. The phenotype ID
       # 2. The chromosome ID of the phenotype
       # 3. The start position of the phenotype
@@ -269,7 +269,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
       # 14. A binary flag equal to 1 is the variant is the top variant in cis
       RESULTS = RESULTS[ , c(1, 8, 7, 12, 13)]
     }
-    if(opt$analysetype == "TRANS") {
+    if (opt$analysetype == "TRANS") {
       # 1. Phenotype ID
       # 2. Phenotype chrID
       # 3. Phenotype start
@@ -327,7 +327,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
       # 19. The P-value of association adjusted for the number of variants tested in cis given by the fitted beta distribution. We strongly recommend to use this adjusted P-value in any downstream analysis
       RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 16, 17, 18, 19)]
     }
-    if(opt$analysetype == "TRANS") {
+    if (opt$analysetype == "TRANS") {
       # nog geen idee hoe de permuted results van QTLTools eruit zien
       RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 16, 17, 18, 19)]
     }  
@@ -360,7 +360,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
     dev.off()
     
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
          file = stderr()) # print error messages to stder
   }
   
@@ -372,7 +372,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   RESULTS$Z = qnorm(RESULTS$Nominal_P)
   
   ### Get standard deviation (SD)
-  RESULTS$SD = (RESULTS$Beta-mean(RESULTS$Beta))/RESULTS$Z
+  RESULTS$SD = (RESULTS$Beta - mean(RESULTS$Beta))/RESULTS$Z
   
   ### Get standard error of the mean (SEM)
   RESULTS$SEM = RESULTS$Beta/RESULTS$Z
@@ -386,13 +386,13 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   ### references:
   ###     - http://en.wikipedia.org/wiki/Bonferroni_correction
   ###     - https://stat.ethz.ch/R-manual/R-devel/library/stats/html/p.adjust.html
-  if(opt$resulttype == "NOM") {
-    RESULTS$Bonferroni = p.adjust(RESULTS$Nominal_P, method="bonferroni")
-  } else if(opt$resulttype == "PERM"){
-    RESULTS$Bonferroni = p.adjust(RESULTS$Approx_Perm_P, method="bonferroni")
+  if (opt$resulttype == "NOM") {
+    RESULTS$Bonferroni = p.adjust(RESULTS$Nominal_P, method = "bonferroni")
+  } else if (opt$resulttype == "PERM") {
+    RESULTS$Bonferroni = p.adjust(RESULTS$Approx_Perm_P, method = "bonferroni")
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   }
   
   cat("\n* Less conservative correction: Benjamini & Hochberg correction...\n")
@@ -400,13 +400,13 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   ### references:
   ###     - http://en.wikipedia.org/wiki/False_discovery_rate
   ###     - https://stat.ethz.ch/R-manual/R-devel/library/stats/html/p.adjust.html
-  if(opt$resulttype == "NOM") {
-    RESULTS$BenjHoch = p.adjust(RESULTS$Nominal_P, method="fdr")
-  } else if(opt$resulttype == "PERM") {
-    RESULTS$BenjHoch = p.adjust(RESULTS$Approx_Perm_P, method="fdr")
+  if (opt$resulttype == "NOM") {
+    RESULTS$BenjHoch = p.adjust(RESULTS$Nominal_P, method = "fdr")
+  } else if (opt$resulttype == "PERM") {
+    RESULTS$BenjHoch = p.adjust(RESULTS$Approx_Perm_P, method = "fdr")
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   }
   
   cat("\n* Least conservative correction: Storey & Tibshirani correction...\n")
@@ -432,18 +432,18 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   #### ADD IN THE ANNOTATIONS ###
   cat("\nApplying annotations.\n")
   cat("\n* First order based on Benjamini-Hochberg p-values...\n")
-  RESULTS.toANNOTATE=RESULTS[order(RESULTS$BenjHoch),]
+  RESULTS.toANNOTATE = RESULTS[order(RESULTS$BenjHoch),]
   
   cat("\n* Now annotating...\n")
-  if(opt$qtltype == "EQTL") { 
-    cat ("\n...the results of a CTMM based eQTL analysis in monocytes.\n")
+  if (opt$qtltype == "EQTL") { 
+    cat("\n...the results of a CTMM based eQTL analysis in monocytes.\n")
     RESULTS.toANNOTATE = cbind(RESULTS.toANNOTATE, ANNOTATIONSFILE[match(RESULTS.toANNOTATE[,1], ANNOTATIONSFILE$ProbeID ), 
                                                                    c("EntrezID","ArrayID", 
                                                                      "GeneName", "GeneInfo",
                                                                      "Chr", "GeneTxStart", "GeneTxEnd")])
     
   } else if (opt$qtltype == "MQTL") {
-    cat ("\n...the results of an Athero-Express based MQTL analysis.\n")
+    cat("\n...the results of an Athero-Express based MQTL analysis.\n")
     RESULTS.toANNOTATE = cbind(RESULTS.toANNOTATE, ANNOTATIONSFILE[match(RESULTS.toANNOTATE[,1], ANNOTATIONSFILE$ProbeID ), 
                                                                    c("IlmnID", "ProbeID", 
                                                                      "AddressA_ID", "AlleleA_ProbeSeq", "AddressB_ID", "AlleleB_ProbeSeq", 
@@ -454,93 +454,93 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
                                                                      "Phantom", "DMR", "Enhancer", "HMM_Island", "Regulatory_Feature_Name", "Regulatory_Feature_Group", "DHS", 
                                                                      "UCSC_RefGene_Dist")])
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   }
   
   cat("\n* Merging results, genetic stats, and annotations...\n")
-  if(opt$resulttype == "NOM") {
+  if (opt$resulttype == "NOM") {
     RESULTS.toANNOTATE2 = cbind(RESULTS.toANNOTATE, VARIANTSTATS[match(RESULTS.toANNOTATE[,2], VARIANTSTATS$VARIANT ),])
-  } else if(opt$resulttype == "PERM") {
+  } else if (opt$resulttype == "PERM") {
     RESULTS.toANNOTATE2 = cbind(RESULTS.toANNOTATE, VARIANTSTATS[match(RESULTS.toANNOTATE[,6], VARIANTSTATS$VARIANT ),])
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   }
   
-  if(opt$qtltype == "EQTL") { 
-    cat ("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
-    if(opt$resulttype == "NOM") {
-      cat ("\n--- nominal results ---\n")
+  if (opt$qtltype == "EQTL") { 
+    cat("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
+    if (opt$resulttype == "NOM") {
+      cat("\n--- nominal results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,20,21,22,23,24,25,26,29,28,31,30, # Variant information
                                                 14,12,3,16,17,18, # Gene information
                                                 5,8,4,9,10,11)] # association statistics
-    } else if(opt$resulttype == "PERM") {
-      cat ("\n--- permuted results ---\n")
+    } else if (opt$resulttype == "PERM") {
+      cat("\n--- permuted results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,26,27,28,29,30,31,32,35,34,37,36, # Variant information
                                                 20,18,7,22,23,24, # Gene information
                                                 9,14,8,10,11,15,16,17)] # association statistics
     } else {
-      cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file=stderr()) # print error messages to stder
+      cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+          file = stderr()) # print error messages to stder
     }
     
-  } else if(opt$qtltype == "MQTL") {
-    cat ("\n* Parsing annotated results for an Athero-Express mQTL analysis...\n")
-    if(opt$resulttype == "NOM") {
-      cat ("\n--- nominal results ---\n")
+  } else if (opt$qtltype == "MQTL") {
+    cat("\n* Parsing annotated results for an Athero-Express mQTL analysis...\n")
+    if (opt$resulttype == "NOM") {
+      cat("\n--- nominal results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,47,48,49,50,51,52,53,56,55,58,57, # Variant information
                                                 3,23,24,18, # CpG information
                                                 33,34,35,37,38,39,40,41,42,43,44, # CpG associated information
                                                 5,8,4,9,10,11)] # association statistics
-    } else if(opt$resulttype == "PERM") {
-      cat ("\n--- permuted results ---\n")
+    } else if (opt$resulttype == "PERM") {
+      cat("\n--- permuted results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,53,54,55,56,57,58,59,62,61,64,63, # Variant information
                                                 7,29,30,24, # CpG information
                                                 39,40,41,43,44,45,46,47,48,49,50, # CpG associated information
                                                 9,14,8,10,11,15,16,17)] # association statistics
     } else {
-      cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file=stderr()) # print error messages to stder
+      cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+          file = stderr()) # print error messages to stder
     }
     
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   } 
   
   cat("\n* Remove duplicate gene names...\n")
-  if(opt$qtltype == "EQTL") { 
-    cat ("\n...for results of a CTMM eQTL analysis in monocytes...\n")
+  if (opt$qtltype == "EQTL") { 
+    cat("\n...for results of a CTMM eQTL analysis in monocytes...\n")
     RESULTS.ANNOTATE[, "GeneName"] = as.character(lapply(RESULTS.toANNOTATE2[,"GeneName"], 
-                                                         FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep="", collapse=";")}))
-  } else if(opt$qtltype == "MQTL") {
-    cat ("\n...for results of an Athero-Express mQTL analysis...\n")
+                                                         FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep = "", collapse = ";")}))
+  } else if (opt$qtltype == "MQTL") {
+    cat("\n...for results of an Athero-Express mQTL analysis...\n")
     RESULTS.ANNOTATE[, "UCSC_RefGene_Name"] = as.character(lapply(RESULTS.toANNOTATE2[,"UCSC_RefGene_Name"], 
-                                                                  FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep="", collapse=";")}))
+                                                                  FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep = "", collapse = ";")}))
     RESULTS.ANNOTATE[, "UCSC_RefGene_Accession"] = as.character(lapply(RESULTS.toANNOTATE2[,"UCSC_RefGene_Accession"],
-                                                                       FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep="", collapse=";")}))
+                                                                       FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep = "", collapse = ";")}))
     RESULTS.ANNOTATE[, "UCSC_RefGene_Group"] = as.character(lapply(RESULTS.toANNOTATE2[,"UCSC_RefGene_Group"],
-                                                                   FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep="", collapse=";")}))
+                                                                   FUN = function(x){paste(unique(unlist(strsplit(x, split = ";"))), sep = "", collapse = ";")}))
   } else {
-    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+    cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
+        file = stderr()) # print error messages to stder
   }
   
   cat("\n* Correct Colnames...\n")
-  if(opt$qtltype == "EQTL") { 
-    cat ("\n...for results of a CTMM eQTL analysis in monocytes...\n")
-    if(opt$resulttype == "NOM") {
+  if (opt$qtltype == "EQTL") { 
+    cat("\n...for results of a CTMM eQTL analysis in monocytes...\n")
+    if (opt$resulttype == "NOM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "GeneName", "EntrezID", "Distance_VARIANT_GENE", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
-    } else if(opt$resulttype == "PERM") {
+    } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "GeneName","EntrezID", "Distance_VARIANT_GENE", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file = stderr()) # print error messages to stder
+          file = stderr()) # print error messages to stder
     }
     
   } else if (opt$qtltype == "MQTL") {
