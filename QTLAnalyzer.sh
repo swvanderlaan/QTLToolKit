@@ -286,6 +286,8 @@ else
 	echo ""
 	echo "The analysis type and QTL type are                                    ${QTL_TYPE}-${ANALYSIS_TYPE}"
 	echo ""
+	echo "We will run the QTL-analysis in [ ${SAMPLE_TYPE} ] from [ ${STUDY_TYPE} ]."
+	echo ""
 	
 	echo "Additional QTLTools specific settings:"     
 	echo ""     
@@ -585,7 +587,7 @@ else
  
 	
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "Summarizing fastQTL results."
+	echo "Summarizing QTL results."
 	echo ""
 	### Creating a job that will aid in summarizing the data.
 	### FOR DEBUGGING
