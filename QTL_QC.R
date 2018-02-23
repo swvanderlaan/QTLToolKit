@@ -213,7 +213,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   }
   
   cat("\nLoading variant statistics...\n")
-  VARIANTSTATS.RAW = read.table(opt$genstats, head = TRUE, stringsAsFactors = FALSE)
+  VARIANTSTATS.RAW = fread(opt$genstats, head = TRUE, stringsAsFactors = FALSE)
   cat("\n* calculating 'minor allele count' (MAC)...")
   # calculate MAC
   VARIANTSTATS.RAW$MAC <- (VARIANTSTATS.RAW[,19]*VARIANTSTATS.RAW[,18]*2)
@@ -224,8 +224,6 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
   
   cat("\n* determining which variants are solely 'imputed'...")
   # make imputation column
-  # old, SNPID changed to alternate_ids
-  print(head(VARIANTSTATS.RAW))
   if(opt$analysetype == "TRANS") {
     VARIANTSTATS.RAW$Imputation <- ifelse(VARIANTSTATS.RAW$alternate_ids == "---", 
                                           c("imputed"), c("genotyped")) 
@@ -234,7 +232,6 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
     VARIANTSTATS.RAW$Imputation <- ifelse(VARIANTSTATS.RAW$alternate_ids == "---", 
                                           c("imputed"), c("genotyped")) 
   }
-  # VARIANTSTATS.RAW$Number <- 620
   
   cat("\n* selecting required variant statistics data...")
   # Select the columns we need
@@ -364,7 +361,7 @@ if(!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is
     
   } else {
     cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file=stderr()) # print error messages to stder
+         file = stderr()) # print error messages to stder
   }
   
   #--------------------------------------------------------------------------
