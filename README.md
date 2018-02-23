@@ -70,6 +70,10 @@ There are definitely improvements needed. Below of things I'd like to add or edi
 - clean up codes further, especially with respect to the various error-flags
 - add in checks of the environment, similar to `slideToolkit` scripts
 - add in some code to produce a simple report
+- edit `QTL_QC.R` script
+    - to check the delimiter automatically of the annotation file
+    - add in the `data.table()` to read and write tables using `fread` or `fwrite`
+- add an annotation creation script
 
 --------------
 
