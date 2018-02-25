@@ -162,10 +162,10 @@ def search():
 					for gen in set(interesting_genes):
 						igfile.write(gen + '\n')
 		verschil = list(set(all_snps) - set(permuted_snps))
-		print 'Verschil tussen lijsten: ' + str(verschil)
+		print 'Difference between lists: ' + str(verschil)
 		return permuted_snps
 	except IOError:
-		print "Probably TRANS analysis with broken QTLTool version, no permuted result available"
+		print "Probably TRANS analysis with broken QTLTool version, no permuted result available."
 
 def second():
 	data = []

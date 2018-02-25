@@ -1,5 +1,28 @@
 #!/bin/bash
 #
+#
+# You can use the variables below (indicated by "#$") to set some things for the 
+# submission system.
+# -S /bin/bash # the type of BASH you'd like to use
+# -N QTLAnalyzer # the name of this script
+# -hold_jid some_other_basic_bash_script # the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
+# -o /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/QTLAnalyzer.v1.log # the log file of this job
+# -e /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/QTLAnalyzer.v1.errors # the error file of this job
+# -l h_rt=04:00:00 # h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
+# -l h_vmem=8G #  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
+# -l tmpspace=32G # this is the amount of temporary space you think your script will use
+# -M s.w.vanderlaan-2@umcutrecht.nl # you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
+# -m ea # you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
+# -cwd # set the job start to the current directory - so all the things in this script are relative to the current directory!!!
+#
+# Another useful tip: you can set a job to run after another has finished. Name the job 
+# with "-N SOMENAME" and hold the other job with -hold_jid SOMENAME". 
+# Further instructions: https://wiki.bioinformatics.umcutrecht.nl/bin/view/HPC/HowToS#Run_a_job_after_your_other_jobs
+#
+# It is good practice to properly name and annotate your script for future reference for
+# yourself and others. Trust me, you'll forget why and how you made this!!!
+
+#
 # CHANGES MADE BY JACCO SCHAAP 
 # - Removed rootdir path in region and covariate file specification 
 # - Also for v3 changed dataset to a pruned one
@@ -88,31 +111,6 @@ script_arguments_error() {
 	echoerror "                                              OPTION LIST"
 	echoerror ""
 	echoerror " * Argument #1  configurationfile: qtl.config."
-# 	echoerror " * Argument #1   indicate which study type you want to analyze, so either [AEMS450K1/AEMS450K2/CTMM]:"
-# 	echoerror "                 - AEMS450K1: methylation quantitative trait locus (mQTL) analysis "
-# 	echoerror "                              on plaques or blood in the Athero-Express Methylation "
-# 	echoerror "                              Study 450K prune100 1."
-# 	echoerror "                 - AEMS450K2: mQTL analysis on plaques or blood in the Athero-Express"
-# 	echoerror "                              Methylation Study 450K prune100 2."
-# 	echoerror "                 - CTMM:      expression QTL (eQTL) analysis in monocytes from CTMM."
-# 	echoerror " * Argument #2   the sample type must be [AEMS450K1: PLAQUES/BLOOD], "
-# 	echoerror "                 [AEMS450K2: PLAQUES], or [CTMM: MONOCYTES]."
-# 	echoerror " * Argument #3   the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
-# 	echoerror " * Argument #4   where you want stuff to be save inside the rootdir, "
-# 	echoerror "                 e.g. mqtl_aems450k1"
-# 	echoerror " * Argument #5   project name, e.g. 'CAD'."
-# 	echoerror " * Argument #6   text file with on each line the regions of interest, refer to "
-# 	echoerror "                 example file."
-# 	echoerror " * Argument #7   the type of exclusion to apply: "
-# 	echoerror "                 - AEMS/CTMM:     DEFAULT/SMOKER/NONSMOKER/MALES/FEMALES/T2D/NONT2D/NONMONOCYTE "
-# 	echoerror "                 - AEMS-specific: CKD/NONCKD/PRE2007/POST2007/NONAEGS/NONAEGSFEMALES/NONAEGSMALES."
-# 	echoerror " * Argument #8   text file with excluded covariates, refer to example file."
-# 	echoerror " * Argument #9   qsub e-mail address, e.g. s.w.vanderlaan-2@umcutrecht.nl."
-# 	echoerror " * Argument #10  qsub mail settings, e.g. 'beas' - refer to qsub manual."
-# 	echoerror " * Argument #11  configurationfile: qtl.config."
-# 	echoerror " * Argument #12  CIS or TRANS? [CIS/TRANS]"
-# 	echoerror " * Argument #13  plot clumped set? [Y/N]"
-# 	echoerror " * Argument #14  Threshold for rsquared, optional"
 	echoerror ""
 	echoerror " An example command would be: "
 	echoerror "./QTLAnalyzer.sh [arg1]"
@@ -129,8 +127,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-23                                                                            +"
-echobold "+ * Version     : 2.2.1                                                                                 +"
+echobold "+ * Last update : 2018-02-24                                                                            +"
+echobold "+ * Version     : 2.2.4                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using either [your/AE/CTMM] methylation          +"
@@ -191,6 +189,7 @@ else
 	SEEDNO=${SEEDNO_CONFIG}
 	PERMSTART=${PERMSTART_CONFIG}
 	PERMEND=${PERMEND_CONFIG}
+	NOMINAL_P=${NOMINAL_P}
 	
 	### QCTOOL SETTINGS
 	MAF=${MAF_CONFIG}
@@ -225,15 +224,14 @@ else
 	### PROJECT SPECIFIC 
 	ROOTDIR=${ROOTDIR} # the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl
 	PROJECTNAME=${PROJECTNAME} # e.g. "CAD"
-# 	PROJECTDIR=${ROOTDIR}/${PROJECTNAME} # where you want stuff to be save inside the rootdir, e.g. mqtl_aems450k1
 	
 	if [ ! -d ${ROOTDIR}/${PROJECTNAME} ]; then
-				echo "The project directory doesn't exist; Mr. Bourne will make it for you."
-				mkdir -v ${ROOTDIR}/${PROJECTNAME}
-			else
-				echo "The project directory '${ROOTDIR}/${PROJECTNAME}' already exists."
-			fi
-	PROJECTDIR=${ROOTDIR}/${PROJECTNAME}
+		echo "The project directory doesn't exist; Mr. Bourne will make it for you."
+		mkdir -v ${ROOTDIR}/${PROJECTNAME}
+	else
+		echo "The project directory '${ROOTDIR}/${PROJECTNAME}' already exists."
+	fi
+	PROJECTDIR=${ROOTDIR}/${PROJECTNAME} # where you want stuff to be save inside the rootdir, e.g. mqtl_aems450k1
 
 	### DEFINE REGION(S)
 	REGIONS=${REGIONS_FILE} # regions_for_eqtl.txt OR regions_for_qtl.small.txt
@@ -260,6 +258,15 @@ else
 	### ANNOTATION FILE
 	ANNOTATIONFILE=${ANNOTATIONFILE}
 
+	### CLUMPING
+	CLUMP=${CLUMP} # "Y" # plot clumped set? [Y/N]
+	CLUMP_THRESH=${CLUMP_THRESH} # "0.8" # Threshold for rsquared, optional
+	CLUMP_P1=${CLUMP_P1} # "5e-8"
+	CLUMP_P2=${CLUMP_P2} # "0.05"
+	CLUMP_KB=${CLUMP_KB} # "1000"
+	CLUMP_GWAS=${CLUMP_GWAS}
+	CLUMP_GWAS_SNPFIELD=${CLUMP_GWAS_SNPFIELD} # "SNP"
+	CLUMP_GWAS_PVAL=${CLUMP_GWAS_PVAL} # "P"
 
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 	echo "The following is set:"
@@ -315,18 +322,18 @@ else
 	
 	# Create results directory
 	if [ ! -d ${PROJECTDIR}/${EXCLUSION_TYPE}_qtl ]; then
-			echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
+			echo "The main QTL analysis  directory doesn't exist; Mr. Bourne will make it for you."
 			mkdir -v ${PROJECTDIR}/${EXCLUSION_TYPE}_qtl
 		else
-			echo "The regional directory already exists."
+			echo "The main QTL analysis directory already exists."
 		fi
 	RESULTS=${PROJECTDIR}/${EXCLUSION_TYPE}_qtl
 	# Summary directory
 	if [ ! -d ${PROJECTDIR}/${EXCLUSION_TYPE}_qtl_summary ]; then
-		echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
+		echo "The main QTL analysis summary  directory doesn't exist; Mr. Bourne will make it for you."
 		mkdir -v ${PROJECTDIR}/${EXCLUSION_TYPE}_qtl_summary
 	else
-		echo "The regional directory already exists."
+		echo "The main QTL analysis summary directory already exists."
 	fi
 	SUMMARY=${PROJECTDIR}/${EXCLUSION_TYPE}_qtl_summary
 	
@@ -371,13 +378,19 @@ else
 		if [ ! -d ${RESULTS}/${VARIANT}_${PROJECTNAME} ]; then
 			echo "The regional directory doesn't exist; Mr. Bourne will make it for you."
 			mkdir -v ${RESULTS}/${VARIANT}_${PROJECTNAME}
-			mkdir -v ${RESULTS}/clumps
 		else
 			echo "The regional directory already exists."
 		fi
 		
+		if [ ! -d ${RESULTS}/${VARIANT}_${PROJECTNAME}_clumps ]; then
+			echo "The clump directory doesn't exist; Mr. Bourne will make it for you."
+			mkdir -v ${RESULTS}/${VARIANT}_${PROJECTNAME}_clumps
+		else
+			echo "The clump directory already exists."
+		fi
+		
 		REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
-		CLUMPDIR=${RESULTS}/clumps
+		CLUMPDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}_clumps
 		
 		### Extraction relevant regions for QTL analysis using QTLTools
 		# Checking existence input file(s)
@@ -436,8 +449,8 @@ else
 			### Running nominal and permutation passes of QTLTools, respectively
 			echo "Creating bash-script to submit nominal pass for 'cis-eQTLs'..."
 			### FOR DEBUGGING
-			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log
-			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid VCFGZ${STUDYJOBNAME}_${VARIANT}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
 			echo "Creating bash-script to submit permutation pass for 'cis-eQTLs'..."
 			### FOR DEBUGGING
@@ -449,8 +462,8 @@ else
 			###Running nominal and permutation passes of QTLTools, respectively
 			echo "Creating bash-script to submit nominal pass for 'cis-eQTLs'..."
 			### FOR DEBUGGING
-			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log
-			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid VCFGZ${STUDYJOBNAME}_${VARIANT}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
 			echo ""
 			echo "Creating bash-script to submit permutation pass for 'cis-eQTLs'..."
@@ -463,47 +476,48 @@ else
 			exit 1
 		fi
 		
-# 		echo ""
-# 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-# 		echo "Extracting LD buddies of ${VARIANT} from *nominal* analysis results file and creating new files."
-# 		### FOR DEBUGGING
-# 		### ${PYTHON} ${QTLTOOLKIT}/QTLClumpanator.py ${VARIANT} ${CHR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped ${CLUMPDIR} /hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_1kGp3GoNL5_RAW_chr${CHR} /home/dhl_ec/jschaap/datacheck/results/ctmm_1kGp3GoNL5_RAW_chr${CHR}.list ${CLUMP} ${CLUMP_THRESH}
-# 		echo "${PYTHON} ${QTLTOOLKIT}/QTLClumpanator.py ${VARIANT} ${CHR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped ${CLUMPDIR} /hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_1kGp3GoNL5_RAW_chr${CHR} /home/dhl_ec/jschaap/datacheck/results/ctmm_1kGp3GoNL5_RAW_chr${CHR}.list ${CLUMP} ${CLUMP_THRESH}"> ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.py
-# 		qsub -S /bin/bash -N CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_clump.errors -o ${REGIONALDIR}/${STUDYNAME}_clump.output -l h_rt=00:20:00 -l h_vmem=6G -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.py
-# 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-# 		
-# 		### Running QTLTool -- with clumping
-# 		if [[ ${CHR} -lt 10 ]]; then 
-# 			echo "Processing a variant in clumped region of 0${CHR}:${START}-${END}."
-# 			### Running nominal and permutation passes of QTLTools, respectively
-# 			echo "Creating bash-script to submit nominal pass with the clumped dataset for 'cis-eQTLs'..."
-# 			### FOR DEBUGGING
-# 			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
-# 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
-# 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
-# 			echo "Creating bash-script to submit permutation pass for 'cis-eQTLs'..."
-# 			### FOR DEBUGGING
-# 			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
-# 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
-# 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
-# 		elif  [[ ${CHR} -ge 10 ]]; then
-# 			echo "Processing a variant in clumped region ${CHR}:${START}-${END}."
-# 			###Running nominal and permutation passes of QTLTools, respectively
-# 			echo "Creating bash-script to submit nominal pass for 'cis-eQTLs'..."
-# 			### FOR DEBUGGING
-# 			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
-# 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal 1e-3 --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
-# 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
-# 			echo ""
-# 			echo "Creating bash-script to submit permutation pass with the clumped dataset for 'cis-eQTLs'..."
-# 			### FOR DEBUGGING
-# 			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
-# 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
-# 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
-# 		else
-# 			echo "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
-# 			exit 1
-# 		fi
+		echo ""
+		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+		echo "Extracting LD buddies of ${VARIANT} from *nominal* analysis results file and creating new files."
+		echo ""
+		### FOR DEBUGGING
+		### ${PYTHON} ${QTLTOOLKIT}/QTLClumpanator.py ${PLINK} ${VARIANT} ${CHR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped ${CLUMPDIR} ${GENETICDATA}/${SNPTESTDATA}${CHR} ${CLUMP} ${CLUMP_THRESH} ${CLUMP_P1} ${CLUMP_P2} ${CLUMP_KB} ${CLUMP_GWAS} 
+		echo "${PYTHON} ${QTLTOOLKIT}/QTLClumpanator.py ${PLINK} ${VARIANT} ${CHR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped ${CLUMPDIR} ${GENETICDATA}/${SNPTESTDATA}${CHR} ${CLUMP} ${CLUMP_THRESH} ${CLUMP_P1} ${CLUMP_P2} ${CLUMP_KB} ${CLUMP_GWAS_SNPFIELD} ${CLUMP_GWAS_PVAL} ${CLUMP_GWAS} ${GENETICDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.duplicates.txt "> ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.py
+		qsub -S /bin/bash -N CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid DUPLI_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.output -l h_rt=${QUEUE_CLUMP_CONFIG} -l h_vmem=${VMEM_CLUMP_CONFIG} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/clump_${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.py
+		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+		
+		### Running QTLTool -- with clumping
+		if [[ ${CHR} -lt 10 ]]; then 
+			echo "Processing a variant in clumped region of 0${CHR}:${START}-${END}."
+			### Running nominal and permutation passes of QTLTools, respectively
+			echo "Creating bash-script to submit nominal pass with the clumped dataset for 'cis-eQTLs'..."
+			### FOR DEBUGGING
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			echo "Creating bash-script to submit permutation pass for 'cis-eQTLs'..."
+			### FOR DEBUGGING
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region 0${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
+			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
+		elif  [[ ${CHR} -ge 10 ]]; then
+			echo "Processing a variant in clumped region ${CHR}:${START}-${END}."
+			###Running nominal and permutation passes of QTLTools, respectively
+			echo "Creating bash-script to submit nominal pass for 'cis-eQTLs'..."
+			### FOR DEBUGGING
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --nominal ${NOMINAL_P} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output -l h_rt=${QUEUE_NOM} -l h_vmem=${VMEM_NOM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
+			echo ""
+			echo "Creating bash-script to submit permutation pass with the clumped dataset for 'cis-eQTLs'..."
+			### FOR DEBUGGING
+			### ${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log 
+			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
+			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
+		else
+			echo "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
+			exit 1
+		fi
 	
 	done < ${REGIONS}
 	
@@ -513,10 +527,10 @@ else
 	echo ""
 	### Creating a job that will aid in summarizing the data.
 	### FOR DEBUGGING
-	###${QTLTOOLKIT}/QTLChecker.sh ${STUDYNAME} ${EXCLUSION_TYPE} ${ROOTDIR} ${RESULTS} ${SUMMARY} ${PROJECTNAME} ${REGIONS}
-	echo "${QTLTOOLKIT}/QTLChecker.sh ${STUDYNAME} ${EXCLUSION_TYPE} ${ROOTDIR} ${RESULTS} ${SUMMARY} ${PROJECTNAME} ${REGIONS} "> ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.sh
+	### ${QTLTOOLKIT}/QTLChecker.sh ${CONFIGURATIONFILE} ${RESULTS} ${SUMMARY} 
+	echo "${QTLTOOLKIT}/QTLChecker.sh ${CONFIGURATIONFILE} ${RESULTS} ${SUMMARY} "> ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.sh
 	### Hold for clumping
-	qsub -S /bin/bash -N QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTL_${STUDYJOBNAME}_clumped_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.sh
+	qsub -S /bin/bash -N QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLCheck_excl_${EXCLUSION_TYPE}.sh
 
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
@@ -553,7 +567,7 @@ else
 		
 		REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
 	
-		### PERFORMING fastQTL RESULTS QUALITY CONTROL & PARSING
+		### PERFORMING QTL RESULTS QUALITY CONTROL & PARSING
 		### Processing NOMINAL results
 		echo "Creating bash-script to submit 'QTLTools RESULTS QUALITY CONTROL & PARSER v2' on >>> nominal <<< pass results..."
 		# On the non-clumped data
@@ -561,14 +575,10 @@ else
 		### Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE}
 		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
 		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#
-#		# On the clumped data
-#		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#		
-		#jacco
-		#echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped.txt.gz -t NOM -q EQTL -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats  "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped.sh
-		#qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped.sh
+	
+		# On the clumped data
+		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t NOM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
+		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
 		
 		### Processing PERMUTATION results		
 		echo ""
@@ -578,68 +588,72 @@ else
 		### Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t PERM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} 
 		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t PERM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
 		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#
-#		# On the clumped data
-#		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t PERM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
-#			
+
+		# On the clumped data
+		echo "Rscript ${QTLTOOLKIT}/QTL_QC.R -p ${PROJECTDIR} -r ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz -t PERM -q ${ANALYSIS_TYPE} -o ${REGIONALDIR}/ -a ${ANNOTATIONFILE} -j ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.stats -z ${QTL_TYPE} "> ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
+		qsub -S /bin/bash -N QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLCheck_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLQCperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
+			
 	done < ${REGIONS}
  
-	
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "Summarizing QTL results."
-	echo ""
-	### Creating a job that will aid in summarizing the data.
-	### FOR DEBUGGING
-	### ${QTLTOOLKIT}/QTLSummarizer.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${STUDYNAME} ${PROJECTDIR} ${PROJECTNAME} ${SUMMARY} ${RESULTS} ${REGIONS} ${EXCLUSION_TYPE} ${CLUMPDIR} ${QTL_TYPE} 
-	### updated for clumping, last parameter is for Summarizer script
-	echo "${QTLTOOLKIT}/QTLSummarizer.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${STUDYNAME} ${PROJECTDIR} ${PROJECTNAME} ${SUMMARY} ${RESULTS} ${REGIONS} ${EXCLUSION_TYPE} ${CLUMPDIR} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
-	qsub -S /bin/bash -N QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
-	
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "Creating SNP info file for easy reading."
-	echo ""
-    if [[ ${CLUMP} == "Y" ]]; then
-        echo "${PYTHON} ${QTLTOOLKIT}/QTLSumParser.py Y ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
-        qsub -S /bin/bash -N QTLParser_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.log -l h_rt=00:15:00 -l h_vmem=12G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
-	else
-	    echo "${PYTHON} ${QTLTOOLKIT}/QTLSumParser.py N ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
-        qsub -S /bin/bash -N QTLParser_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.log -l h_rt=00:15:00 -l h_vmem=12G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
-	fi
-
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
-	echo ""
-	echo ""
-	if [[ ${STUDY_TYPE} == "CTMM" ]]; then
-		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-		echo "Plotting fastQTL results for an eQTL analysis using CTMM's monocytes whole-genome expression data."
-		echo ""
-		### Creating a job that will aid in plotting the data.
-		### FOR DEBUGGING
-		### ${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}
-		echo "${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}"> ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh
-		qsub -S /bin/bash -N QTLPlot_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.log -l h_rt=04:00:00 -l h_vmem=16G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh
-	
-	elif [[ ${STUDY_TYPE} == "AEMS450K1" ]] || [[ ${STUDY_TYPE} == "AEMS450K2" ]]; then
-		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-		echo "Many CpGs that map to one or multiple genes, and some CpGs might not map to any gene in particular. Thus"
-		echo "plotting mQTL results is not yet implemented pending further consideration of the above."
-		echo ""
-	else
-		echo "                        *** ERROR *** "
-		echo "Something is rotten in the City of Gotham; most likely a typo. "
-		echo "Double back, and check you 'study type' please: '${STUDY_TYPE}' does *not* exist."	
-		echo "                *** END OF ERROR MESSAGE *** "
-		exit 1
-	fi
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
-    echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "Creating SNP info file for easy reading."
-	echo ""
+#	
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#	echo "Summarizing QTL results."
+#	echo ""
+#	### Creating a job that will aid in summarizing the data.
+#	### FOR DEBUGGING
+#	### ${QTLTOOLKIT}/QTLSummarizer.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${STUDYNAME} ${PROJECTDIR} ${PROJECTNAME} ${SUMMARY} ${RESULTS} ${REGIONS} ${EXCLUSION_TYPE} ${CLUMPDIR} ${QTL_TYPE} 
+#	### updated for clumping, last parameter is for Summarizer script
+#	echo "${QTLTOOLKIT}/QTLSummarizer.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${STUDYNAME} ${PROJECTDIR} ${PROJECTNAME} ${SUMMARY} ${RESULTS} ${REGIONS} ${EXCLUSION_TYPE} ${CLUMPDIR} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
+#	qsub -S /bin/bash -N QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
+#
+#	### Creating a job that will add r^2 between index-variant and eQTL/mQTL in summarizing the data.
+#	### FOR DEBUGGING
+#	### ${QTLTOOLKIT}/QTLSummarizer.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${STUDYNAME} ${PROJECTDIR} ${PROJECTNAME} ${SUMMARY} ${RESULTS} ${REGIONS} ${EXCLUSION_TYPE} ${CLUMPDIR} ${QTL_TYPE} 
+#	### updated for clumping, last parameter is for Summarizer script
+#	echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt.gz ${SUMMARY} Y ${CLUMPDIR} "> ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.sh
+# 	qsub -S /bin/bash -N QTLSumEditor_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.sh
+#		
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#	echo "Creating SNP info file for easy reading."
+#	echo ""
+#    if [[ ${CLUMP} == "Y" ]]; then
+#        echo "${PYTHON} ${QTLTOOLKIT}/QTLSumParser.py Y ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
+#         qsub -S /bin/bash -N QTLParser_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.log -l h_rt=00:15:00 -l h_vmem=12G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
+#	else
+#	    echo "${PYTHON} ${QTLTOOLKIT}/QTLSumParser.py N ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
+#        qsub -S /bin/bash -N QTLParser_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.log -l h_rt=00:15:00 -l h_vmem=12G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLParser_excl_${EXCLUSION_TYPE}.sh
+#	fi
+#
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#
+#	echo ""
+#	echo ""
+#	if [[ ${STUDY_TYPE} == "CTMM" ]]; then
+#		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#		echo "Plotting QTLTools results for an eQTL analysis using CTMM's monocytes whole-genome expression data."
+#		echo ""
+#		### Creating a job that will aid in plotting the data.
+#		### FOR DEBUGGING
+#		### ${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}
+#		echo "${QTLTOOLKIT}/QTLPlotter.sh ${STUDY_TYPE} ${SAMPLE_TYPE} ${REGIONS} ${SUMMARY} ${STUDYNAME} ${CLUMPDIR} ${CLUMP}"> ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh
+# 		qsub -S /bin/bash -N QTLPlot_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.log -l h_rt=04:00:00 -l h_vmem=16G -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLPlot_excl_${EXCLUSION_TYPE}.sh
+#	
+#	elif [[ ${STUDY_TYPE} == "AEMS450K1" ]] || [[ ${STUDY_TYPE} == "AEMS450K2" ]]; then
+#		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#		echo "Many CpGs that map to one or multiple genes, and some CpGs might not map to any gene in particular. Thus"
+#		echo "plotting mQTL results is not yet implemented pending further consideration of the above."
+#		echo ""
+#	else
+#		echo "                        *** ERROR *** "
+#		echo "Something is rotten in the City of Gotham; most likely a typo. "
+#		echo "Double back, and check you 'study type' please: '${STUDY_TYPE}' does *not* exist."	
+#		echo "                *** END OF ERROR MESSAGE *** "
+#		exit 1
+#	fi
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#	echo ""
 
 ### END of if-else statement for the number of command-line arguments passed ###
 fi

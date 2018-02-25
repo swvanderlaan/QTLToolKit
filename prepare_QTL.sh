@@ -27,8 +27,8 @@ echo ""
 echo ""
 echo "* Written by  : Sander W. van der Laan"
 echo "* E-mail      : s.w.vanderlaan-2@umcutrecht.nl"
-echo "* Last update : 2018-02-21"
-echo "* Version     : v1.2.0"
+echo "* Last update : 2018-02-25"
+echo "* Version     : v1.3.0"
 echo ""
 echo "* Description : This script will prepare biobank data for use with QTLTool."
 echo ""
@@ -37,22 +37,22 @@ echo "Today's: "$(date)
 echo ""
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "The following directories are set."
-SOFTWARE=/hpc/local/CentOS7/dhl_ec/software
+SOFTWARE="/hpc/local/CentOS7/dhl_ec/software"
 QCTOOL=$SOFTWARE/qctool_v1.5
 SNPTEST25=$SOFTWARE/snptest_v2.5.2 
 
-AEGSORIGINALS=/hpc/dhl_ec/data/_ae_originals
-AAAGSORIGINALS=/hpc/dhl_ec/data/_aaa_originals
-CTMMGSORIGINALS=/hpc/dhl_ec/data/_ctmm_originals
+AEGSORIGINALS="/hpc/dhl_ec/data/_ae_originals"
+AAAGSORIGINALS="/hpc/dhl_ec/data/_aaa_originals"
+CTMMGSORIGINALS="/hpc/dhl_ec/data/_ctmm_originals"
 
 AEGSIMPUTEDDATA=${AEGSORIGINALS}/AEGS_COMBINED_IMPUTE2_1000Gp3_GoNL5
 AAAGSIMPUTEDDATA=${AAAGSORIGINALS}/AAAGS_IMPUTE2_1000Gp3_GoNL5
 CTMMGSIMPUTEDDATA=${CTMMGSORIGINALS}/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5
 
-PHENOTYPESAEMS450K1=${AEGSORIGINALS}/AEMethylS_IlluminaMethylation450K/AEM_mQTL_INPUT_DATA
+PHENOTYPESAEMS450K1=${AEGSORIGINALS}/AEMS450K1
 PHENOTYPESAEMS450K2=${AEGSORIGINALS}/AEMS450K2
 
-MYDIR=/hpc/dhl_ec/svanderlaan
+MYDIR="/hpc/dhl_ec/svanderlaan"
 ROOTDIR=${MYDIR}/projects
 
 ### SETTINGS QSUB
@@ -67,11 +67,11 @@ echo "Original CTMMGS data directory______________  ${CTMMGSORIGINALS}"
 echo "Imputed AEGS data directory_________________  ${AEGSIMPUTEDDATA}"
 echo "Imputed AAAGS data directory________________  ${AAAGSIMPUTEDDATA}"
 echo "Imputed CTMMGS data directory_______________  ${CTMMGSIMPUTEDDATA}"
-echo "Phenotype data directory AEMS450K1___  ${PHENOTYPESAEMS450K1}"
-echo "Phenotype data directory AEMS450K2___  ${PHENOTYPESAEMS450K2}"
-echo "SNPTEST directory____________________  ${SNPTEST25}"
-echo "Software directory___________________  ${SOFTWARE}"
-echo "Where \"qctool\" resides_____________  ${QCTOOL}"
+echo "Phenotype data directory AEMS450K1__________  ${PHENOTYPESAEMS450K1}"
+echo "Phenotype data directory AEMS450K2__________  ${PHENOTYPESAEMS450K2}"
+echo "SNPTEST directory___________________________  ${SNPTEST25}"
+echo "Software directory__________________________  ${SOFTWARE}"
+echo "Where \"qctool\" resides______________________  ${QCTOOL}"
 echo ""
 
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -128,15 +128,15 @@ echo "Convert the phenotype files and index these..."
 # 	qsub -S /bin/bash -N prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
-echo "* CTMMGS..."
-for CHR in $(seq 1 22) X; do 
-	echo "* submitting conversion job for chromosome ${CHR}..."
-	echo "${QCTOOL} -g ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-	qsub -S /bin/bash -N prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-	echo ""
-done
-echo ""
-echo "Indexing VCF..."
+# echo "* CTMMGS..."
+# for CHR in $(seq 1 22) X; do 
+# 	echo "* submitting conversion job for chromosome ${CHR}..."
+# 	echo "${QCTOOL} -g ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.bgen -s ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.sample -og ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf" > ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	qsub -S /bin/bash -N prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	echo ""
+# done
+# echo ""
+# echo "Indexing VCF..."
 # echo "* AEGS..."
 # for CHR in $(seq 1 22) X; do 
 # 	echo "* submitting indexing job for chromosome ${CHR}..."
@@ -151,13 +151,26 @@ echo "Indexing VCF..."
 # 	qsub -S /bin/bash -N prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.aaags_1kGp3GoNL5_RAW.chr${CHR} -e ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${AAAGSIMPUTEDDATA}/prep.QTL.indexVCF.aaags_1kGp3GoNL5_RAW.chr${CHR}.sh
 # 	echo ""
 # done
-echo "* CTMMGS..."
-for CHR in $(seq 1 22) X; do 
-	echo "* submitting indexing job for chromosome ${CHR}..."
-	echo "${SOFTWARE}/bgzip_v1.3 ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-	qsub -S /bin/bash -N prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
-	echo ""
-done
+# echo "* CTMMGS..."
+# for CHR in $(seq 1 22) X; do 
+# 	echo "* submitting indexing job for chromosome ${CHR}..."
+# 	echo "${SOFTWARE}/bgzip_v1.3 ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf && ${SOFTWARE}/tabix_v1.3 -p vcf ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW_chr${CHR}.vcf.gz" > ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	qsub -S /bin/bash -N prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -hold_jid prep.QTL.makeVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR} -e ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.errors -o ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.log -l h_rt=${QSUBTIME} -l h_vmem=${QSUBMEM} -M ${QSUBMAIL} -m ${QSUBMAILSETTINGS} -cwd ${CTMMGSIMPUTEDDATA}/prep.QTL.indexVCF.ctmm_1kGp3GoNL5_RAW.chr${CHR}.sh
+# 	echo ""
+# done
+
+### Reference: 
+### https://stackoverflow.com/questions/39221524/how-to-sort-out-duplicates-from-a-massive-list-using-sort-uniq-or-awk?rq=1
+echo "* First grep all variants from input and extract *duplicated* variants, because these are multi-allelic, "
+echo "  these will be excluded. "
+echo "  > extracting... "
+zcat ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.stats.gz | awk '{ print $2 }' | tail -n +2 > ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.txt 
+echo "  > sorting... "
+sort ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.txt > ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.sorted.txt 
+echo "  > printing duplicate, multi-allelic variants... "
+uniq -d ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.sorted.txt > ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.duplicates.txt
+echo "  > removing intermediate files, keeping unique, duplicate, multi-allelic variant lists... "
+rm -v ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.txt ${CTMMGSIMPUTEDDATA}/ctmm_1kGp3GoNL5_RAW.allvariants.sorted.txt
 echo ""
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Wow. I'm all done buddy. What a job! let's have a beer!"

@@ -80,7 +80,7 @@ script_arguments_error() {
 	echo " * Argument #7  directory in which the fastQTL results are saved."
 	echo " * Argument #8  file containing the regions of interest."
 	echo " * Argument #9  exclusion type."
-	echo " * Argument #10  Directory where clump data can be found
+	echo " * Argument #10  Directory where clump data can be found"
 	echo " * Argument #11  QTL type [CIS/TRANS]"
 	echo ""
 	echo " An example command would be: "
@@ -97,12 +97,10 @@ echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echo "+                                   QUANTITATIVE TRAIT LOCUS SUMMARIZER                                 +"
 echo "+                                                                                                       +"
 echo "+                                                                                                       +"
-echo "+ * Written by  : Sander W. van der Laan                                                                +"
-echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echo "+ * Updated by  : Jacco Schaap			                                                              +"
-echo "+ * E-mail      : jacco_schaap@hotmail.com		                                                      +"
-echo "+ * Last update : 2017-18-10                                                                            +"
-echo "+ * Version     : 1.0.2                                                                                 +"
+echo "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
+echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
+echo "+ * Last update : 2018-02-25                                                                            +"
+echo "+ * Version     : 1.0.4                                                                                 +"
 echo "+                                                                                                       +"
 echo "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echo "+                 submit this in a job.                                                                 +"
@@ -147,20 +145,17 @@ if [[ $# -lt 11 ]]; then
 
 else
 	
-	SOFTWARE=/hpc/local/CentOS7/dhl_ec/software
-	QCTOOL=${SOFTWARE}/qctool_v1.5-linux-x86_64-static/qctool
+	### GENERAL SETTINGS
 	SNPTEST252=${SOFTWARE}/snptest_v2.5.2_CentOS6.5_x86_64_static/snptest_v2.5.2
-	FASTQTL=${SOFTWARE}/fastqtl_v2.184
-	QTL=${SOFTWARE}/QTLTools/QTLtools_1.0_CentOS6.8_x86_64
-	QTLTOOLKIT=${SOFTWARE}/QTLToolKit
-	FASTQCTLADDON=${SOFTWARE}/fastQTLToolKit
-	FASTQTLPARSER=${FASTQCTLADDON}/NominalResultsParser.py
+	QCTOOL=${SOFTWARE}/qctool_v1.5-linux-x86_64-static/qctool
+	# FASTQTL=${SOFTWARE}/fastqtl_v2.184
+	QTLTOOLS=${SOFTWARE}/QTLTools/QTLtools_1.0_CentOS6.8_x86_64
+	QCTOOLKIT=${SOFTWARE}/QTLToolKit
 	LZ13=${SOFTWARE}/locuszoom_1.3/bin/locuszoom
-	BGZIP=${SOFTWARE}/htslib-1.3/bgzip
-	TABIX=${SOFTWARE}/htslib-1.3/tabix
-	PLINK=/hpc/local/CentOS7/dhl_ec/software/plink_v1.9
-	
-	
+	BGZIP=${SOFTWARE}/bgzip_v1.6
+	TABIX=${SOFTWARE}/tabix_v1.6
+	PLINK=${SOFTWARE}/plink_v1.9
+	PYTHON="/hpc/local/CentOS7/common/lang/python/2.7.10/bin/python"
 
 # 
 # 	###FOR DEBUGGING
@@ -343,8 +338,8 @@ else
 		# Add rsquare value to the summary files, created a python script that does the job (17-6-17)
 		pwd
 		module load python
-		echo "python ${QTLTOOLKIT}/edit_summary.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt} ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt ${CLUMPDIR}"
-		python ${QTLTOOLKIT}/edit_summary.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
+		echo "python ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt} ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt ${CLUMPDIR}"
+		python ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
 	fi
 	
 	zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 23) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt

@@ -7,17 +7,17 @@ print ""
 print "* Written by         : Tim Bezemer | t.bezemer-2@umcutrecht.nl"
 print "* Updated by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-21"
+print "* Last update        : 2018-02-24"
 print "* Name               : NominalResultsParser"
-print "* Version            : v1.2.3"
+print "* Version            : v1.2.4"
 print ""
-print "* Description        : In case of a CTMM eQTL analysis this script will collect all "
+print "* Description        : In case of an eQTL analysis this script will collect all "
 print "                       analysed genes and list their associated ProbeIDs as well as the"
 print "                       number of variants analysed."
-print "                       In case of a AEMS mQTL analysis this script will collect all "
+print "                       In case of a mQTL analysis this script will collect all "
 print "                       analysed CpGs and their associated genes, as well as the "
 print "                       the number of variants analysed."
-print "                       In both cases it will produce a LocusZoom (v1.2+) input file"
+print "                       In both cases it will produce a LocusZoom (v1.3+) input file"
 print "                       which contains the variant associated (MarkerName) and the "
 print "                       p-value (P-value)."
 print ""
@@ -35,12 +35,10 @@ fn_nom = argv[1] # Nominal data. Either clumped or normal
 #fn2 = argv[3] # Directory were clumped data can be found
 #clump = argv[4] # Yes for plotting clumped set, N for plotting normal set
 
-
 def main():
     parser()
     #if clump == 'Y':
     #    read_summary()
-
 
 ### created by Tim Bezemer
 def parser():

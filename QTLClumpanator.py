@@ -6,22 +6,16 @@ print ""
 print ""
 print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-21"
+print "* Last update        : 2018-02-24"
 print "* Name               : QTLClumpanator"
-print "* Version            : v1.0.0"
+print "* Version            : v1.1.0"
 print ""
-# print "* Description        : In case of a CTMM eQTL analysis this script will collect all "
-# print "                       analysed genes and list their associated ProbeIDs as well as the"
-# print "                       number of variants analysed."
-# print "                       In case of a AEMS mQTL analysis this script will collect all "
-# print "                       analysed CpGs and their associated genes, as well as the "
-# print "                       the number of variants analysed."
-# print "                       In both cases it will produce a LocusZoom (v1.2+) input file"
-# print "                       which contains the variant associated (MarkerName) and the "
-# print "                       p-value (P-value)."
+print "* Description        : In case of a QTL analysis this script will collect all "
+print "                       variants in LD with index variants based on a specific GWAS"
+print "                       dataset (e.g. CARDIoGRAMplusC4D), and according to p-value, "
+print "                       r^2, and range thresholds (in kb)."
 print ""
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
 
 from subprocess import call
 from datetime import datetime
@@ -29,25 +23,59 @@ from os.path import isfile, isdir
 import gzip
 import sys
 
-plink = '/hpc/local/CentOS7/dhl_ec/software/plink_v1.9'
-metalfile = '/hpc/dhl_ec/jschaap/scripts/locuszoom/metal.txt' # FIGURE OUT WHAT THIS??? COULD THIS BE THE GWAS RESULTS P-VALUE???s
-nominal_data_file = sys.argv[3]
-ld_nominal_data_file = sys.argv[4]
+plink = sys.argv[1] #'/hpc/local/CentOS7/dhl_ec/software/plink_v1.9'
 
-id = sys.argv[1]
-chr = sys.argv[2]
-output = sys.argv[5]  # clumps directory in qtl folder
-data = sys.argv[6]
-exclusion = sys.argv[7]
+id = sys.argv[2]
+chr = sys.argv[3]
+nominal_data_file = sys.argv[4]
+ld_nominal_data_file = sys.argv[5]
+output = sys.argv[6]  # clumps directory in qtl folder
+data = sys.argv[7]
 clump = sys.argv[8]
-
-
+metalfile =  sys.argv[15]
+exclusion = sys.argv[16] # exclude variants that are duplicated because they are multi-allelic - such as rs114643911.
 
 try:
     clump_tresh = sys.argv[9]
+
 except IndexError:
-    print 'No clump threshold given, set to 0.8'
+    print 'No clump threshold given, set to 0.8.'
     clump_tresh = 0.8
+
+try:
+    clump_p1 = sys.argv[10]
+
+except IndexError:
+    print 'No clump p1 threshold given, set to 5e-8 (GWAS threshold).'
+    clump_p1 = 5e-8
+
+try:
+    clump_p2 = sys.argv[11]
+
+except IndexError:
+    print 'No clump p2 threshold given, set to 0.05.'
+    clump_p2 = 0.05
+
+try:
+    clump_kb = sys.argv[12]
+
+except IndexError:
+    print 'No clump range threshold given, set to 1000kb.'
+    clump_kb = 1000
+
+try:
+    clump_gwas_snpfield = sys.argv[13]
+
+except IndexError:
+    print 'The clump variangt field..'
+    clump_gwas_snpfield = "SNP"
+
+try:
+    clump_gwas_pval = sys.argv[14]
+
+except IndexError:
+    print 'No clump range threshold given, set to 1000kb.'
+    clump_gwas_pval = "P"
 
 if not isfile(sys.argv[0]):
     print 'Script not found'
@@ -68,8 +96,8 @@ def create_clumped_file(chr):
               "--exclude", exclusion,
               "--clump-verbose",
               "--clump", metalfile,
-              "--clump-r2", clump_tresh, "--clump-p1", "10e-8", "--clump-p2", "0.05", "--clump-kb", "1000",
-              "--clump-snp-field", "MARKER_ID", "--clump-field", "PVALUE",
+              "--clump-r2", clump_tresh, "--clump-p1", clump_p1, "--clump-p2", clump_p2, "--clump-kb", clump_kb,
+              "--clump-snp-field", clump_gwas_snpfield, "--clump-field", clump_gwas_pval,
               "--memory", "4000",
               "--out", output+"/chr"+chr
               ])
@@ -79,8 +107,8 @@ def create_clumped_file(chr):
               "--exclude", exclusion,
               "--clump-verbose",
               "--clump", metalfile,
-              "--clump-r2", "0.8", "--clump-p1", "10e-8", "--clump-p2", "0.05", "--clump-kb", "1000",
-              "--clump-snp-field", "MARKER_ID", "--clump-field", "PVALUE",
+              "--clump-r2", "0.8", "--clump-p1", "5e-8", "--clump-p2", "0.05", "--clump-kb", "1000",
+              "--clump-snp-field", "SNP", "--clump-field", "P",
               "--memory", "4000",
               "--out", output+"/chr"+chr
               ])
@@ -98,7 +126,7 @@ def read_clumped(id, chr):
                     open(output + '/highlight_ranges.list', 'w')
     # id = 'rs10953541'
     if not isfile(output + '/chr' + chr + '.clumped'):
-        print "\n\t***Chromosome " + chr + " isn't clumped, mr Sheep will do it right away...***\n"
+        print "\n\t***Chromosome " + chr + " isn't clumped, mr Bourne will do it right away...***\n"
         create_clumped_file(chr)
         print "\nDone clumping chr" + chr + ", fast ain't it???\n"
         if not isfile(output + '/chr' + chr + '.clumped'):

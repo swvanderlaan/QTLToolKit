@@ -89,12 +89,10 @@ echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echo "+                                      QUANTITATIVE TRAIT LOCUS PLOTTER                                 +"
 echo "+                                                                                                       +"
 echo "+                                                                                                       +"
-echo "+ * Written by  : Sander W. van der Laan                                                                +"
-echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echo "+ * Updated by  : Jacco Schaap                                                                          +"
-echo "+ * E-mail      : j.schaap-2@umcutrecht.nl                                                              +"
-echo "+ * Last update : 2017-17-06                                                                            +"
-echo "+ * Version     : 1.0.1                                                                                 +"
+echo "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
+echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
+echo "+ * Last update : 2018-02-24                                                                            +"
+echo "+ * Version     : 1.0.2                                                                                 +"
 echo "+                                                                                                       +"
 echo "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echo "+                 submit this in a job.                                                                 +"
@@ -140,8 +138,8 @@ else
 	FASTQCTLADDON=${SOFTWARE}/fastQTLToolKit
 	FASTQTLPARSER=${FASTQCTLADDON}/NominalResultsParser.py
 	LZ13=${SOFTWARE}/locuszoom_1.3/bin/locuszoom
-	BGZIP=${SOFTWARE}/htslib-1.3/bgzip
-	TABIX=${SOFTWARE}/htslib-1.3/tabix
+	BGZIP=${SOFTWARE}/bgzip_v1.6
+	TABIX=${SOFTWARE}/tabix_v1.6
 	
 	MFILE=/hpc/dhl_ec/jschaap/scripts/locuszoom/metal.txt
 	PLINK=/hpc/local/CentOS7/dhl_ec/software/plink_v1.9
