@@ -102,14 +102,30 @@ script_arguments_error() {
 	echoerror "                                              OPTION LIST"
 	echoerror ""
 	echoerror " * Argument #1  configurationfile: qtl.config."
-	echo " * Argument #2  summary directory to put all summarized files in."
-	echo " * Argument #3  directory in which the QTL results are saved."
-	echo " * Argument #4  Directory where clump data can be found."
-	echo " * Argument #5  QTL type [CIS/TRANS]."
+# 	echo " * Argument #1  indicate which study type you want to analyze, so either:"
+# 	echo "                [AEMS450K1/AEMS450K2/CTMM]:"
+# 	echo "                - AEMS450K1: methylation quantitative trait locus (mQTL) analysis "
+# 	echo "                             on plaques or blood in the Athero-Express Methylation "
+# 	echo "                             Study 450K phase 1."
+# 	echo "                - AEMS450K2: mQTL analysis on plaques or blood in the Athero-Express"
+# 	echo "                             Methylation Study 450K phase 2."
+# 	echo "                - CTMM:      expression QTL (eQTL) analysis in monocytes from CTMM."
+# 	echo " * Argument #2  the sample type must be [AEMS450K1: PLAQUES/BLOOD], "
+# 	echo "                [AEMS450K2: PLAQUES], or [CTMM: MONOCYTES]."
+# 	echo " * Argument #3  the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
+# 	echo " * Argument #4  where you want stuff to be save inside the rootdir, "
+# 	echo "                e.g. mqtl_aems450k1."
+# 	echo " * Argument #5  project name, e.g. 'CAD'."
+# 	echo " * Argument #6  summary directory to put all summarized files in."
+# 	echo " * Argument #7  directory in which the fastQTL results are saved."
+# 	echo " * Argument #8  file containing the regions of interest."
+# 	echo " * Argument #9  exclusion type."
+# 	echo " * Argument #10  Directory where clump data can be found"
+# 	echo " * Argument #11  QTL type [CIS/TRANS]"
 	echoerror ""
 	echoerror " An example command would be: "
 	echoerror ""
-	echoerror "./QTLSummarizer.sh [arg1] [arg2] [arg3] [arg4] [arg5]"
+	echoerror "./QTLSummarizer.sh [arg1] [arg2] [arg3] [arg4] [arg5] [arg6] [arg7] [arg8] [arg9] [arg10] [arg11]"
 	echoerror ""
 	echoerror "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   	# The wrong arguments are passed, so we'll exit the script now!
@@ -193,7 +209,7 @@ echo ""
 	PROJECTDIR=${ROOTDIR}/${PROJECTNAME} # What is the project directory?  -- refer to 'qtl.config' for for information
 	PROJECTNAME=${PROJECTNAME} # What is the projectname? E.g. 'CAD' -- refer to f'qtl.config' for for information
 	SUMMARY=${2} # The summary directory to put all summarized files in -- refer to 'qtl.config' for for information
-	RESULTS=${3} # The directory in which the QTL results are saved -- refer to 'qtl.config' for for information
+	RESULTS=${3} # The directory in which the fastQTL results are saved -- refer to 'qtl.config' for for information
 	
 	REGIONS=${REGIONS_FILE} # The file containing the regions of interest -- refer to 'qtl.config' for for information
 	
@@ -205,36 +221,30 @@ echo ""
 
 
 ### START of if-else statement for the number of command-line arguments passed ###
-if [[ $# -lt 5 ]]; then 
+if [[ $# -lt 11 ]]; then 
 	echo "                                     *** Oh no! Computer says no! ***"
 	echo ""
-	script_arguments_error "You must supply at least [5] arguments when summarizing QTL results!"
+	script_arguments_error "You must supply at least [10] arguments when summarizing QTL results!"
 
 else
 	
-
-	###FOR DEBUGGING
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "The following is set:"
-	echo ""
-	echo "Software directory                                 ${SOFTWARE}"
-	echo "Where \"qctool\" resides                             ${QCTOOL}"
-	echo "Where \"fastQTL\" resides                            ${FASTQTL}"
-	echo "Where \"bgzip\" resides                              ${BGZIP}"
-	echo "Where \"tabix\" resides                              ${TABIX}"
-	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
-	echo ""
-	echo "Project directory                                  ${PROJECTDIR}"
-	echo "Results directory                                  ${RESULTS}"
-	echo "Summary directory                                  ${SUMMARY}"
-	echo "Clump directory                                    ${CLUMPDIR}"
-	echo "Regions of interest file                           ${REGIONS}"
-	echo "Exclusion type                                     ${EXCLUSION_TYPE}"
-	echo "QTL-type                                           ${QTL_TYPE}"
-	echo ""     
-	echo "We will run this script on                         ${TODAY}"
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
+# 
+# 	###FOR DEBUGGING
+# 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+# 	echo "The following is set:"
+# 	echo ""
+# 	echo "Software directory                                 ${SOFTWARE}"
+# 	echo "Where \"qctool\" resides                             ${QCTOOL}"
+# 	echo "Where \"fastQTL\" resides                            ${FASTQTL}"
+# 	echo "Where \"bgzip\" resides                              ${BGZIP}"
+# 	echo "Where \"tabix\" resides                              ${TABIX}"
+# 	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
+# 	echo ""
+# 	echo "Project directory                                  ${PROJECTDIR}"
+# 	echo ""     
+# 	echo "We will run this script on                         ${TODAY}"
+# 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+# 
 
 	### OVERVIEW OF REGIONS
 	echo ""
@@ -298,7 +308,7 @@ else
 		TYPE=$(echo "${LINE}" | awk '{print $8}')
 		PHENOTYPE=$(echo "${LINE}" | awk '{print $9}')
 		
-		if [[ ${QTL_TYPE} == "CIS" ]]; then
+		if [[ ${STYPE} == "CIS" ]]; then
 			echo "===================================================================="
 			echo "Processing ${VARIANT} locus on ${CHR} between ${START} and ${END}..."
 			### Make directories for script if they do not exist yet (!!!PREREQUISITE!!!)
@@ -309,10 +319,8 @@ else
 				echo "The regional directory already exists."
 			fi
 			REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
-			echo ${REGIONALDIR}
-			echo ${RESULTS}/${CHR}_${PROJECTNAME}
 			
-		elif [[ ${QTL_TYPE} == "TRANS" ]]; then
+		elif [[ ${STYPE} == "TRANS" ]]; then
 			echo "===================================================================="
 			echo "Processing ${VARIANT} locus on ${CHR} between ${START} and ${END}..."
 			### Make directories for script if they do not exist yet (!!!PREREQUISITE!!!)
@@ -323,15 +331,13 @@ else
 				echo "The regional directory already exists."
 			fi
 			REGIONALDIR=${RESULTS}/${CHR}_${PROJECTNAME}
-			echo ${REGIONALDIR}
-			echo ${RESULTS}/${CHR}_${PROJECTNAME}
 		fi
 		echo ""
 		echo "Copying results to the Summary Directory..."	
 		# Also copies the clumped file, so this is fine
 		cp -v ${REGIONALDIR}/*_nominal.all.txt ${SUMMARY}/
 		cp -v ${REGIONALDIR}/*.pdf ${SUMMARY}/
-		if [[ ${QTL_TYPE} == "CIS" ]]; then
+		if [[ ${STYPE} == "CIS" ]]; then
 			cp -v ${REGIONALDIR}/*_perm.P0_05.txt ${SUMMARY}/
 		fi
 		
@@ -339,18 +345,29 @@ else
 		echo "Adding all results for the ${VARIANT} locus to the summary file..."
 		
 		echo ""
-		echo "Nominal results..."
+		echo "Nominal results..."#tr ',' ' ' |
 		### 17-6-17, trying if we need the clump parameter, so performing summarizing on all data, clumped en not clumped.
+		# old
+		#if [ ${DATA_TYPE} = 'N' ]; then
+		#	cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+		#	gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt
+		#fi
+		# jacco, for clumped txt file
+		#if [ ${DATA_TYPE} = 'Y' ]; then
+		#	cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+		#	gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped_nominal.all.txt
+		#fi
 		
-		if [[ ${QTL_TYPE} == "CIS" ]]; then
-			echo ""
-			echo "Nominal results..."
+		if [[ ${STYPE} == "CIS" ]]; then
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt
 		
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_nominal.all.txt
 
+		#cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+		#gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_clumped_nominal.all.txt
+	
 			echo ""
 			echo "Permutation results..."
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_perm.P0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
@@ -359,7 +376,7 @@ else
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_perm.P0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_perm.P0_05.txt
 		
-		elif [[ ${QTL_TYPE} == "TRANS" ]]; then
+		elif [[ ${STYPE} == "TRANS" ]]; then
 			cat ${SUMMARY}/${VARIANT}.hits_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 			gzip -v ${SUMMARY}/${VARIANT}_nominal.all.txt
 		fi
@@ -370,22 +387,29 @@ else
 	### GZIPPING FINAL SUMMARY RESULTS
 	echo ""
 	echo "Compressing the final summary results..."
+	#if [ ${DATA_TYPE} = 'N' ]; then
+	#	gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+	#fi
+	#if [ ${DATA_TYPE} = 'Y' ]; then
+	#	gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+	#fi
 	
-	if [[ ${QTL_TYPE} == "TRANS" ]]; then
+	
+	if [[ ${STYPE} == "TRANS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		
-	elif [[ ${QTL_TYPE} == "CIS" ]]; then
+	elif [[ ${STYPE} == "CIS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 		# Add rsquare value to the summary files, created a python script that does the job (17-6-17)
 		pwd
-# 		module load python
-		echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt ${CLUMPDIR}"
-		${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
+		module load python
+		echo "python ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt} ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt ${CLUMPDIR}"
+		python ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
 	fi
 	
 	zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 23) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt

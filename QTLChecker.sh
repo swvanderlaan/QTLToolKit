@@ -87,7 +87,7 @@ echo "+                                                                         
 echo "+ * Written by  : Sander W. van der Laan                                                                +"
 echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
 echo "+ * Last update : 2018-02-25                                                                            +"
-echo "+ * Version     : 1.1.1                                                                                 +"
+echo "+ * Version     : 1.1.2                                                                                 +"
 echo "+                                                                                                       +"
 echo "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echo "+                 submit this in a job.                                                                 +"
@@ -252,12 +252,12 @@ else
 		fi
 		
 		echo ""
-		echo "* Checking gzipping of VCF..."
+		echo "* Checking gzipping of VCF..." 
 		if [[ ! -s ${REGIONALDIR}/${STUDYNAME}_genvcfgz_${VARIANT}_excl_${EXCLUSION_TYPE}.errors ]]; then
 			echo "GZipping VCF file was successfully completed for ${VARIANT}."
 			echo "* gzipping vcf: success" >> ${SUMMARY}/analysis.check.txt
-			rm -v ${REGIONALDIR}/${STUDYNAME}_genvcfgz_${VARIANT}_excl_${EXCLUSION_TYPE}.errors
-			gzip -v ${REGIONALDIR}/${STUDYNAME}_genvcfgz_${VARIANT}_excl_${EXCLUSION_TYPE}.log
+			rm -v ${REGIONALDIR}/${STUDYNAME}_vcfgz_${VARIANT}_excl_${EXCLUSION_TYPE}.errors
+			gzip -v ${REGIONALDIR}/${STUDYNAME}_vcfgz_${VARIANT}_excl_${EXCLUSION_TYPE}.log
 		else
 			echo "*** ERROR *** GZipping VCF file failed for ${VARIANT}."
 			echo "* gzipping vcf: failed" >> ${SUMMARY}/analysis.check.txt
