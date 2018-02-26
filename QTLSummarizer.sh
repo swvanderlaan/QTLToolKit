@@ -373,19 +373,20 @@ else
 	
 	if [[ ${QTL_TYPE} == "TRANS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		
+		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt # why is this removed???
+
 	elif [[ ${QTL_TYPE} == "CIS" ]]; then
+		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
+		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 		# Add rsquare value to the summary files, created a python script that does the job (17-6-17)
-		pwd
-# 		module load python
-		echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt ${CLUMPDIR}"
-		${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
+# 		pwd
+# # 		module load python
+# 		echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR}"
+# 		${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
 	fi
 	
 	zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 23) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt

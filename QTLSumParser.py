@@ -10,15 +10,8 @@ print "* Last update        : 2018-02-21"
 print "* Name               : QTLSumParser"
 print "* Version            : v1.0.0"
 print ""
-# print "* Description        : In case of a CTMM eQTL analysis this script will collect all "
-# print "                       analysed genes and list their associated ProbeIDs as well as the"
-# print "                       number of variants analysed."
-# print "                       In case of a AEMS mQTL analysis this script will collect all "
-# print "                       analysed CpGs and their associated genes, as well as the "
-# print "                       the number of variants analysed."
-# print "                       In both cases it will produce a LocusZoom (v1.2+) input file"
-# print "                       which contains the variant associated (MarkerName) and the "
-# print "                       p-value (P-value)."
+print "* Description        : This script parses QTL summary results to obtain lists of"
+print "                       variants in LD with lead-variants."
 print ""
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
@@ -115,11 +108,11 @@ def search():
 								RSQ = item['rsquare']
 						else:
 							continue
-				print '\n' + SNP
+				print '\nLead variant: [ ' + SNP + ' ].'
 				# inf_list = top_variant + '\t' + chr + '\t' + pos + '\n'
-				print top_variant
-				print lowest_pval
-				print RSQ
+				print '\nTop tagging variant: [ ' + top_variant + ' ]. Note that this could be the same as the lead variant.'
+				print '\nThe lowest reported p-value: [ ' + str(lowest_pval) + ' ].'
+				print '\nThe r-square between lead variant [' + SNP + '] and the top tagging variant [' + top_variant + '] is: [' + str(RSQ) + '].'
 				# outfile.write('\n' + SNP + ',' + top_variant + ',' + str(lowest_pval) + ',' + str(RSQ))
 				# nom
 				# with gzip.open("qtl_summary/ctmm_QC_qtlnom_clumped_summary.txt.gz", 'r') as file:  # debugging

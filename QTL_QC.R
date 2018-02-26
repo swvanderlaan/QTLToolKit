@@ -114,7 +114,8 @@ option_list = list(
   #            help="a variable named c, with a default [default %default]")  
 )
 opt = parse_args(OptionParser(option_list = option_list))
-# 
+
+# *** THESE LINES ARE FOR DEBUGGING  ***
 # opt$projectdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
 # opt$outputdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
 # opt$resulttype = "NOM"
@@ -141,6 +142,7 @@ opt = parse_args(OptionParser(option_list = option_list))
 # opt$annotfile = "/Users/swvanderlaan/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/ctmm.humanhtv4r2.annotation.txt"
 
 #genstatistics=read.table("/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7.newstats.stats")
+# *** THESE LINES ARE FOR DEBUGGING  ***
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 
@@ -192,7 +194,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### The type of the analysis will determine what to load 'opt$qtltype' # argument 4
   if (opt$qtltype == "EQTL") { 
     cat("\n...for a CTMM based eQTL analysis in monocytes...\n")
-    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE, sep = "\t", na.strings = "")
+    ANNOTATIONSFILE = read.table(opt$annotfile, header = TRUE, stringsAsFactors = FALSE, sep = ",", na.strings = "")
     colnames(ANNOTATIONSFILE) = c("EntrezID", "ProbeID", "ArrayID", 
                                   "GeneName", "GeneInfo","Chr", "GeneTxStart", "GeneTxEnd")
   } else if (opt$qtltype == "MQTL") {
@@ -427,7 +429,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   #  cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
   #       file=stderr()) # print error messages to stder
   # }
-  RESULTS$Q = "not calculated due to a bug in the package"
+  RESULTS$Q = "Currently not calculated due to an issue with the qvalue() package."
   #--------------------------------------------------------------------------
   #### ADD IN THE ANNOTATIONS ###
   cat("\nApplying annotations.\n")
