@@ -27,6 +27,7 @@
 
 ### MoSCoW FEATURE LIST ###
 ###
+
 ### Creating display functions
 ### Setting colouring
 NONE='\033[00m'
@@ -102,10 +103,10 @@ script_arguments_error() {
 	echoerror "                                              OPTION LIST"
 	echoerror ""
 	echoerror " * Argument #1  configurationfile: qtl.config."
-	echo " * Argument #2  summary directory to put all summarized files in."
-	echo " * Argument #3  directory in which the QTL results are saved."
-	echo " * Argument #4  Directory where clump data can be found."
-	echo " * Argument #5  QTL type [CIS/TRANS]."
+	echoerror " * Argument #2  summary directory to put all summarized files in."
+	echoerror " * Argument #3  directory in which the QTL results are saved."
+	echoerror " * Argument #4  directory where clump data can be found."
+	echoerror " * Argument #5  QTL type [CIS/TRANS]."
 	echoerror ""
 	echoerror " An example command would be: "
 	echoerror ""
@@ -123,8 +124,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-25                                                                            +"
-echobold "+ * Version     : 1.0.4                                                                                 +"
+echobold "+ * Last update : 2018-02-26                                                                            +"
+echobold "+ * Version     : 1.1.0                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -211,30 +212,28 @@ if [[ $# -lt 5 ]]; then
 	script_arguments_error "You must supply at least [5] arguments when summarizing QTL results!"
 
 else
-	
 
-	###FOR DEBUGGING
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "The following is set:"
-	echo ""
-	echo "Software directory                                 ${SOFTWARE}"
-	echo "Where \"qctool\" resides                             ${QCTOOL}"
-	echo "Where \"fastQTL\" resides                            ${FASTQTL}"
-	echo "Where \"bgzip\" resides                              ${BGZIP}"
-	echo "Where \"tabix\" resides                              ${TABIX}"
-	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
-	echo ""
-	echo "Project directory                                  ${PROJECTDIR}"
-	echo "Results directory                                  ${RESULTS}"
-	echo "Summary directory                                  ${SUMMARY}"
-	echo "Clump directory                                    ${CLUMPDIR}"
-	echo "Regions of interest file                           ${REGIONS}"
-	echo "Exclusion type                                     ${EXCLUSION_TYPE}"
-	echo "QTL-type                                           ${QTL_TYPE}"
-	echo ""     
-	echo "We will run this script on                         ${TODAY}"
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
+#	###FOR DEBUGGING
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#	echo "The following is set:"
+#	echo ""
+#	echo "Software directory                                 ${SOFTWARE}"
+#	echo "Where \"qctool\" resides                             ${QCTOOL}"
+#	echo "Where \"QTLTools\" resides                           ${FASTQTL}"
+#	echo "Where \"bgzip\" resides                              ${BGZIP}"
+#	echo "Where \"tabix\" resides                              ${TABIX}"
+#	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
+#	echo ""
+#	echo "Project directory                                  ${PROJECTDIR}"
+#	echo "Results directory                                  ${RESULTS}"
+#	echo "Summary directory                                  ${SUMMARY}"
+#	echo "Clump directory                                    ${CLUMPDIR}"
+#	echo "Regions of interest file                           ${REGIONS}"
+#	echo "Exclusion type                                     ${EXCLUSION_TYPE}"
+#	echo "QTL-type                                           ${QTL_TYPE}"
+#	echo ""     
+#	echo "We will run this script on                         ${TODAY}"
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 	### OVERVIEW OF REGIONS
 	echo ""

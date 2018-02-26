@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
-* Version: v2.2.2
-* Last edit: 2018-02-23
+* Version: v2.3.0
+* Last edit: 2018-02-26
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 

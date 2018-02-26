@@ -28,6 +28,46 @@
 ### MoSCoW FEATURE LIST ###
 ###
 
+### Creating display functions
+### Setting colouring
+NONE='\033[00m'
+OPAQUE='\033[2m'
+FLASHING='\033[5m'
+BOLD='\033[1m'
+ITALIC='\033[3m'
+UNDERLINE='\033[4m'
+STRIKETHROUGH='\033[9m'
+
+RED='\033[01;31m'
+GREEN='\033[01;32m'
+YELLOW='\033[01;33m'
+PURPLE='\033[01;35m'
+CYAN='\033[01;36m'
+WHITE='\033[01;37m'
+
+function echobold { #'echobold' is the function name
+    echo -e "${BOLD}${1}${NONE}" # this is whatever the function needs to execute, note ${1} is the text for echo
+}
+function echoitalic { 
+    echo -e "${ITALIC}${1}${NONE}" 
+}
+function echonooption { 
+    echo -e "${OPAQUE}${RED}${1}${NONE}"
+}
+function echoerrorflash { 
+    echo -e "${RED}${BOLD}${FLASHING}${1}${NONE}" 
+}
+function echoerror { 
+    echo -e "${RED}${1}${NONE}"
+}
+# errors no option
+function echoerrornooption { 
+    echo -e "${YELLOW}${1}${NONE}"
+}
+function echoerrorflashnooption { 
+    echo -e "${YELLOW}${BOLD}${FLASHING}${1}${NONE}"
+}
+
 script_copyright_message() {
 	echo ""
 	THISYEAR=$(date +'%Y')
@@ -55,113 +95,147 @@ script_copyright_message() {
 }
 
 script_arguments_error() {
-	echo "Number of arguments found "$#"."
-	echo ""
-	echo "$1" # additional error message
-	echo ""
-	echo "========================================================================================================="
-	echo "                                              OPTION LIST"
-	echo ""
-	echo " * Argument #1  indicate which study type you want to analyze, so either:"
-	echo "                [AEMS450K1/AEMS450K2/CTMM]:"
-	echo "                - AEMS450K1: methylation quantitative trait locus (mQTL) analysis "
-	echo "                             on plaques or blood in the Athero-Express Methylation "
-	echo "                             Study 450K phase 1."
-	echo "                - AEMS450K2: mQTL analysis on plaques or blood in the Athero-Express"
-	echo "                             Methylation Study 450K phase 2."
-	echo "                - CTMM:      expression QTL (eQTL) analysis in monocytes from CTMM."
-	echo " * Argument #2  the sample type must be [AEMS450K1: PLAQUES/BLOOD], "
-	echo "                [AEMS450K2: PLAQUES], or [CTMM: MONOCYTES]."
-	echo " * Argument #3  file containing the regions of interest."
-	echo " * Argument #4  summary directory to put all summarized files in."
-	echo " * Argument #5  project name, e.g. 'CAD'."
-	echo ""
-	echo " An example command would be: "
-	echo "./fastQTLSummarizer.sh [arg1] [arg2] [arg3] [arg4] [arg5]"
-	echo ""
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echoerror "Number of arguments found "$#"."
+	echoerror ""
+	echoerror "$1" # additional error message
+	echoerror ""
+	echoerror "========================================================================================================="
+	echoerror "                                              OPTION LIST"
+	echoerror ""
+	echoerror " * Argument #1  configurationfile: qtl.config."
+	echoerror " * Argument #2  summary directory to put all summarized files in."
+	echoerror " * Argument #3  directory where clump data can be found."
+	echoerror " * Argument #4  whether the data was clumped or not [Y/N]."
+	echoerror ""
+	echoerror " An example command would be: "
+	echoerror ""
+	echoerror "./QTLSummarizer.sh [arg1] [arg2] [arg3] [arg4]"
+	echoerror ""
+	echoerror "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   	# The wrong arguments are passed, so we'll exit the script now!
   	script_copyright_message
   	exit 1
 }
 
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+                                      QUANTITATIVE TRAIT LOCUS PLOTTER                                 +"
-echo "+                                                                                                       +"
-echo "+                                                                                                       +"
-echo "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
-echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echo "+ * Last update : 2018-02-24                                                                            +"
-echo "+ * Version     : 1.0.2                                                                                 +"
-echo "+                                                                                                       +"
-echo "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
-echo "+                 submit this in a job.                                                                 +"
-echo "+                                                                                                       +"
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echobold "+                                      QUANTITATIVE TRAIT LOCUS PLOTTER                                 +"
+echobold "+                                                                                                       +"
+echobold "+                                                                                                       +"
+echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
+echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
+echobold "+ * Last update : 2018-02-26                                                                            +"
+echobold "+ * Version     : 1.1.0                                                                                 +"
+echobold "+                                                                                                       +"
+echobold "+ * Description : This script will produce regional association plots of QTL results, using             +"
+echobold "+                 LocusZoom v1.3.                                                                       +"
+echobold "+                                                                                                       +"
+echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's date and time: "$(date)
 TODAY=$(date +"%Y%m%d")
 echo ""
 
-### SET STUDY AND SAMPLE TYPE
-### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
-###       You can set the exclusion criteria 'NONAEGS/FEMALES/MALES' if you want to analyse
-###       all AE data!
-### Set the analysis type.
-STUDY_TYPE=${1} # AEMS450K1/AEMS450K2/CTMM
+	### LOADING CONFIGURATION FILE
+	# Loading the configuration file (please refer to the QTLToolKit-Manual for specifications of this file). 
+	source "$1" # Depends on arg1.
+	
+	### REQUIRED | GENERALS	
+	CONFIGURATIONFILE="$1" # Depends on arg1 -- but also on where it resides!!!
+	
+	### MAIL SETTINGS
+	EMAIL=${YOUREMAIL}
+	MAILTYPE=${MAILSETTINGS}
+	
+	### QSUB SETTINGS
+	QUEUE_QCTOOL=${QUEUE_QCTOOL_CONFIG}
+	VMEM_QCTOOL=${VMEM_QCTOOL_CONFIG}
+	QUEUE_NOM=${QUEUE_NOM_CONFIG}
+	VMEM_NOM=${VMEM_NOM_CONFIG}
+	QUEUE_PERM=${QUEUE_PERM_CONFIG}
+	VMEM_PERM=${VMEM_PERM_CONFIG}
 
-### Set the analysis type.
-SAMPLE_TYPE=${2} # AE: PLAQUES/BLOOD; CTMM: MONOCYTES
+	### QTL SETTINGS
+	SEEDNO=${SEEDNO_CONFIG}
+	PERMSTART=${PERMSTART_CONFIG}
+	PERMEND=${PERMEND_CONFIG}
+	NOMINAL_P=${NOMINAL_P}
+	
+	### QCTOOL SETTINGS
+	MAF=${MAF_CONFIG}
+	INFO=${INFO_CONFIG}
+	HWE=${HWE_CONFIG}
+	
+	### SET STUDY AND SAMPLE TYPE
+	### Note: All analyses with AE data are presumed to be constrained to CEA-patients only.
+	###       You can set the exclusion criteria 'NONAEGS/FEMALES/MALES' if you want to analyse
+	###       all AE data!
+	### Set the analysis type.
+	STUDY_TYPE=${STUDY_TYPE} # AEMS450K1/AEMS450K2/CTMM
+	
+	### Set the analysis type.
+	SAMPLE_TYPE=${SAMPLE_TYPE} # AE: PLAQUES/BLOOD; CTMM: MONOCYTES
+	
+	### GENERIC SETTINGS
+	SOFTWARE=${SOFTWARE}
+	QTLTOOLKIT=${QTLTOOLKIT}
+	### FOR DEBUG
+	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
+	### FOR DEBUG
+	QCTOOL=${QCTOOL}
+	SNPTEST252=${SNPTEST252}
+	QTLTOOLS=${QTLTOOLS}
+	LZ13=${LZ13}
+	BGZIP=${BGZIP}
+	TABIX=${TABIX}
+	PLINK=${PLINK}
+	PYTHON=${PYTHON}
+	
+	STUDYNAME=${STUDYNAME} # What is the study name to be used in files -- refer to 'qtl.config' for information
+	PROJECTDIR=${ROOTDIR}/${PROJECTNAME} # What is the project directory?  -- refer to 'qtl.config' for for information
+	PROJECTNAME=${PROJECTNAME} # What is the projectname? E.g. 'CAD' -- refer to f'qtl.config' for for information
+	SUMMARY=${2} # The summary directory to put all summarized files in -- refer to 'qtl.config' for for information
+	
+	REGIONS=${REGIONS_FILE} # The file containing the regions of interest -- refer to 'qtl.config' for for information
+	
+	EXCLUSION_TYPE=${EXCLUSION_TYPE} # The exclusion type -- refer to 'qtl.config' for for information
+	
+	CLUMPDIR=${3} # Directory with clump information
+	
+	QTL_TYPE=${QTL_TYPE} # CIS or TRANS
+	
+	CLUMP=${4} # Clumped or nominal data. Y for Clumped, N for Nominal
 
-REGIONS=${3} # The file containing the regions of interest -- refer to fastQTLAnalyzer.sh for information
-
-SUMMARY=${4} # The summary directory to put all summarized files in -- refer to fastQTLAnalyzer.sh for information
-
-STUDYNAME=${5} # What is the study name to be used in files -- refer to fastQTLAnalyzer.sh for information
-
-CLUMPDIR=${6} # clump directory, same place as qtl; qtl_sum and now the region_list. .clumped en ld buddie files are in this directory
-
-CLUMP=${7} # Clumped or nominal data. Y for Clumped, N for Nominal
 ### START of if-else statement for the number of command-line arguments passed ###
 
-if [[ $# -lt 5 ]]; then 
+if [[ $# -lt 4 ]]; then 
 	echo "                                     *** Oh no! Computer says no! ***"
 	echo ""
-	script_arguments_error "You must supply at least [5] arguments when plotting QTL SUMMARYs!"
+	script_arguments_error "You must supply at least [4] arguments when plotting QTL SUMMARYs!"
 
 else
 	
-	### GENERIC SETTINGS
-	SOFTWARE=/hpc/local/CentOS7/dhl_ec/software
-	QCTOOL=${SOFTWARE}/qctool_v1.5-linux-x86_64-static/qctool
-	SNPTEST252=${SOFTWARE}/snptest_v2.5.2_CentOS6.5_x86_64_static/snptest_v2.5.2
-	FASTQTL=${SOFTWARE}/fastqtl_v2.184
-	FASTQCTLADDON=${SOFTWARE}/fastQTLToolKit
-	FASTQTLPARSER=${FASTQCTLADDON}/NominalResultsParser.py
-	LZ13=${SOFTWARE}/locuszoom_1.3/bin/locuszoom
-	BGZIP=${SOFTWARE}/bgzip_v1.6
-	TABIX=${SOFTWARE}/tabix_v1.6
-	
-	MFILE=/hpc/dhl_ec/jschaap/scripts/locuszoom/metal.txt
-	PLINK=/hpc/local/CentOS7/dhl_ec/software/plink_v1.9
-	
+	###FOR DEBUGGING
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "The following is set:"
+	echo ""
+	echo "Software directory                                 ${SOFTWARE}"
+	echo "Where \"qctool\" resides                             ${QCTOOL}"
+	echo "Where \"QTLTools\" resides                           ${FASTQTL}"
+	echo "Where \"bgzip\" resides                              ${BGZIP}"
+	echo "Where \"tabix\" resides                              ${TABIX}"
+	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
+	echo ""
+	echo "Project directory                                  ${PROJECTDIR}"
+	echo "Results directory                                  ${RESULTS}"
+	echo "Summary directory                                  ${SUMMARY}"
+	echo "Clump directory                                    ${CLUMPDIR}"
+	echo "Regions of interest file                           ${REGIONS}"
+	echo "Exclusion type                                     ${EXCLUSION_TYPE}"
+	echo "QTL-type                                           ${QTL_TYPE}"
+	echo "Did we apply clumping?                             ${CLUMP}"
+	echo ""     
+	echo "We will run this script on                         ${TODAY}"
+	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-#
-# 	###FOR DEBUGGING
-# 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-# 	echo "The following is set:"
-# 	echo ""
-# 	echo "Software directory                                 ${SOFTWARE}"
-# 	echo "Where \"qctool\" resides                             ${QCTOOL}"
-# 	echo "Where \"fastQTL\" resides                            ${FASTQTL}"
-# 	echo "Where \"bgzip\" resides                              ${BGZIP}"
-# 	echo "Where \"tabix\" resides                              ${TABIX}"
-# 	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
-# 	echo ""
-# 	echo "Project directory                                  ${SUMMARY}"
-# 	echo ""     
-# 	echo "We will run this script on                         ${TODAY}"
-# 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-#
 	### OVERVIEW OF REGIONS
 	echo ""
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -174,43 +248,34 @@ else
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "Parse nominal SUMMARYs to get Hits per Locus and (mapped) Gene, and input files"
-	echo "for LocusZoom v1.2+."
-	echo "Data type: ${CLUMP}"
+	echo "Parse nominal SUMMARYs to get Hits per Locus and (mapped) Gene, and input files for LocusZoom v1.2+."
+	echo ""
 
 	### Jacco 17-6-17, standardize to find both nominal and permuted data instead of only nominal
 	### Select the right dataset for python script
 	### Nominal set
 	NOM_DATA=''
 	if [ ${CLUMP} = 'N' ]; then
-		# Old
-		#DATA=${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz
-		# Jacco
 		NOM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz
-		echo "Nominal Data"
+		echo "We are not using clumped nominal data."
 	fi
 	### Clumped set
 	if [ ${CLUMP} = 'Y' ]; then
-	    # Old
-		#DATA=${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz
-		# Jacco
 		NOM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz
-		echo "Clumped Data"
+		echo "We are using clumped nominal data."
 	fi
-	PERM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz
-	#echo "Datafile: ${DATA}"
+# 	PERM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz # Do we even use this?
+
 	### First we will collect all the nominal association SUMMARYs.
 	echo ""
 	echo "Parsing nominal SUMMARYs..."
 	cd ${SUMMARY}
-	pwd
-	module load python
+	echo ""
 	
 	# Normal set, old
-	#echo "python /hpc/dhl_ec/jschaap/fastQTLToolKit/NominalResultsParser.py ${DATA} ${CLUMPDIR} ${CLUMP}"
-	#python /hpc/dhl_ec/jschaap/fastQTLToolKit/NominalResultsParser.py ${DATA} ${CLUMPDIR} ${CLUMP}
-	echo "python /hpc/dhl_ec/jschaap/fastQTLToolKit/NominalResultsParser.py ${NOM_DATA}"
-	python /hpc/dhl_ec/jschaap/fastQTLToolKit/NominalResultsParser.py ${NOM_DATA}
+	### FOR DEBUG
+	### echo "${PYTHON} ${QTLTOOLKIT}/NominalResultsParser.py ${NOM_DATA}"
+	${PYTHON} ${QTLTOOLKIT}/NominalResultsParser.py ${NOM_DATA}
 	
 	#### Now we will start plotting per locus each gene-probe-pair.
 	echo ""
@@ -255,8 +320,8 @@ else
 			echo "===================================================================="
 			echo "Plotting SUMMARYs for the ${LOCUSVARIANT} locus on ${CHR}:${START}-${END}."
 			echo "	* Plotting association SUMMARYs for ${GENENAME} and ${PROBEID}."
-			echo "	* Total number of variants analysed: 	${N_VARIANTS}."
-			echo "	* Total number of significant variants:	${N_SIGNIFICANT}."
+			echo "	* Total number of variants analysed: 	[ ${N_VARIANTS} ]."
+			echo "	* Total number of significant variants:	[ ${N_SIGNIFICANT} ]."
 			
 			echo ""
 			### FOR DEBUGGING
@@ -278,48 +343,31 @@ else
 			
 			#last used LZ settings
 			#LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent legendBoxColor=transparent ldTitle=rsquare showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+			LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=black legendBoxColor=white ldTitle=rsquare legend='auto' showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=TRUE showRefsnpAnnot=TRUE showRug=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+
 			### The proper genome-build
 			LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
+			
 			### Directory prefix
 			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
-			LOCUSZOOM_SETTINGS="ldColors=\"transparent,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
-			
-			# old not needed data, delete later
- 			#REFSNP=$(sort -t$'\t' -k2 -n ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz | tail -1 | awk ' { print $3 }')
-			#echo $(sort -t$'\t' -k2 -n ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz | tail -1 | awk ' { print $2, $3 }')
 			
 			# find ranges to highlight with locuszoom
 			HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges.list |  cut -d ',' -f 2)
 			HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges.list |  cut -d ',' -f 3)
 			
 			### Actual plotting
-			# if [ ${CLUMP} = 'N' ]; then
-# 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
-# 			fi
-# 			if [ ${CLUMP} = 'Y' ]; then
-# 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
-# 			fi
-			
-			## For DEBUGGING old plot, handy for presentation Pasterkamp
-			if [ ${LOCUSVARIANT} == 'rs1412444' ]; then
-				if [ ${GENENAME} == 'LIPA' ]; then
-					${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
-# 					${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
-				fi
-			fi
-			#if [ ${GENENAME} == 'PDGFD' ]; then
-			# 	LOCUSZOOM_SETTINGS="ldColors=\"transparent,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent legendBoxColor=transparent ldTitle=rsquare showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=6 rfrows=10 refsnpLineWidth=2"
-			#	HISTART=103498627
-			#	HIEND=103763638
-			#	# Single SNP
-			#	#${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} theme=publication hiStart=${HISTART} hiEnd=${HIEND} title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
-			#	#two SNPS
-			#	${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"	
-			#fi
+			if [ ${CLUMP} = 'N' ]; then
+ 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
+ 			fi
+ 			
+ 			if [ ${CLUMP} = 'Y' ]; then
+ 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
+ 			fi
 			
 		done < ${LOCUSHITS}
 		
-		### rm -v ${SUMMARY}/_loci/${VARIANT}.LZ.txt
+		### Should we gzip this shizzle?
+		### gzip -fv ${SUMMARY}/_loci/${VARIANT}.LZ.txt
 		
 	done < ${REGIONS}
 	
