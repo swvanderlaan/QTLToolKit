@@ -237,18 +237,18 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   
   cat("\n* selecting required variant statistics data...")
   # Select the columns we need
-  VARIANTSTATS = VARIANTSTATS.RAW[,c(2,3,4,5,6, # chr bp
-                                     15,        # maf
-                                     20,        # mac, column 23
-                                     21,        # caf, column 24
-                                     18,19,16,23, # imputation quality, HWE and N
-                                     22)]       # imputation, column 25
-  
+  VARIANTSTATS = VARIANTSTATS.RAW[,c(2,3,4,5,6, # rsid (2) chromosome (3)  position (4) alleleA (5) alleleB (6)
+                                     19,        # maf (19)
+                                     23,        # mac, (23)
+                                     24,        # caf, (24)
+                                     8,9,21,18, # imputation quality (8, 9), and HWE (21), and N (18)
+                                     25)]       # imputation, (25)
+
   # Change the column names
   colnames(VARIANTSTATS) = c("VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", 
                              "MAF", "MAC", "CAF", 
                              "AvgMAxPostCall", "Info", "HWE", "N", "Imputation")
-  
+
   ### Loading *nominal* results
   RESULTS = read.table(opt$resultfile, header = FALSE, stringsAsFactors = FALSE)
   if (opt$resulttype == "NOM") { # argument 3
