@@ -339,11 +339,13 @@ else
 			
 			### Setting up LocusZoom v1.2+ plotting
 			### Some general settings
-			#LOCUSZOOM_SETTINGS="refsnpTextColor='black' legendColor='black' legendBoxColor='white' legendInnerBoxColor='black' legend='auto' drawMarkerNames=TRUE ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=0.8 geneFontSize=0.6 showRug=FALSE showAnnot=FALSE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2 condLdColors=\"gray60,#E41A1C,#377EB8,#4DAF4A,#984EA3,#FF7F00,#A65628,#F781BF\" "
+			### LOCUSZOOM_SETTINGS="refsnpTextColor='black' legendColor='black' legendBoxColor='white' legendInnerBoxColor='black' legend='auto' drawMarkerNames=TRUE ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=0.8 geneFontSize=0.6 showRug=FALSE showAnnot=FALSE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2 condLdColors=\"gray60,#E41A1C,#377EB8,#4DAF4A,#984EA3,#FF7F00,#A65628,#F781BF\" "
 			
-			#last used LZ settings
-			#LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent legendBoxColor=transparent ldTitle=rsquare showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
-			LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=black legendBoxColor=white ldTitle=rsquare legend='auto' showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=TRUE showRefsnpAnnot=TRUE showRug=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+			### Last used LZ settings
+			### LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent legendBoxColor=transparent ldTitle=rsquare showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+			### LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=TRUE showRefsnpAnnot=TRUE showRug=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+			LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
+
 
 			### The proper genome-build
 			LDMAP="--pop EUR --build hg19 --source 1000G_March2012"

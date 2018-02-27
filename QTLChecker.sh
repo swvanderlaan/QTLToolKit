@@ -28,6 +28,46 @@
 ### MoSCoW FEATURE LIST ###
 ###
 
+### Creating display functions
+### Setting colouring
+NONE='\033[00m'
+OPAQUE='\033[2m'
+FLASHING='\033[5m'
+BOLD='\033[1m'
+ITALIC='\033[3m'
+UNDERLINE='\033[4m'
+STRIKETHROUGH='\033[9m'
+
+RED='\033[01;31m'
+GREEN='\033[01;32m'
+YELLOW='\033[01;33m'
+PURPLE='\033[01;35m'
+CYAN='\033[01;36m'
+WHITE='\033[01;37m'
+
+function echobold { #'echobold' is the function name
+    echo -e "${BOLD}${1}${NONE}" # this is whatever the function needs to execute, note ${1} is the text for echo
+}
+function echoitalic { 
+    echo -e "${ITALIC}${1}${NONE}" 
+}
+function echonooption { 
+    echo -e "${OPAQUE}${RED}${1}${NONE}"
+}
+function echoerrorflash { 
+    echo -e "${RED}${BOLD}${FLASHING}${1}${NONE}" 
+}
+function echoerror { 
+    echo -e "${RED}${1}${NONE}"
+}
+# errors no option
+function echoerrornooption { 
+    echo -e "${YELLOW}${1}${NONE}"
+}
+function echoerrorflashnooption { 
+    echo -e "${YELLOW}${BOLD}${FLASHING}${1}${NONE}"
+}
+
 script_copyright_message() {
 	echo ""
 	THISYEAR=$(date +'%Y')
@@ -55,44 +95,44 @@ script_copyright_message() {
 }
 
 script_arguments_error() {
-	echo "Number of arguments found "$#"."
-	echo ""
-	echo "$1" # additional error message
-	echo ""
-	echo "========================================================================================================="
-	echo "                                              OPTION LIST"
-	echo ""
-	echo " * Argument #1  the study name -- set in QTLAnalyzer.sh (please refer to there)."
-	echo " * Argument #2  exclusion type."
-	echo " * Argument #3  the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
-	echo " * Argument #4  where the results are saved -- set in QTLAnalyzer.sh (please refer to there)."
-	echo " * Argument #4  where the summary is saved -- set in QTLAnalyzer.sh (please refer to there)."
-	echo " * Argument #6  project name, e.g. 'CAD'."
-	echo " * Argument #7  file containing the regions of interest."
-	echo " * Argument #8  QTL type [CIS/TRANS]."
-	echo ""
-	echo " An example command would be: "
-	echo "./QTLChecker.sh [arg1] [arg2] [arg3] [arg4] [arg5] [arg6] [arg7]"
-	echo ""
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echoerror "Number of arguments found "$#"."
+	echoerror ""
+	echoerror "$1" # additional error message
+	echoerror ""
+	echoerror "========================================================================================================="
+	echoerror "                                              OPTION LIST"
+	echoerror ""
+	echoerror " * Argument #1  the study name -- set in QTLAnalyzer.sh (please refer to there)."
+	echoerror " * Argument #2  exclusion type."
+	echoerror " * Argument #3  the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl."
+	echoerror " * Argument #4  where the results are saved -- set in QTLAnalyzer.sh (please refer to there)."
+	echoerror " * Argument #4  where the summary is saved -- set in QTLAnalyzer.sh (please refer to there)."
+	echoerror " * Argument #6  project name, e.g. 'CAD'."
+	echoerror " * Argument #7  file containing the regions of interest."
+	echoerror " * Argument #8  QTL type [CIS/TRANS]."
+	echoerror ""
+	echoerror " An example command would be: "
+	echoerror "./QTLChecker.sh [arg1] [arg2] [arg3] [arg4] [arg5] [arg6] [arg7]"
+	echoerror ""
+	echoerror "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   	# The wrong arguments are passed, so we'll exit the script now!
   	script_copyright_message
   	exit 1
 }
 
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+                                   QUANTITATIVE TRAIT LOCUS SUMMARIZER                                 +"
-echo "+                                                                                                       +"
-echo "+                                                                                                       +"
-echo "+ * Written by  : Sander W. van der Laan                                                                +"
-echo "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echo "+ * Last update : 2018-02-25                                                                            +"
-echo "+ * Version     : 1.1.2                                                                                 +"
-echo "+                                                                                                       +"
-echo "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
-echo "+                 submit this in a job.                                                                 +"
-echo "+                                                                                                       +"
-echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echobold "+                                   QUANTITATIVE TRAIT LOCUS SUMMARIZER                                 +"
+echobold "+                                                                                                       +"
+echobold "+                                                                                                       +"
+echobold "+ * Written by  : Sander W. van der Laan                                                                +"
+echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
+echobold "+ * Last update : 2018-02-26                                                                            +"
+echobold "+ * Version     : 1.1.3                                                                                 +"
+echobold "+                                                                                                       +"
+echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
+echobold "+                 submit this in a job.                                                                 +"
+echobold "+                                                                                                       +"
+echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's date and time: "$(date)
 TODAY=$(date +"%Y%m%d")
 echo ""
