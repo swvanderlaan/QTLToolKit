@@ -99,7 +99,7 @@ def create_clumped_file(chr):
               "--clump-r2", clump_tresh, "--clump-p1", clump_p1, "--clump-p2", clump_p2, "--clump-kb", clump_kb,
               "--clump-snp-field", clump_gwas_snpfield, "--clump-field", clump_gwas_pval,
               "--memory", "4000",
-              "--out", output+"/chr"+chr
+              "--out", output+"/chr"+chr+"."+id
               ])
     if clump == 'N':
         call([plink,
@@ -110,7 +110,7 @@ def create_clumped_file(chr):
               "--clump-r2", "0.8", "--clump-p1", "5e-8", "--clump-p2", "0.05", "--clump-kb", "1000",
               "--clump-snp-field", "SNP", "--clump-field", "P",
               "--memory", "4000",
-              "--out", output+"/chr"+chr
+              "--out", output+"/chr"+chr+"."+id 
               ])
 
 
@@ -118,24 +118,24 @@ def read_clumped(id, chr):
     # print id
     range = ''
     ldbuddies = []
-    if isfile(output + '/highlight_ranges.list'):
-        with open(output + '/highlight_ranges.list', 'r') as file:
+    if isfile(output + '/highlight_ranges_' + id + '.list'):
+        with open(output + '/highlight_ranges_' + id + '.list', 'r') as file:
             for line in file.readlines():
                 line = line.split('\t')
                 if id in line[0]:
-                    open(output + '/highlight_ranges.list', 'w')
+                    open(output + '/highlight_ranges_' + id + '.list', 'w')
     # id = 'rs10953541'
-    if not isfile(output + '/chr' + chr + '.clumped'):
+    if not isfile(output + '/chr' + chr + '.' + id + '.clumped'):
         print "\n\t***Chromosome " + chr + " isn't clumped, mr Bourne will do it right away...***\n"
         create_clumped_file(chr)
         print "\nDone clumping chr" + chr + ", fast ain't it???\n"
-        if not isfile(output + '/chr' + chr + '.clumped'):
+        if not isfile(output + '/chr' + chr + '.' + id + '.clumped'):
             print 'no LD buddies found, created empty file\n'
-            open(output+'/chr'+chr+'.clumped', 'w')
-    elif isfile(output + '/chr' + chr + '.clumped'):
-        print "\n\t***Chromosome " + chr + " is clumped before, skipping this part.***\n"
+            open(output+'/chr'+chr+'.' + id + '.clumped', 'w')
+    elif isfile(output + '/chr' + chr + '.' + id + '.clumped'):
+        print "\n\t***Chromosome " + chr + " for " + id + " is clumped before, skipping this part.***\n"
 
-    with open(output + '/chr' + chr + '.clumped', 'r') as file, open(output + '/ldbuddies_' + id + '.list',
+    with open(output + '/chr' + chr + '.' + id + '.clumped', 'r') as file, open(output + '/ldbuddies_' + id + '.list',
                                                                      'w') as outfile \
             , open(output + '/rsquared.txt', 'w') as rfile, open(output + '/only_ldbuddies_' + id + '.list', 'w') as ldfile:
         print 'Outputfile: ' + output + '/ldbuddies_' + id + '.list'
@@ -176,14 +176,14 @@ def read_clumped(id, chr):
         range = range.split('..')
 
         # write range file, comma separated
-        with open(output + '/highlight_ranges.list', 'a') as rangefile:
+        with open(output + '/highlight_ranges_' + id + '.list', 'a') as rangefile:
             rangefile.writelines(id + ',' + range[0] + ',' + range[1] + '\n')
         print 'High-light range: ' + range[0] + '..' + range[1]
         print 'Number of LD buddies found: ' + str(len(ldbuddies))
         return ldbuddies
     except IndexError:
         print 'No LD buddies found for ' + id + ', created empty files.\n'
-        with open(output + '/highlight_ranges.list', 'a') as rangefile:
+        with open(output + '/highlight_ranges_' + id + '.list', 'a') as rangefile:
             rangefile.writelines(id + ',' + '' + ',' + '' + '\n')
 
 

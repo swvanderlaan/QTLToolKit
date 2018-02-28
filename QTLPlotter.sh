@@ -353,8 +353,8 @@ else
 			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
 			
 			# find ranges to highlight with locuszoom
-			HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges.list |  cut -d ',' -f 2)
-			HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges.list |  cut -d ',' -f 3)
+			HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 2)
+			HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 3)
 			
 			### Actual plotting
 			if [ ${CLUMP} = 'N' ]; then
