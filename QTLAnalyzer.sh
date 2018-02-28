@@ -2,17 +2,17 @@
 #
 # You can use the variables below (indicated by "#$") to set some things for the 
 # submission system.
-# -S /bin/bash # the type of BASH you'd like to use
-# -N QTLAnalyzer # the name of this script
-# -hold_jid some_other_basic_bash_script # the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
-# -o /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/QTLAnalyzer.v1.log # the log file of this job
-# -e /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/QTLAnalyzer.v1.errors # the error file of this job
-# -l h_rt=04:00:00 # h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
-# -l h_vmem=8G #  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
-# -l tmpspace=32G # this is the amount of temporary space you think your script will use
-# -M s.w.vanderlaan-2@umcutrecht.nl # you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
-# -m ea # you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
-# -cwd # set the job start to the current directory - so all the things in this script are relative to the current directory!!!
+# -S /bin/bash 																				# the type of BASH you'd like to use
+# -N QTLAnalyzer_v2																			# the name of this script
+# -hold_jid some_other_basic_bash_script 													# the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
+# -o /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLAnalyzer_v2.log 							# the log file of this job
+# -e /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLAnalyzer_v2.errors 						# the error file of this job
+# -l h_rt=04:00:00 																			# h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
+# -l h_vmem=8G 																				#  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
+# -l tmpspace=32G 																			# this is the amount of temporary space you think your script will use
+# -M s.w.vanderlaan-2@umcutrecht.nl 														# you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
+# -m ea 																					# you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
+# -cwd 																						# set the job start to the current directory - so all the things in this script are relative to the current directory!!!
 #
 # Another useful tip: you can set a job to run after another has finished. Name the job 
 # with "-N SOMENAME" and hold the other job with -hold_jid SOMENAME". 
@@ -20,7 +20,6 @@
 #
 # It is good practice to properly name and annotate your script for future reference for
 # yourself and others. Trust me, you'll forget why and how you made this!!!
-
 #
 # CHANGES MADE BY JACCO SCHAAP 
 # - Removed rootdir path in region and covariate file specification 
@@ -126,8 +125,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-26                                                                            +"
-echobold "+ * Version     : 2.2.6                                                                                 +"
+echobold "+ * Last update : 2018-02-28                                                                            +"
+echobold "+ * Version     : 2.2.7                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using either [your/AE/CTMM] methylation          +"
@@ -389,7 +388,7 @@ else
 		fi
 		
 		REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
-		CLUMPDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}_clumps
+		CLUMPDIR=${RESULTS}/clumps
 		
 		### Extraction relevant regions for QTL analysis using QTLTools
 		# Checking existence input file(s)
@@ -600,15 +599,13 @@ else
 	echo ""
 	### Creating a job that will aid in summarizing the data.
 	### FOR DEBUGGING
-	### ${QTLTOOLKIT}/QTLSummarizer.sh ${CONFIGURATIONFILE} ${SUMMARY} ${RESULTS} ${CLUMPDIR} ${QTL_TYPE} 
-	### updated for clumping, last parameter is for Summarizer script
-	echo "${QTLTOOLKIT}/QTLSummarizer.sh ${CONFIGURATIONFILE} ${SUMMARY} ${RESULTS} ${CLUMPDIR} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
+	### ${QTLTOOLKIT}/QTLSummarizer.sh ${CONFIGURATIONFILE} ${SUMMARY} ${RESULTS} ${QTL_TYPE} 
+	echo "${QTLTOOLKIT}/QTLSummarizer.sh ${CONFIGURATIONFILE} ${SUMMARY} ${RESULTS} ${QTL_TYPE} "> ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
 # 	qsub -S /bin/bash -N QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLQC_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLSum_excl_${EXCLUSION_TYPE}.sh
 
-	### Creating a job that will add r^2 between index-variant and eQTL/mQTL in summarizing the data.
+	echo "Adding r^2 between index-variant and eQTL/mQTL to summary results."
 	### FOR DEBUGGING
 	### ${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
-	### updated for clumping, last parameter is for Summarizer script
 	echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} "> ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.sh
 #  	qsub -S /bin/bash -N QTLSumEditor_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_QCTOOL} -l h_vmem=${VMEM_QCTOOL} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLSumEditor_excl_${EXCLUSION_TYPE}.sh
 		
@@ -641,7 +638,7 @@ else
 	
 	elif [[ ${STUDY_TYPE} == "AEMS450K1" ]] || [[ ${STUDY_TYPE} == "AEMS450K2" ]]; then
 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-		echo "Many CpGs that map to one or multiple genes, and some CpGs might not map to any gene in particular. Thus"
+		echo "Many CpGs map to one or multiple genes, and some CpGs might not map to any gene in particular. Thus"
 		echo "plotting mQTL results is not yet implemented pending further consideration of the above."
 		echo ""
 	else

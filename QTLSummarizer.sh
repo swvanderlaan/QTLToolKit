@@ -2,17 +2,17 @@
 #
 # You can use the variables below (indicated by "#$") to set some things for the 
 # submission system.
-# -S /bin/bash # the type of BASH you'd like to use
-# -N fastQTLSummarizer_v1 # the name of this script
-# -hold_jid some_other_basic_bash_script # the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
-# -o /hpc/dhl_ec/svanderlaan/projects/test_mqtl/fastQTLSummarizer_v1.log # the log file of this job
-# -e /hpc/dhl_ec/svanderlaan/projects/test_mqtl/fastQTLSummarizer_v1.errors # the error file of this job
-# -l h_rt=04:00:00 # h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
-# -l h_vmem=8G #  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
-# -l tmpspace=32G # this is the amount of temporary space you think your script will use
-# -M s.w.vanderlaan-2@umcutrecht.nl # you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
-# -m ea # you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
-# -cwd # set the job start to the current directory - so all the things in this script are relative to the current directory!!!
+# -S /bin/bash 																				# the type of BASH you'd like to use
+# -N QTLSummarizer_v1 																		# the name of this script
+# -hold_jid some_other_basic_bash_script 													# the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
+# -o /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLSummarizer_v1.log 						# the log file of this job
+# -e /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLSummarizer_v1.errors 					# the error file of this job
+# -l h_rt=04:00:00 																			# h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
+# -l h_vmem=8G 																				#  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
+# -l tmpspace=32G 																			# this is the amount of temporary space you think your script will use
+# -M s.w.vanderlaan-2@umcutrecht.nl 														# you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
+# -m ea 																					# you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
+# -cwd 																						# set the job start to the current directory - so all the things in this script are relative to the current directory!!!
 #
 # Another useful tip: you can set a job to run after another has finished. Name the job 
 # with "-N SOMENAME" and hold the other job with -hold_jid SOMENAME". 
@@ -105,12 +105,11 @@ script_arguments_error() {
 	echoerror " * Argument #1  configurationfile: qtl.config."
 	echoerror " * Argument #2  summary directory to put all summarized files in."
 	echoerror " * Argument #3  directory in which the QTL results are saved."
-	echoerror " * Argument #4  directory where clump data can be found."
-	echoerror " * Argument #5  QTL type [CIS/TRANS]."
+	echoerror " * Argument #4  QTL type [CIS/TRANS]."
 	echoerror ""
 	echoerror " An example command would be: "
 	echoerror ""
-	echoerror "./QTLSummarizer.sh [arg1] [arg2] [arg3] [arg4] [arg5]"
+	echoerror "./QTLSummarizer.sh [arg1] [arg2] [arg3] [arg4]"
 	echoerror ""
 	echoerror "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   	# The wrong arguments are passed, so we'll exit the script now!
@@ -124,8 +123,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-26                                                                            +"
-echobold "+ * Version     : 1.1.0                                                                                 +"
+echobold "+ * Last update : 2018-02-28                                                                            +"
+echobold "+ * Version     : 1.1.1                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -200,16 +199,16 @@ echo ""
 	
 	EXCLUSION_TYPE=${EXCLUSION_TYPE} # The exclusion type -- refer to 'qtl.config' for for information
 	
-	CLUMPDIR=${4} # Directory with clump information
+	CLUMPDIR=${RESULTS}/clumps # Directory with clump information
 	
-	QTL_TYPE=${5} # CIS or TRANS
+	QTL_TYPE=${4} # CIS or TRANS
 
 
 ### START of if-else statement for the number of command-line arguments passed ###
-if [[ $# -lt 5 ]]; then 
+if [[ $# -lt 4 ]]; then 
 	echo "                                     *** Oh no! Computer says no! ***"
 	echo ""
-	script_arguments_error "You must supply at least [5] arguments when summarizing QTL results!"
+	script_arguments_error "You must supply at least [4] arguments when summarizing QTL results!"
 
 else
 
@@ -256,10 +255,10 @@ else
 		echo "The summary file doesn't exist; Mr. Bourne will make it for you."
 	else
 		echo "The sumary file already exists; Mr. Bourne will re-create it for you."
-		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
-		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz
+		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz
+		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz
+		rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz
 	fi
 	
 	if [[ ${STUDY_TYPE} == "AEMS450K1" ]] || [[ ${STUDY_TYPE} == "AEMS450K2" ]]; then
@@ -267,6 +266,7 @@ else
 		echo "Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,Distance_VARIANT_CpG,Chr_CpG,BP_CpG,ProbeType,GeneName,AccessionID_UCSC,GeneGroup_UCSC,CpG_Island_Relation_UCSC,Phantom,DMR,Enhancer,HMM_Island,RegulatoryFeatureName,RegulatoryFeatureGroup,DHS,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q" > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 		echo "Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,Distance_VARIANT_CpG,Chr_CpG,BP_CpG,ProbeType,GeneName,AccessionID_UCSC,GeneGroup_UCSC,CpG_Island_Relation_UCSC,Phantom,DMR,Enhancer,HMM_Island,RegulatoryFeatureName,RegulatoryFeatureGroup,DHS,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q" > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		echo "Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,Distance_VARIANT_CpG,Chr_CpG,BP_CpG,ProbeType,GeneName,AccessionID_UCSC,GeneGroup_UCSC,CpG_Island_Relation_UCSC,Phantom,DMR,Enhancer,HMM_Island,RegulatoryFeatureName,RegulatoryFeatureGroup,DHS,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q" > ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
+		echo "Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,Distance_VARIANT_CpG,Chr_CpG,BP_CpG,ProbeType,GeneName,AccessionID_UCSC,GeneGroup_UCSC,CpG_Island_Relation_UCSC,Phantom,DMR,Enhancer,HMM_Island,RegulatoryFeatureName,RegulatoryFeatureGroup,DHS,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q" > ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
 		echo ""
 	elif [[ ${STUDY_TYPE} == "CTMM" ]]; then
 		echo "Making appropriate summary file for results from an eQTL analysis in the '${STUDY_TYPE}'..."
@@ -328,10 +328,10 @@ else
 		echo ""
 		echo "Copying results to the Summary Directory..."	
 		# Also copies the clumped file, so this is fine
-		cp -v ${REGIONALDIR}/*_nominal.all.txt ${SUMMARY}/
-		cp -v ${REGIONALDIR}/*.pdf ${SUMMARY}/
+		cp -fv ${REGIONALDIR}/*_nominal.all.txt ${SUMMARY}/
+		cp -fv ${REGIONALDIR}/*.pdf ${SUMMARY}/
 		if [[ ${QTL_TYPE} == "CIS" ]]; then
-			cp -v ${REGIONALDIR}/*_perm.P0_05.txt ${SUMMARY}/
+			cp -fv ${REGIONALDIR}/*_perm.P0_05.txt ${SUMMARY}/
 		fi
 		
 		echo ""
@@ -339,7 +339,7 @@ else
 		
 		echo ""
 		echo "Nominal results..."
-		### 17-6-17, trying if we need the clump parameter, so performing summarizing on all data, clumped en not clumped.
+		### 17-6-17, trying if we need the clump parameter, so performing summarizing on all data, clumped and not clumped.
 		
 		if [[ ${QTL_TYPE} == "CIS" ]]; then
 			echo ""
@@ -381,11 +381,7 @@ else
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-		# Add rsquare value to the summary files, created a python script that does the job (17-6-17)
-# 		pwd
-# # 		module load python
-# 		echo "${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR}"
-# 		${PYTHON} ${QTLTOOLKIT}/QTLSumEditor.py ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt.gz ${CLUMPDIR} 
+
 	fi
 	
 	zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 23) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
