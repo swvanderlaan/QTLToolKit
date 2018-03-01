@@ -6,9 +6,9 @@ print ""
 print ""
 print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-26"
+print "* Last update        : 2018-03-01"
 print "* Name               : QTLSumParser"
-print "* Version            : v1.0.1"
+print "* Version            : v1.0.2"
 print ""
 print "* Description        : This script parses QTL summary results to obtain lists of"
 print "                       variants in LD with lead-variants."
@@ -212,7 +212,7 @@ def second():
 					rsq = '0'
 					chr = line[3]
 					probe = line[1]
-					fdr = line[25]    		
+					fdr = line[24] # we use this in the meantime, as the qvalue() package (FDR) doesn't work'
 				if snp not in snp_list and snp != 'Locus': #All SNP's in list, skipping header
 					snp_list.append(snp)
 				data.append(
