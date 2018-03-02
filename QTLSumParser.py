@@ -34,12 +34,6 @@ def search():
 	snp_list = []
 	permuted_snps = []
 	all_snps = []
-	# nom
-	# with gzip.open("qtl_summary/ctmm_QC_qtlnom_clumped_summary.txt.gz", 'r') as file, open('ctmm_nom_qtl_tophits.txt', 'w') as outfile:  # debugging
-	# perm
-	# with gzip.open("qtl_summary/ctmm_QC_qtlperm_clumped_summary.txt.gz", 'r') as file, open('ctmm_perm_qtl_tophits.txt',
-	#                                                                                         'w') as outfile, open(
-	#         'q.list', 'w') as qfile:  # debugging
 	try:
 		with gzip.open(summary_file, 'r') as file, open(summary_direct + '/ctmm_qtl_perm_tophits.csv', 'w') as outfile:
 			outfile.write(
@@ -49,6 +43,11 @@ def search():
 				all_snps.append(line[0])
 				# print line[23]
 				try:
+					# PERMUTED RESULTS
+					# 0 Locus, 1 ProbeID, 2 VARIANT, 3 RSquare, 4 Chr, 5 BP, 6 OtherAlleleA, 7 CodedAlleleA,
+					# 8 MAF, 9 MAC, 10 CAF, 11 HWE, 12 Info, 14 Imputation, 15 N, 16 GeneName, 17 EntrezID,
+					# 18 Distance_VARIANT_GENE, 19 Chr, 20 GeneTxStart, 21 GeneTxEnd, 22 Beta, 23 SE,
+					# 24 Nominal_P, 25 Perm_P, 26 ApproxPerm_P, 27 Bonferroni, 28 BenjHoch, 29 Q
 					snp = line[0]
 					var = line[2]
 					nom_pval = float(line[23])
@@ -59,10 +58,6 @@ def search():
 					chr = line[4]
 					probe = line[1]
 					fdr = line[28]
-					# nominal
-					# if snp not in snp_list and snp != 'Locus' and snp not in perm_snps:
-					#     snp_list.append(snp)
-					# permuted
 					if snp not in snp_list and snp != 'Locus': #All SNP's in list, skipping header
 						snp_list.append(snp)
 					data.append(
@@ -75,8 +70,6 @@ def search():
 			interesting_genes = []  # save eqtl genes
 			print 'Parsing data, results so far:'
 			for SNP in snp_list:  # find all top tag SNPs for the lead SNP's with LD buddies.
-				# if SNP != 'rs4593108':
-				#     continue
 				lowest_pval = 1
 				top_variant = ''
 				perm_pval = ''
@@ -89,15 +82,10 @@ def search():
 				for item in data:
 					if item['snp'] == SNP:
 						if item['approx_pval'] < lowest_pval:
-							# print lowest_pval
-							# nom
-							# lowest_pval = item['nom_pval']
-							# perm
 							lowest_pval = item['approx_pval']
 							nom_pval = item['nom_pval']
 							perm_pval = item['perm_pval']
 							approx_pval = item['approx_pval']
-							# print top_variant
 							top_variant = item['var']
 							chr = item['chr']
 							pos = item['pos_tag']
@@ -109,15 +97,9 @@ def search():
 						else:
 							continue
 				print '\nLead variant: [ ' + SNP + ' ].'
-				# inf_list = top_variant + '\t' + chr + '\t' + pos + '\n'
 				print '\nTop tagging variant: [ ' + top_variant + ' ]. Note that this could be the same as the lead variant.'
 				print '\nThe lowest reported p-value: [ ' + str(lowest_pval) + ' ].'
 				print '\nThe r-square between lead variant [' + SNP + '] and the top tagging variant [' + top_variant + '] is: [' + str(RSQ) + '].'
-				# outfile.write('\n' + SNP + ',' + top_variant + ',' + str(lowest_pval) + ',' + str(RSQ))
-				# nom
-				# with gzip.open("qtl_summary/ctmm_QC_qtlnom_clumped_summary.txt.gz", 'r') as file:  # debugging
-				# perm
-				# with gzip.open("qtl_summary/ctmm_QC_qtlperm_clumped_summary.txt.gz", 'r') as file:  # debugging
 				with gzip.open(summary_file, 'r') as file:
 					for regel in file.readlines():
 						line = regel.split(',')
@@ -125,7 +107,6 @@ def search():
 								line[0] == SNP and line[2] == SNP) and float(line[23]) <= 0.05:
 							permuted_snps.append(line[0])
 							RSQ = ''
-							# qfile.write(line[28])
 							inf_list = line[2] + '\t' + line[1] + '\t' + chr + '\t' + pos + '\n' # line2 is top SNP
 							interesting_snps.append(inf_list)
 							if line[0] == line[2]:
@@ -137,17 +118,11 @@ def search():
 							outfile.write(
 								SNP + ',' + line[2] + ',' + line[5] + ',' + line[15] + ',' + line[1] + ',' + str(
 									float(line[23]))
-								+ ',' + str(  # commend for nom
-									float(line[24])) + ',' + str(  # commend for nom
-									float(line[25]))  # commend for nom
+								+ ',' + str(  # command for nom
+									float(line[24])) + ',' + str(  # command for nom
+									float(line[25]))  # command for nom
 								+ ',' + str(RSQ) + ',' + line[28])
-	
-				# nom
-				# with open('r06_nominal_interesting_variants.list', 'w') as igfile, open('r06_nominal_interesting_genes.list', 'w') as ivfile:
-				# perm
-				# with open('r06_perm_interesting_variants.list', 'w') as igfile, open('r06_perm_interesting_genes.list',
-				#                                                                      'w') as ivfile:
-				with open(summary_direct + '/interesting_variants_permuted.list', 'w') as ivfile, open(summary_direct + '/interesting_genes_permuted.list', 'w') as igfile:
+					with open(summary_direct + '/interesting_variants_permuted.list', 'w') as ivfile, open(summary_direct + '/interesting_genes_permuted.list', 'w') as igfile:
 	
 					for isnp in interesting_snps:
 						# print isnp
@@ -182,10 +157,11 @@ def second():
 				pass
 			# print line[23]
 			try:
-
-				# 0 Locus, 1 ProbeID, 2 VARIANT, 3 Chr, 4 BP, 5 OtherAlleleA, 6 CodedAlleleA, 7 MAF, 8 MAC, 9 CAF, 10 HWE,
-				# 11 Info, 12 Imputation, 13 N, 14 GeneName, 15 EntrezID, 16 Distance_VARIANT_GENE, 17 Chr, 18 GeneTxStart, 19 GeneTxEnd, 20 Beta,
-				# 21 SE, 22 Nominal_P, 23 Bonferroni, 24 BenjHoch, 25 Q
+				# PERMUTED RESULTS
+				# 0 Locus, 1 ProbeID, 2 VARIANT, 3 RSquare, 4 Chr, 5 BP, 6 OtherAlleleA, 7 CodedAlleleA,
+				# 8 MAF, 9 MAC, 10 CAF, 11 HWE, 12 Info, 14 Imputation, 15 N, 16 GeneName, 17 EntrezID,
+				# 18 Distance_VARIANT_GENE, 19 Chr, 20 GeneTxStart, 21 GeneTxEnd, 22 Beta, 23 SE,
+				# 24 Nominal_P, 25 Perm_P, 26 ApproxPerm_P, 27 Bonferroni, 28 BenjHoch, 29 Q
 				snp = ''
 				var = ''
 				nom_pval = ''
@@ -197,22 +173,22 @@ def second():
 				if qtl_type == 'CIS':
 					snp = line[0]
 					var = line[2]
-					nom_pval = float(line[23])
+					nom_pval = float(line[24])
 					pos_tag_snp = line[5]
 					rsq = line[3]
 					chr = line[4]
 					probe = line[1]
-					fdr = line[26]
+					fdr = line[28] # we use this in the meantime, as the qvalue() package (FDR) doesn't work'
 					
 				if qtl_type == 'TRANS':
 					snp = line[0]
 					var = line[2]
-					nom_pval = float(line[22])
+					nom_pval = float(line[24])
 					pos_tag_snp = line[4]
 					rsq = '0'
 					chr = line[3]
 					probe = line[1]
-					fdr = line[24] # we use this in the meantime, as the qvalue() package (FDR) doesn't work'
+					fdr = line[28] # we use this in the meantime, as the qvalue() package (FDR) doesn't work'
 				if snp not in snp_list and snp != 'Locus': #All SNP's in list, skipping header
 					snp_list.append(snp)
 				data.append(
@@ -258,7 +234,7 @@ def second():
 					nom_pval_1 = ''
 					try:
 						if qtl_type == 'CIS':
-							nom_pval_1 = float(line[23])
+							nom_pval_1 = float(line[24])
 						if qtl_type == 'TRANS':
 							nom_pval_1 = float(line[22])
 					except ValueError:
@@ -278,7 +254,7 @@ def second():
 						outfile.write(
 							SNP + ',' + line[2] + ',' + line[5] + ',' + line[14] + ',' + line[1] + ',' + str(
 								float(line[22]))
-							+ ',' + str(line[3]) + ',' + str(  # commend for nom
+							+ ',' + str(line[3]) + ',' + str(  # command for nom
 								float(line[25])) + '\n')
 
 			with open(summary_direct + '/interesting_variants_nominal.list', 'w') as ivfile, open(summary_direct + '/interesting_genes_nominal.list', 'w') as igfile:
