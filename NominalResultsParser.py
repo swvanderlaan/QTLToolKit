@@ -7,9 +7,9 @@ print ""
 print "* Written by         : Tim Bezemer | t.bezemer-2@umcutrecht.nl"
 print "* Updated by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-24"
+print "* Last update        : 2018-03-02"
 print "* Name               : NominalResultsParser"
-print "* Version            : v1.2.4"
+print "* Version            : v1.2.5"
 print ""
 print "* Description        : In case of an eQTL analysis this script will collect all "
 print "                       analysed genes and list their associated ProbeIDs as well as the"
@@ -29,6 +29,7 @@ from sys import argv, exit
 from os import mkdir
 from os.path import isdir, isfile
 from subprocess import call
+import numpy as np
 
 fn_nom = argv[1] # Nominal data. Either clumped or normal
 #fn_perm = argv[2] # Permuted data. Either clumped or normal
@@ -79,7 +80,7 @@ def parser():
 				#print g
                 loci[l][g] = []
 
-                print "\t* gene " + g
+                print "\t* gene " + (g if g != np.nan else "NA")
                 ###print "\t* gene " + str(g)
 
                 ProbeIDs = list(set(data[(data['Locus'] == l) & (data['GeneName'] == g)]['ProbeID']))
@@ -151,8 +152,5 @@ def parser():
 #                        continue
 #
 #    call(["mv", fn_nom + '_temp.txt.gz', fn_nom])
-
-
-
 
 main()
