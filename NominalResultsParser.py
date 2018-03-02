@@ -77,7 +77,7 @@ def parser():
             GeneNames = list(set(data[data['Locus'] == l]['GeneName']))
             print GeneNames
             for g in GeneNames:
-				#print g
+				print g
                 loci[l][g] = []
 
                 print "\t* gene " + (g if g != np.nan else "NA")
@@ -108,8 +108,8 @@ def parser():
 
                     variants = variants.drop('BP', axis=1)
 
-                    # print "***DEBUG*** show variant on next line (second time)"
-                    # print variants
+                    print "***DEBUG*** show variant on next line (second time)"
+                    print variants
 
                     n_of_variants = len(variants)
                     n_of_variants_below_threshold = len(variants_p_below_threshold)
@@ -122,35 +122,4 @@ def parser():
                         variants.to_csv(probe_file, sep='\t', index=False)
 
     print "Pfieuw. That was a lot! Let's have a beer."
-
-
-### created by Jacco Schaap, 19-5-'17
-#def read_summary():
-#    print 'Started with updating nominal summary file'
-#    with gzip.open(fn_nom, 'r') as file, gzip.open(fn_nom + '_temp.txt.gz', 'w') as out:
-#        out.write('Locus,ProbeID,VARIANT,RSquare,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q\n')
-#        for regel in file.readlines():
-#            regel = regel.strip('\n')
-#            line = regel.split(',')
-#            locus = line[0]
-#            variant = line[2]
-#            if line[0] == 'Locus':
-#                continue
-#            with open(fn2 + '/ldbuddies_' + locus + '.list', 'r') as ldfile:
-##             	print 'Opened ldbuddie file, split on tab: ' + fn2 + '/ldbuddies_' + locus + '.list'
-#                for snp in ldfile.readlines():
-#                    snp = snp.strip('\n')
-#                    # print snp
-#                    snp = snp.split('\t')
-#                    try:
-#                        if snp[1] == variant:
-#                        # print regel + ',' + snp[2]
-#                            newline = ','.join(line[0:3]) + ',' + snp[2] + ',' + ','.join(line[4:26])
-#                            out.write(newline + '\n')
-#                    except IndexError:
-#                        print snp
-#                        continue
-#
-#    call(["mv", fn_nom + '_temp.txt.gz', fn_nom])
-
 main()
