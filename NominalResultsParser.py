@@ -32,9 +32,6 @@ from subprocess import call
 import numpy as np
 
 fn_nom = argv[1] # Nominal data. Either clumped or normal
-#fn_perm = argv[2] # Permuted data. Either clumped or normal
-#fn2 = argv[3] # Directory were clumped data can be found
-#clump = argv[4] # Yes for plotting clumped set, N for plotting normal set
 
 def main():
     parser()
@@ -80,8 +77,8 @@ def parser():
 				### print g
                 loci[l][g] = []
 
-                print "\t* gene " + (g if g != np.nan else "NA")
-                ###print "\t* gene " + str(g)
+                # print "\t* gene " + (g if g != np.nan else "NA")
+                print "\t* gene " + str(g)
 
                 ProbeIDs = list(set(data[(data['Locus'] == l) & (data['GeneName'] == g)]['ProbeID']))
 
@@ -108,8 +105,8 @@ def parser():
 
                     variants = variants.drop('BP', axis=1)
 
-                    print "***DEBUG*** show variant on next line (second time)"
-                    print variants
+                    # print "***DEBUG*** show variant on next line (second time):"
+                    # print variants
 
                     n_of_variants = len(variants)
                     n_of_variants_below_threshold = len(variants_p_below_threshold)

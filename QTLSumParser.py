@@ -37,7 +37,7 @@ def search():
 		print '\nWriting the top results, and generating lists of top-variants and mapped genes based on permuted p-values.'
 		with gzip.open(summary_file, 'r') as file, open(summary_direct + '/ctmm_qtl_perm_tophits.csv', 'w') as outfile:
 			outfile.write(
-				'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' +  'probe' + ',' + 'nom_p_value' + ',' + 'perm_p_value' + ',' + 'approx_perm_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
+				'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' + ',' + 'probe' + ',' + 'nom_p_value' + ',' + 'perm_p_value' + ',' + 'approx_perm_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
 			for regel in file.readlines():
 				line = regel.split(',')
 				all_snps.append(line[0])
@@ -157,7 +157,7 @@ def second():
 	print '\n\nWriting the top results, and generating lists of top-variants and mapped genes based on nominal p-values.'
 	with gzip.open(nom_summary_file, 'r') as file, open(summary_direct + '/ctmm_qtl_nom_tophits.csv', 'w') as outfile:
 		outfile.write(
-			'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' + 'probe' + ',' + 'nom_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
+			'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' + ',' + 'probe' + ',' + 'nom_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
 		for regel in file.readlines():
 			line = regel.split(',')
 			if line[0] not in nominale_resultaten:

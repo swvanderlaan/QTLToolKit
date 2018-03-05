@@ -122,8 +122,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-26                                                                            +"
-echobold "+ * Version     : 1.1.0                                                                                 +"
+echobold "+ * Last update : 2018-03-05                                                                            +"
+echobold "+ * Version     : 1.2.0                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will produce regional association plots of QTL results, using             +"
 echobold "+                 LocusZoom v1.3.                                                                       +"
@@ -263,7 +263,6 @@ else
 		NOM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz
 		echo "We are using clumped nominal data."
 	fi
-# 	PERM_DATA=${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt.gz # Do we even use this?
 
 	### First we will collect all the nominal association SUMMARYs.
 	echo ""
@@ -279,31 +278,109 @@ else
 	#### Now we will start plotting per locus each gene-probe-pair.
 	echo ""
 	
-	while IFS='' read -r REGIONOFINTEREST || [[ -n "$REGIONOFINTEREST" ]]; do
-		### 1		2		3	4	5		6		7			8		9
-		### Variant	Locus	Chr	BP	BP-1Mb	BP+1Mb	WindowSize	Type	Phenotype
-		LINE=${REGIONOFINTEREST}
-		VARIANT=$(echo "${LINE}" | awk '{print $1}')
-		LOCUS=$(echo "${LINE}" | awk '{print $2}')
-		CHR=$(echo "${LINE}" | awk '{print $3}')
-		BP=$(echo "${LINE}" | awk '{print $4}')
-		START=$(echo "${LINE}" | awk '{print $5}')
-		END=$(echo "${LINE}" | awk '{print $6}')
-		WINDOWSIZE=$(echo "${LINE}" | awk '{print $7}')
-		TYPE=$(echo "${LINE}" | awk '{print $8}')
-		PHENOTYPE=$(echo "${LINE}" | awk '{print $9}')
+	# When not clumping
+	if [ ${CLUMP} = 'N' ]; then
+	
+		while IFS='' read -r REGIONOFINTEREST || [[ -n "$REGIONOFINTEREST" ]]; do
+			### 1		2		3	4	5		6		7			8		9
+			### Variant	Locus	Chr	BP	BP-1Mb	BP+1Mb	WindowSize	Type	Phenotype
+			LINE=${REGIONOFINTEREST}
+			VARIANT=$(echo "${LINE}" | awk '{print $1}')
+			LOCUS=$(echo "${LINE}" | awk '{print $2}')
+			CHR=$(echo "${LINE}" | awk '{print $3}')
+			BP=$(echo "${LINE}" | awk '{print $4}')
+			START=$(echo "${LINE}" | awk '{print $5}')
+			END=$(echo "${LINE}" | awk '{print $6}')
+			WINDOWSIZE=$(echo "${LINE}" | awk '{print $7}')
+			TYPE=$(echo "${LINE}" | awk '{print $8}')
+			PHENOTYPE=$(echo "${LINE}" | awk '{print $9}')
 		
-		echo "===================================================================="
-		echo "        INITIALISING LOCUSZOOM PLOTTING FOR ${VARIANT} LOCUS"
-		echo "===================================================================="
-		echo ""
+			echo "============================================================================="
+			echo "            INITIALISING LOCUSZOOM PLOTTING FOR ${VARIANT} LOCUS"
+			echo "============================================================================="
+			echo ""
 		
-		### Getting only the top part of the variant-gene-probeid list
-		cat ${SUMMARY}/_loci/${VARIANT}.txt | tail -n +2 > ${SUMMARY}/_loci/${VARIANT}.LZ.txt
-		LOCUSHITS=${SUMMARY}/_loci/${VARIANT}.LZ.txt
-		echo "These are the hits we're interested in for ${VARIANT}..."
-		echo ""
-		cat ${LOCUSHITS}
+			### Getting only the top part of the variant-gene-probeid list
+			cat ${SUMMARY}/_loci/${VARIANT}.txt | tail -n +2 > ${SUMMARY}/_loci/${VARIANT}.LZ.txt
+			LOCUSHITS=${SUMMARY}/_loci/${VARIANT}.LZ.txt
+			echo "These are the hits we're interested in for ${VARIANT}..."
+			echo ""
+			cat ${LOCUSHITS}
+		
+			echo ""
+			while IFS='' read -r VARIANTGENEPROBE || [[ -n "$VARIANTGENEPROBE" ]]; do
+				### 1		2			3		4			5
+				### Locus	GeneName	ProbeID	N_Variants	N_Significant
+				LINE=${VARIANTGENEPROBE}
+				LOCUSVARIANT=$(echo "${LINE}" | awk '{print $1}')
+				GENENAME=$(echo "${LINE}" | awk '{print $2}')
+				PROBEID=$(echo "${LINE}" | awk '{print $3}')
+				N_VARIANTS=$(echo "${LINE}" | awk '{print $4}')
+				N_SIGNIFICANT=$(echo "${LINE}" | awk '{print $5}')
+		
+				echo "============================================================================="
+				echo "Plotting SUMMARYs for the ${LOCUSVARIANT} locus on ${CHR}:${START}-${END}."
+				echo "	* Plotting association SUMMARYs for ${GENENAME} and ${PROBEID}."
+				echo "	* Total number of variants analysed: 	[ ${N_VARIANTS} ]."
+				echo "	* Total number of significant variants:	[ ${N_SIGNIFICANT} ]."
+			
+				echo ""
+				### FOR DEBUGGING
+				### echo "Checking existence of proper input file..."
+				### ls -lh ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
+				### echo ""
+				### echo "Head:"
+				### head ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
+				### echo ""
+				### echo "Tail:"
+				### tail ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
+				### echo ""
+				### echo "Row count:"
+				### cat ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz | wc -l
+			
+				### Setting up LocusZoom v1.2+ plotting
+				### Some general settings
+				### LOCUSZOOM_SETTINGS="refsnpTextColor='black' legendColor='black' legendBoxColor='white' legendInnerBoxColor='black' legend='auto' drawMarkerNames=TRUE ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=0.8 geneFontSize=0.6 showRug=FALSE showAnnot=FALSE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2 condLdColors=\"gray60,#E41A1C,#377EB8,#4DAF4A,#984EA3,#FF7F00,#A65628,#F781BF\" "
+			
+				### Setting up LocusZoom v1.3+ plotting
+				### Some general settings
+				LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
+
+
+				### The proper genome-build
+				LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
+			
+				### Directory prefix
+				PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
+			
+				# find ranges to highlight with locuszoom
+				HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 2)
+				HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 3)
+			
+				### Actual plotting
+				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
+			
+			done < ${LOCUSHITS}
+
+		### Should we gzip this shizzle?
+		### gzip -fv ${SUMMARY}/_loci/${VARIANT}.LZ.txt
+		
+		done < ${REGIONS}
+
+	fi
+		
+	# When not clumping
+	if [ ${CLUMP} = 'Y' ]; then
+		PERMUTEDHITS=${SUMMARY}/${STUDYNAME}_qtl_perm_tophits.csv
+		### head of perm_tophits.csv
+		### 1 lead_SNP, 2 e_SNP, 3 chr_tag_snp, 4 pos_tag_snp, 5 e_Gene, 6 probe,
+		### 7 nom_p_value, 8 perm_p_value, 9 approx_perm_p_value, 10 rsquared, 11 FDR
+		### rs9970807,rs56170783,1,57016131,C8B,ILMN_1731293,0.00304069,0.004995,0.00191528,0.977,0.01340696
+		### rs7528419,rs7528419,1,109817192,PSRC1,ILMN_2315964,3.6016e-17,0.000999001,1.48056e-20,1,1.1252256e-18
+		### rs7528419,rs7528419,1,109817192,PSRC1,ILMN_1671843,6.73537e-14,0.000999001,6.65731e-17,1,2.5297778e-15
+		
+		cat ${PERMUTEDHITS} | awk -F "," '{ print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 }' | tail -n +2 > ${SUMMARY}/${STUDYNAME}_qtl_perm_tophits.parsed.txt
+		PERMUTEDHITSPARSED=${SUMMARY}/${STUDYNAME}_qtl_perm_tophits.parsed.txt
 		
 		echo ""
 		while IFS='' read -r VARIANTGENEPROBE || [[ -n "$VARIANTGENEPROBE" ]]; do
@@ -311,66 +388,56 @@ else
 			### Locus	GeneName	ProbeID	N_Variants	N_Significant
 			LINE=${VARIANTGENEPROBE}
 			LOCUSVARIANT=$(echo "${LINE}" | awk '{print $1}')
-			GENENAME=$(echo "${LINE}" | awk '{print $2}')
-			PROBEID=$(echo "${LINE}" | awk '{print $3}')
-			N_VARIANTS=$(echo "${LINE}" | awk '{print $4}')
-			N_SIGNIFICANT=$(echo "${LINE}" | awk '{print $5}')
-		
-			echo "===================================================================="
+			TAGVARIANT=$(echo "${LINE}" | awk '{print $1}')
+			GENENAME=$(echo "${LINE}" | awk '{print $5}')
+			PROBEID=$(echo "${LINE}" | awk '{print $6}')
+			PERMPVALUE=$(echo "${LINE}" | awk '{print $9}')
+			RSQUARED=$(echo "${LINE}" | awk '{print $10}')
+			FDR=$(echo "${LINE}" | awk '{print $11}')
+
+			VARIANT=$(cat ${REGIONS} | awk ' $1 == "'$LOCUSVARIANT'" ' | awk ' { print $1 } ')
+			CHR=$(cat ${REGIONS} | awk ' $1 == "'$LOCUSVARIANT'" ' | awk ' { print $3 } ')
+			BP=$(cat ${REGIONS} | awk ' $1 == "'$LOCUSVARIANT'" ' | awk ' { print $4 } ')
+			START=$(cat ${REGIONS} | awk ' $1 == "'$LOCUSVARIANT'" ' | awk ' { print $5 } ')
+			END=$(cat ${REGIONS} | awk ' $1 == "'$LOCUSVARIANT'" ' | awk ' { print $6 } ')
+			
+			echo "============================================================================="
+			echo "   INITIALISING LOCUSZOOM PLOTTING FOR ${VARIANT} LOCUS -- AFTER CLUMPING"
+			echo "============================================================================="
 			echo "Plotting SUMMARYs for the ${LOCUSVARIANT} locus on ${CHR}:${START}-${END}."
 			echo "	* Plotting association SUMMARYs for ${GENENAME} and ${PROBEID}."
-			echo "	* Total number of variants analysed: 	[ ${N_VARIANTS} ]."
-			echo "	* Total number of significant variants:	[ ${N_SIGNIFICANT} ]."
-			
+			echo "	* The ${TAGVARIANT} tags ${LOCUSVARIANT} with r^2 = ${RSQUARED}, and permuted p-value = ${PERMPVALUE} (FDR: ${FDR})."
+			echo "    Note: the tagging variant can be the same as the index-variant!"
+		
 			echo ""
-			### FOR DEBUGGING
-			### echo "Checking existence of proper input file..."
-			### ls -lh ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
-			### echo ""
-			### echo "Head:"
-			### head ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
-			### echo ""
-			### echo "Tail:"
-			### tail ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz
-			### echo ""
-			### echo "Row count:"
-			### cat ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz | wc -l
-			
 			### Setting up LocusZoom v1.2+ plotting
 			### Some general settings
 			### LOCUSZOOM_SETTINGS="refsnpTextColor='black' legendColor='black' legendBoxColor='white' legendInnerBoxColor='black' legend='auto' drawMarkerNames=TRUE ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=0.8 geneFontSize=0.6 showRug=FALSE showAnnot=FALSE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2 condLdColors=\"gray60,#E41A1C,#377EB8,#4DAF4A,#984EA3,#FF7F00,#A65628,#F781BF\" "
-			
-			### Last used LZ settings
-			### LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" legendColor=transparent legendBoxColor=transparent ldTitle=rsquare showRecomb=TRUE drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=FALSE showRefsnpAnnot=TRUE showRug=FALSE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
-			### LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE ldCol='r^2' drawMarkerNames=FALSE refsnpTextSize=1 geneFontSize=0.7 showAnnot=TRUE showRefsnpAnnot=TRUE showRug=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE ymax=12 rfrows=10 refsnpLineWidth=2"
+		
+			### Setting up LocusZoom v1.3+ plotting
+			### Some general settings
 			LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
 
 
 			### The proper genome-build
 			LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
-			
+		
 			### Directory prefix
 			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
-			
+		
 			# find ranges to highlight with locuszoom
 			HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 2)
 			HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 3)
-			
+		
 			### Actual plotting
-			if [ ${CLUMP} = 'N' ]; then
- 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
- 			fi
- 			
- 			if [ ${CLUMP} = 'Y' ]; then
- 				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
- 			fi
+			${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${TAGVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} tagged by ${TAGVARIANT} - ${GENENAME} (${PROBEID})"
 			
-		done < ${LOCUSHITS}
+		done < ${PERMUTEDHITSPARSED}
 		
 		### Should we gzip this shizzle?
 		### gzip -fv ${SUMMARY}/_loci/${VARIANT}.LZ.txt
-		
-	done < ${REGIONS}
+	
+	fi 
 	
 	
 ### END of if-else statement for the number of command-line arguments passed ###
