@@ -75,29 +75,29 @@ function echoerrorflashnooption {
 }
 
 script_copyright_message() {
-	echo ""
+	echoitalic ""
 	THISYEAR=$(date +'%Y')
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	echo "+ The MIT License (MIT)                                                                                 +"
-	echo "+ Copyright (c) 2015-${THISYEAR} Sander W. van der Laan                                                        +"
-	echo "+                                                                                                       +"
-	echo "+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +"
-	echo "+ associated documentation files (the \"Software\"), to deal in the Software without restriction,         +"
-	echo "+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +"
-	echo "+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +"
-	echo "+ subject to the following conditions:                                                                  +"
-	echo "+                                                                                                       +"
-	echo "+ The above copyright notice and this permission notice shall be included in all copies or substantial  +"
-	echo "+ portions of the Software.                                                                             +"
-	echo "+                                                                                                       +"
-	echo "+ THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +"
-	echo "+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +"
-	echo "+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +"
-	echo "+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +"
-	echo "+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +"
-	echo "+                                                                                                       +"
-	echo "+ Reference: http://opensource.org.                                                                     +"
-	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echoitalic "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echoitalic "+ The MIT License (MIT)                                                                                 +"
+	echoitalic "+ Copyright (c) 2015-${THISYEAR} Sander W. van der Laan                                                        +"
+	echoitalic "+                                                                                                       +"
+	echoitalic "+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +"
+	echoitalic "+ associated documentation files (the \"Software\"), to deal in the Software without restriction,         +"
+	echoitalic "+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +"
+	echoitalic "+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +"
+	echoitalic "+ subject to the following conditions:                                                                  +"
+	echoitalic "+                                                                                                       +"
+	echoitalic "+ The above copyright notice and this permission notice shall be included in all copies or substantial  +"
+	echoitalic "+ portions of the Software.                                                                             +"
+	echoitalic "+                                                                                                       +"
+	echoitalic "+ THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +"
+	echoitalic "+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +"
+	echoitalic "+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +"
+	echoitalic "+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +"
+	echoitalic "+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +"
+	echoitalic "+                                                                                                       +"
+	echoitalic "+ Reference: http://opensource.org.                                                                     +"
+	echoitalic "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 }
 
 script_arguments_error() {
@@ -108,7 +108,7 @@ script_arguments_error() {
 	echoerror "========================================================================================================="
 	echoerror "                                              OPTION LIST"
 	echoerror ""
-	echoerror " * Argument #1  configurationfile: qtl.config."
+	echoerror " * Argument #1  configuration-file: qtl.config."
 	echoerror ""
 	echoerror " An example command would be: "
 	echoerror "./QTLAnalyzer.sh [arg1]"
@@ -125,8 +125,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-28                                                                            +"
-echobold "+ * Version     : 2.2.7                                                                                 +"
+echobold "+ * Last update : 2018-03-02                                                                            +"
+echobold "+ * Version     : 2.2.8                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using either [your/AE/CTMM] methylation          +"
@@ -308,13 +308,13 @@ else
 	if [ -s ${REGIONS} ]; then
 		echo 'Text file with regions of interest exists and is not empty.'
 	else
-		echo '!!! Text file with regions of interest does not exist or is empty ('${REGIONS}'). Please change this parameter!'
+		echoerrorflash '!!! Text file with regions of interest does not exist or is empty ('${REGIONS}'). Please change this parameter!'
 		exit
 	fi
 	if [ -a ${EXCLUSION_COV} ]; then
 		echo 'Text file with excluded covariates is not empty.'
 	else
-		echo '!!! Text file with excluded covariates does not exist ('${EXCLUSION_COV}'). Please change this parameter!'
+		echoerrorflash '!!! Text file with excluded covariates does not exist ('${EXCLUSION_COV}'). Please change this parameter!'
 		exit
 	fi
 	
@@ -470,7 +470,7 @@ else
 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid VCFGZ${STUDYJOBNAME}_${VARIANT}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
 		else
-			echo "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
+			echoerrorflash "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
 			exit 1
 		fi
 		
@@ -513,7 +513,7 @@ else
 			echo "${QTLTOOLS} cis --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --region ${CHR}:${START}-${END} --seed ${SEEDNO} --window ${WINDOWSIZE} --permute ${PERMSTART} ${PERMEND} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --include-sites ${CLUMPDIR}/only_ldbuddies_${VARIANT}.list --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz --log ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.log "> ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
 			qsub -S /bin/bash -N QTL_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid CLUMP_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors -o ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output -l h_rt=${QUEUE_PERM} -l h_vmem=${VMEM_PERM} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
 		else
-			echo "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
+			echoerrorflash "*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please."	
 			exit 1
 		fi
 	
@@ -642,10 +642,10 @@ else
 		echo "plotting mQTL results is not yet implemented pending further consideration of the above."
 		echo ""
 	else
-		echo "                        *** ERROR *** "
-		echo "Something is rotten in the City of Gotham; most likely a typo. "
-		echo "Double back, and check you 'study type' please: '${STUDY_TYPE}' does *not* exist."	
-		echo "                *** END OF ERROR MESSAGE *** "
+		echoerrorflash "                        *** ERROR *** "
+		echoerrorflash "Something is rotten in the City of Gotham; most likely a typo. "
+		echoerrorflash "Double back, and check you 'study type' please: '${STUDY_TYPE}' does *not* exist."	
+		echoerrorflash "                *** END OF ERROR MESSAGE *** "
 		exit 1
 	fi
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

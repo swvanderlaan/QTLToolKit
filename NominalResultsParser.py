@@ -77,7 +77,7 @@ def parser():
             GeneNames = list(set(data[data['Locus'] == l]['GeneName']))
             print GeneNames
             for g in GeneNames:
-				print g
+				### print g
                 loci[l][g] = []
 
                 print "\t* gene " + (g if g != np.nan else "NA")
