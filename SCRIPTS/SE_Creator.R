@@ -123,9 +123,16 @@ cat("SETUP ANALYSIS")
 # Assess where we are
 getwd()
 # Set locations
-CTMMROOT_loc = "/Volumes/EliteProQx2Media/PLINK/_CTMM_Originals"
-DATA_loc = "/Volumes/EliteProQx2Media/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/"
-PROJECT_loc = "/Volumes/EliteProQx2Media/PLINK/analyses/ctmm/cardiogramplusc4d/"
+### Mac Pro
+# ROOT_loc = "/Volumes/EliteProQx2Media"
+
+### MacBook
+ROOT_loc = "/Users/swvanderlaan"
+
+CTMMROOT_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals")
+DATA_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/")
+PHENO_loc = paste0(ROOT_loc, "/iCloud/Genomics/Projects/CTMM/Data/")
+PROJECT_loc = paste0(ROOT_loc,"/PLINK/analyses/ctmm/cardiogramplusc4d/")
 OUT_loc = DATA_loc
 
 cat("====================================================================================================")
@@ -140,12 +147,12 @@ head(data)
 names(data)[1] <- "chr"
 # names(data)[names(data)== "start"] <- "start"
 # names(data)[names(data)== "end"] <- "end"
-names(data)[names(data)== "pid"] <- "probe"
-names(data)[names(data)== "gid"] <- "gene"
+names(data)[names(data) == "pid"] <- "probe"
+names(data)[names(data) == "gid"] <- "gene"
 # names(data)[names(data)== "strand"] <- "strand"
 
 # set rowRanges
-rowRanges <- with(data, GRanges(chr, IRanges(start+1, end), strand, probe, id = gene))
+rowRanges <- with(data, GRanges(chr, IRanges(start + 1, end), strand, probe, id = gene))
 rowRanges
 
 elementMetadata(rowRanges)
@@ -170,51 +177,62 @@ dim(count)
 # counts <- as.matrix(temp)
 
 # read sample file, only include the samples u need! 
-sample <- fread(paste0(CTMMROOT_loc, "/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_phenocov.sample"), 
-                header = TRUE, showProgress = TRUE, verbose = TRUE)
-dim(sample)
+sampleFile <- fread(paste0(CTMMROOT_loc, "/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_phenocov.sample"), 
+                    header = TRUE, showProgress = TRUE, verbose = TRUE)
+# Phenotype data
+rawphenoData = read.xlsx(paste0(PHENO_loc,"/20180306_CTMM_withPCA_CTMMGS_CTMMHT_withMed_Cells_Cytokines.repaired.xlsx"),
+                         sheet = 1, skipEmptyRows = TRUE)
+dim(rawphenoData)
+rawphenoData[1:5,1:5]
+# edit missing data
+rawphenoData[ rawphenoData == "." ] = NA
+rawphenoData[ rawphenoData == "Missing" ] = NA
+rawphenoData[ rawphenoData == "missing" ] = NA
+rawphenoData[ rawphenoData == "-999.0" ] = NA
+rawphenoData[ rawphenoData == "-99.0" ] = NA
+rawphenoData[ rawphenoData == "-888.0" ] = "not_relevant"
+rawphenoData[ rawphenoData == "-88.0" ] = "not_relevant"
+# edit identifier for merge with expression data
+rawphenoData$CTMM_GS_HT_ID <- sub("^", "X", rawphenoData$CC_number)
+phenoData <- rawphenoData[,c(ncol(rawphenoData),1:(ncol(rawphenoData) - 1))]
+dim(phenoData)
+phenoData[1:5,1:5]
+
+phenoDataClean <- subset(phenoData, Conf_diag_revised != "NA" & Conf_diag_revised != "healthy/insignificant atherosclerosis")
+dim(phenoDataClean)
+phenoDataClean[1:5,1:5]
+
+# remove temporary data
+rm(rawphenoData)
+dim(sampleFile)
 
 data.samples <- colnames(data[,7:314])
 
-sample.exp <- sample[sample$ID_1 %in% data.samples,]
+sample.exp <- sampleFile[sampleFile$ID_1 %in% data.samples,]
+sample.exp.new <- phenoData[phenoData$AlternativeID %in% data.samples,]
 
 colData <- DataFrame(sample.exp)
+colData.new <- DataFrame(sample.exp.new)
 library(SummarizedExperiment)
 se <- SummarizedExperiment(assays = list(counts = count), 
                            rowRanges = rowRanges, 
                            colData = colData)
-
+se.new <- SummarizedExperiment(assays = list(counts = count), 
+                               rowRanges = rowRanges, 
+                               colData = colData.new)
 ctmm.humanhtv4r2.SE = se
+ctmm.humanhtv4r2.SE.new = se.new
+rm(se, count, colData, data, rowRanges, sample.exp, sample.exp.new, sampleFile, temp, se.new)
 
-rm(se, count, colData, data, rowRanges, sample, sample.exp, temp)
-
-cat("\n*** Saving Final Datasets ***")
+cat("\n*** Saving Final Datasets ***\n")
 save(ctmm.humanhtv4r2.SE, file = paste0(DATA_loc,"/",Today,".ctmm.humanhtv4r2.SE.RData"))
 save(ctmm.humanhtv4r2.SE, file = paste0(PROJECT_loc,"/",Today,".ctmm.humanhtv4r2.SE.RData"))
 
+save(ctmm.humanhtv4r2.SE.new, file = paste0(DATA_loc,"/",Today,".ctmm.humanhtv4r2.SE.new.RData"))
+save(ctmm.humanhtv4r2.SE.new, file = paste0(PROJECT_loc,"/",Today,".ctmm.humanhtv4r2.SE.new.RData"))
+
 cat("====================================================================================================")
-cat("SAVE THE DATA")
+cat("SAVE THE DATA\n")
 save.image(paste0(DATA_loc,"/",Today,".SE_Creator.RData"))
 
 
-
-# 
-# # extra code to calculate correlation in expression data
-# resultaat = list()
-# dat = data.frame()
-# #i = 1
-# for (i in 1:length(rowRanges(se))) {
-#   score <- assays(se)[[1]][i, 0:273]
-#   probe <- rownames(se)[i]
-#   phenotype <- sample$Diagnosis_P
-#   correlatie <- cor.test(score,phenotype)
-#   dat <- data.frame(gen = probe, correlation = correlatie$estimate, pval = correlatie$p.value)
-#   resultaat[[i]] <- dat
-# }
-# big_data_file = do.call(rbind, resultaat)
-# max(big_data_file$correlation)
-# min(big_data_file$correlation)
-# 
-# write.table(big_data_file, file = "FIlE.txt", sep = '\t', col.names = TRUE)
-# # save 
-# NAME <- big_data_file
