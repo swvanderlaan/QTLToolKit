@@ -118,10 +118,15 @@ cat("SETUP ANALYSIS")
 # Assess where we are
 getwd()
 # Set locations
-ROOT_loc = "/Users/swvanderlaan"
+### Mac Pro
+ROOT_loc = "/Volumes/EliteProQx2Media"
+USER_loc = "/Users/svanderlaan"
+
+### MacBook
+# ROOT_loc = "/Users/swvanderlaan"
 INP_loc = paste0(ROOT_loc, "/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/")
 OUT_loc = INP_loc
-PHENO_loc = paste0(ROOT_loc, "/iCloud/Genomics/Projects/CTMM eQTL/Data/")
+PHENO_loc = paste0(USER_loc, "/iCloud/Genomics/Projects/CTMM/Data/")
 
 cat("====================================================================================================")
 cat("LOAD DATASET")
@@ -151,8 +156,8 @@ rawkeyData$Index <- NULL
 keyData = rawkeyData
 
 # Phenotype data
-rawphenoData = read.xlsx(paste0(PHENO_loc,"/20180221_CTMM_withPCA_CTMMGS_CTMMHT_withMed.xlsx"),
-                         sheet = 3, skipEmptyRows = TRUE)
+rawphenoData = read.xlsx(paste0(PHENO_loc,"/20180307_CTMM_withPCA_CTMMGS_CTMMHT_withMed_Cells_Cytokines.xlsx"),
+                         sheet = 1, skipEmptyRows = TRUE)
 dim(rawphenoData)
 rawphenoData[1:5,1:5]
 # edit missing data
@@ -160,6 +165,9 @@ rawphenoData[ rawphenoData == "." ] = NA
 rawphenoData[ rawphenoData == "Missing" ] = NA
 rawphenoData[ rawphenoData == "missing" ] = NA
 rawphenoData[ rawphenoData == "-999.0" ] = NA
+rawphenoData[ rawphenoData == "-99.0" ] = NA
+rawphenoData[ rawphenoData == "-888.0" ] = "not_relevant"
+rawphenoData[ rawphenoData == "-88.0" ] = "not_relevant"
 # edit identifier for merge with expression data
 rawphenoData$CTMM_GS_HT_ID <- sub("^", "X", rawphenoData$CC_number)
 phenoData <- rawphenoData[,c(ncol(rawphenoData),1:(ncol(rawphenoData) - 1))]
@@ -420,7 +428,9 @@ probes.intersect <- intersect(perfect.list, pheno.probe.list)
 length(probes.intersect)
 
 cat("\n* Filter CTMM expression data.\n")
-phenoDataNewQC <- phenoDataNew[phenoDataNew$key %in% probes.intersect,]
+phenoDataNewQC.temp <- phenoDataNew[phenoDataNew$key %in% probes.intersect,]
+library(dplyr)
+phenoDataNewQC <- distinct(phenoDataNewQC.temp, key, .keep_all = TRUE)
 dim(phenoDataNew)
 dim(phenoDataNewQC)
 phenoDataNewQC[1:5,1:9]
@@ -429,19 +439,17 @@ phenoDataNewQC$AvgGeneExp <- apply(subset(phenoDataNewQC,
                                           select = sample.list), 1, mean, na.rm = TRUE)
 
 pdf(paste0(OUT_loc,"/",Today,".log2_gene_expression.pdf"))
-hist(phenoDataNewQC$AvgGeneExp, breaks = 100,
-     col = "#1290D9", border = "#FFFFFF",
-     main = "Average Gene Expression\nperfect matching probes only",
-     xlab = expression(log[2]~(quantile~normalized~gene~expression)))
+  hist(phenoDataNewQC$AvgGeneExp, breaks = 100,
+       col = "#1290D9", border = "#FFFFFF",
+       main = "Average Gene Expression\nperfect matching probes only",
+       xlab = expression(log[2]~(quantile~normalized~gene~expression)))
 dev.off()
-
-# phenoDataNewQC.perGene <- ddply(phenoDataNewQC, .(gid), summarize,  AvgGeneExpPerGene = mean(AvgGeneExp))
 
 cat("\n* Re-order to chromosome-basepair position.\n")
 phenoDataNewQCsort <- arrange(phenoDataNewQC, `#Chr`, start)
 dim(phenoDataNewQCsort)
 phenoDataNewQCsort[1:5,1:9]
-phenoDataNewQCsort[37166:37171,1:9]
+phenoDataNewQCsort[25379:25384,1:9]
 
 cat("\n* Add leading 'zero' to chromosome.\n")
 # https://stackoverflow.com/questions/5812493/adding-leading-zeros-using-r
@@ -450,7 +458,7 @@ library(stringr)
 phenoDataNewQCsort$`#Chr` <- str_pad(phenoDataNewQCsort$`#Chr`, width = 2, side = "left", pad = "0")
 dim(phenoDataNewQCsort)
 phenoDataNewQCsort[1:5,1:9]
-phenoDataNewQCsort[37166:37171,1:9]
+phenoDataNewQCsort[25379:25384,1:9]
 
 cat("\n* Writing new data.\n")
 # Note: we added a new column to the back of the dataframe, hence [,2:315]!!!

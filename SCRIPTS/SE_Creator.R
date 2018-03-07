@@ -58,6 +58,7 @@ install.packages.auto("GenomicRanges")
 install.packages.auto("SummarizedExperiment")
 install.packages.auto("data.table")
 install.packages.auto("readr")
+install.packages.auto("openxlsx")
 
 # Create datestamp
 Today = format(as.Date(as.POSIXlt(Sys.time())), "%Y%m%d")
@@ -124,14 +125,14 @@ cat("SETUP ANALYSIS")
 getwd()
 # Set locations
 ### Mac Pro
-# ROOT_loc = "/Volumes/EliteProQx2Media"
+ROOT_loc = "/Volumes/EliteProQx2Media"
 
 ### MacBook
-ROOT_loc = "/Users/swvanderlaan"
+# ROOT_loc = "/Users/swvanderlaan"
 
 CTMMROOT_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals")
 DATA_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/")
-PHENO_loc = paste0(ROOT_loc, "/iCloud/Genomics/Projects/CTMM/Data/")
+PHENO_loc = "/Users/svanderlaan/iCloud/Genomics/Projects/CTMM/Data/"
 PROJECT_loc = paste0(ROOT_loc,"/PLINK/analyses/ctmm/cardiogramplusc4d/")
 OUT_loc = DATA_loc
 
@@ -180,7 +181,7 @@ dim(count)
 sampleFile <- fread(paste0(CTMMROOT_loc, "/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_phenocov.sample"), 
                     header = TRUE, showProgress = TRUE, verbose = TRUE)
 # Phenotype data
-rawphenoData = read.xlsx(paste0(PHENO_loc,"/20180306_CTMM_withPCA_CTMMGS_CTMMHT_withMed_Cells_Cytokines.repaired.xlsx"),
+rawphenoData = read.xlsx(paste0(PHENO_loc,"/20180307_CTMM_withPCA_CTMMGS_CTMMHT_withMed_Cells_Cytokines.xlsx"),
                          sheet = 1, skipEmptyRows = TRUE)
 dim(rawphenoData)
 rawphenoData[1:5,1:5]
@@ -198,7 +199,7 @@ phenoData <- rawphenoData[,c(ncol(rawphenoData),1:(ncol(rawphenoData) - 1))]
 dim(phenoData)
 phenoData[1:5,1:5]
 
-phenoDataClean <- subset(phenoData, Conf_diag_revised != "NA" & Conf_diag_revised != "healthy/insignificant atherosclerosis")
+phenoDataClean <- subset(phenoData, Conf_diag_revised != "silent ischemia" & Conf_diag_revised != "health control"  & Conf_diag_revised != "NA")
 dim(phenoDataClean)
 phenoDataClean[1:5,1:5]
 
@@ -231,7 +232,7 @@ save(ctmm.humanhtv4r2.SE, file = paste0(PROJECT_loc,"/",Today,".ctmm.humanhtv4r2
 save(ctmm.humanhtv4r2.SE.new, file = paste0(DATA_loc,"/",Today,".ctmm.humanhtv4r2.SE.new.RData"))
 save(ctmm.humanhtv4r2.SE.new, file = paste0(PROJECT_loc,"/",Today,".ctmm.humanhtv4r2.SE.new.RData"))
 
-cat("====================================================================================================")
+cat("====================================================================================================\n")
 cat("SAVE THE DATA\n")
 save.image(paste0(DATA_loc,"/",Today,".SE_Creator.RData"))
 
