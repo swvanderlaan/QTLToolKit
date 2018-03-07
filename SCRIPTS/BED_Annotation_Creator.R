@@ -1,10 +1,10 @@
 cat("====================================================================================================
-*                                      PHENOTYPE CREATOR AND ANNOTATOR
-*                                           --- CTMM DATA ---
+*                                      BED-FILE & ANNOTATION CREATOR
+*                                            --- CTMM DATA ---
 *
 * Version:      version 1.0
 *
-* Last update: 2018-02-21
+* Last update: 2018-03-07
 * Written by: Sander W. van der Laan (s.w.vanderlaan-2@umcutrecht.nl)
 *                                                    
 * Description: Script to create and annotate the phenotype file.
