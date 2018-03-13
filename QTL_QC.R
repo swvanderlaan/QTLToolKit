@@ -417,19 +417,19 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ###     - http://en.wikipedia.org/wiki/False_discovery_rate
   ###     - http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html
   ### Requires a bioconductor package: "qvalue"
-  # if(opt$resulttype == "NOM") {
-  #   # min(RESULTS$Nominal_P)
-  #   # install.packages("devtools")
-  #   # library(devtools)
-  #   # install_github("jdstorey/qvalue")  
-  # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues
-  # } else if(opt$resulttype == "PERM") {
-  #  RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues
-  # } else {
-  #  cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
-  #       file=stderr()) # print error messages to stder
-  # }
-  RESULTS$Q = "Currently not calculated due to an issue with the qvalue() package."
+  if(opt$resulttype == "NOM") {
+    # min(RESULTS$Nominal_P)
+    # install.packages("devtools")
+    # library(devtools)
+    # install_github("jdstorey/qvalue")  
+  RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues
+  } else if(opt$resulttype == "PERM") {
+   RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues
+  } else {
+   cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
+        file=stderr()) # print error messages to stder
+  }
+  # RESULTS$Q = "Currently not calculated due to an issue with the qvalue() package."
   #--------------------------------------------------------------------------
   #### ADD IN THE ANNOTATIONS ###
   cat("\nApplying annotations.\n")
