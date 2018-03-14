@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
-* Version: v2.3.0
-* Last edit: 2018-02-26
+* Version: v2.3.1
+* Last edit: 2018-03-14
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -418,13 +418,11 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ###     - http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html
   ### Requires a bioconductor package: "qvalue"
   if(opt$resulttype == "NOM") {
-    # min(RESULTS$Nominal_P)
-    # install.packages("devtools")
-    # library(devtools)
-    # install_github("jdstorey/qvalue")  
-  RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues
+  ### RESULTS$Q = qvalue(RESULTS$Nominal_P))$qvalues # original code
+  RESULTS$Q = "Not calculated: throws an error when p-value is infinite or NA. NEED FIXING"
   } else if(opt$resulttype == "PERM") {
-   RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues
+   ### RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
+   RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
   } else {
    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
         file=stderr()) # print error messages to stder
@@ -578,28 +576,28 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### SAVE NEW DATA ###
   cat("\n* Saving parsed data...\n")
   if (opt$resulttype == "NOM") {
-    #write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$Q <= 0.05), ], # with filtering on Q-value 
-    write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # without filtering on Q-value
+    # write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # with filtering on Q-value 
+    write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch != "NA"), ], # without filtering on Q-value
                 #paste0(opt$outputdir, "/", 
                 #       ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                 #       file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
-                #       "_nominal.P0_05.txt"),
+                #       ".nominal.P0_05.txt"),
                 paste0(opt$outputdir, "/", 
                        ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                        file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
-                       "_nominal.all.txt"),
+                       ".nominal.all.txt"),
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
   } else if (opt$resulttype == "PERM") {
     write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # with filtering on Q-value 
-                #write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$Q != "NA"), ], # without filtering on Q-value
+    # write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch != "NA"), ], # without filtering on Q-value
                 paste0(opt$outputdir, "/", 
                        ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                        file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
-                       "_perm.P0_05.txt"),
+                       ".perm.Q0_05.txt"),
                 #paste0(opt$outputdir, "/", 
                 #        ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day' 
                 #        file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
-                #       "_perm.all.txt"),
+                #       ".perm.all.txt"),
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
   } else {
     cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
