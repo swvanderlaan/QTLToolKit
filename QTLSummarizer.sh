@@ -1,26 +1,5 @@
 #!/bin/bash
 #
-# You can use the variables below (indicated by "#$") to set some things for the 
-# submission system.
-# -S /bin/bash 																				# the type of BASH you'd like to use
-# -N QTLSummarizer_v1 																		# the name of this script
-# -hold_jid some_other_basic_bash_script 													# the current script (basic_bash_script) will hold until some_other_basic_bash_script has finished
-# -o /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLSummarizer_v1.log 						# the log file of this job
-# -e /hpc/dhl_ec/svanderlaan/projects/test_mqtl/QTLSummarizer_v1.errors 					# the error file of this job
-# -l h_rt=04:00:00 																			# h_rt=[max time, hh:mm:ss, e.g. 02:02:01] - this is the time you think the script will take
-# -l h_vmem=8G 																				#  h_vmem=[max. mem, e.g. 45G] - this is the amount of memory you think your script will use
-# -l tmpspace=32G 																			# this is the amount of temporary space you think your script will use
-# -M s.w.vanderlaan-2@umcutrecht.nl 														# you can send yourself emails when the job is done; "-M" and "-m" go hand in hand
-# -m ea 																					# you can choose: b=begin of job; e=end of job; a=abort of job; s=suspended job; n=no mail is send
-# -cwd 																						# set the job start to the current directory - so all the things in this script are relative to the current directory!!!
-#
-# Another useful tip: you can set a job to run after another has finished. Name the job 
-# with "-N SOMENAME" and hold the other job with -hold_jid SOMENAME". 
-# Further instructions: https://wiki.bioinformatics.umcutrecht.nl/bin/view/HPC/HowToS#Run_a_job_after_your_other_jobs
-#
-# It is good practice to properly name and annotate your script for future reference for
-# yourself and others. Trust me, you'll forget why and how you made this!!!
-
 ### REGARDING NOTES ###
 ### Please note that uncommented notes can be found at the end of this script.
 ###
@@ -123,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-02-28                                                                            +"
-echobold "+ * Version     : 1.1.1                                                                                 +"
+echobold "+ * Last update : 2018-03-14                                                                            +"
+echobold "+ * Version     : 1.1.2                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -370,17 +349,17 @@ else
 	echo ""
 	echo "Compressing the final summary results..."
 	
-	if [[ ${QTL_TYPE} == "TRANS" ]]; then
-		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt # why is this removed???
-
-	elif [[ ${QTL_TYPE} == "CIS" ]]; then
+	if [[ ${QTL_TYPE} == "CIS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+
+	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
+		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+		#rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt # why is this removed???
 
 	fi
 	
