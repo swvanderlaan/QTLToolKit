@@ -2,9 +2,9 @@ cat("===========================================================================
 *                                        CREATE SUMMARIZED EXPERIMENT
 *                                      --- for downstream analyses ---
 *
-* Version:      version 1.1
+* Version:      version 1.2
 *
-* Last update: 2018-02-07
+* Last update: 2018-04-21
 * Written by: Sander W. van der Laan (s.w.vanderlaan-2@umcutrecht.nl)
 *                                                    
 * Description: Script to be create SummarizedExperiment of CTMM data. Some important notes:
@@ -125,14 +125,14 @@ cat("SETUP ANALYSIS")
 getwd()
 # Set locations
 ### Mac Pro
-ROOT_loc = "/Volumes/EliteProQx2Media"
+# ROOT_loc = "/Volumes/EliteProQx2Media"
 
 ### MacBook
-# ROOT_loc = "/Users/swvanderlaan"
+ROOT_loc = "/Users/swvanderlaan"
 
 CTMMROOT_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals")
 DATA_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/")
-PHENO_loc = "/Users/svanderlaan/iCloud/Genomics/Projects/CTMM/Data/"
+PHENO_loc = paste0(ROOT_loc,"/iCloud/Genomics/Projects/CTMM/Data/")
 PROJECT_loc = paste0(ROOT_loc,"/PLINK/analyses/ctmm/cardiogramplusc4d/")
 OUT_loc = DATA_loc
 
@@ -175,6 +175,7 @@ temp$probe <- NULL
 # Create matrix with expression / count data
 count <- as.matrix(temp)
 dim(count)
+head(count)
 # counts <- as.matrix(temp)
 
 # read sample file, only include the samples u need! 
@@ -215,7 +216,7 @@ sample.exp.new <- phenoData[phenoData$AlternativeID %in% data.samples,]
 colData <- DataFrame(sample.exp)
 colData.new <- DataFrame(sample.exp.new)
 library(SummarizedExperiment)
-se <- SummarizedExperiment(assays = list(counts = count), 
+se <- SummarizedExperiment(assays = SimpleList(counts = count), 
                            rowRanges = rowRanges, 
                            colData = colData)
 se.new <- SummarizedExperiment(assays = list(counts = count), 
