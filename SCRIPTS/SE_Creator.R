@@ -2,9 +2,9 @@ cat("===========================================================================
 *                                        CREATE SUMMARIZED EXPERIMENT
 *                                      --- for downstream analyses ---
 *
-* Version:      version 1.1
+* Version:      version 1.2
 *
-* Last update: 2018-02-07
+* Last update: 2018-04-21
 * Written by: Sander W. van der Laan (s.w.vanderlaan-2@umcutrecht.nl)
 *                                                    
 * Description: Script to be create SummarizedExperiment of CTMM data. Some important notes:
@@ -125,57 +125,55 @@ cat("SETUP ANALYSIS")
 getwd()
 # Set locations
 ### Mac Pro
-ROOT_loc = "/Volumes/EliteProQx2Media"
+# ROOT_loc = "/Volumes/EliteProQx2Media"
 
 ### MacBook
-# ROOT_loc = "/Users/swvanderlaan"
+ROOT_loc = "/Users/swvanderlaan"
 
 CTMMROOT_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals")
 DATA_loc = paste0(ROOT_loc,"/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/")
-PHENO_loc = "/Users/svanderlaan/iCloud/Genomics/Projects/CTMM/Data/"
+PHENO_loc = paste0(ROOT_loc,"/iCloud/Genomics/Projects/CTMM/Data/")
 PROJECT_loc = paste0(ROOT_loc,"/PLINK/analyses/ctmm/cardiogramplusc4d/")
 OUT_loc = DATA_loc
 
 cat("====================================================================================================")
 cat("LOAD DATASET")
+library(SummarizedExperiment)
+
 setwd(OUT_loc)
 list.files()
 # read bed
+library(data.table)
 data = as.data.table(read_tsv(paste0(DATA_loc,"ctmm.humanhtv4r2.qtl.bed"),
                               col_names = TRUE, progress = TRUE))
 dim(data)
-head(data)
+data[1:5,1:8]
+rownames(data) <- data$pid
+rownames(data)
 names(data)[1] <- "chr"
 # names(data)[names(data)== "start"] <- "start"
 # names(data)[names(data)== "end"] <- "end"
 names(data)[names(data) == "pid"] <- "probe"
 names(data)[names(data) == "gid"] <- "gene"
 # names(data)[names(data)== "strand"] <- "strand"
+data[1:5,1:8]
 
 # set rowRanges
 rowRanges <- with(data, GRanges(chr, IRanges(start + 1, end), strand, probe, id = gene))
-rowRanges
+
+temp <- data
+temp$gene <- NULL
+temp$probe <- NULL
+
+exRSE <- makeSummarizedExperimentFromDataFrame(temp)
+assay(exRSE)
+rowRanges(exRSE)
+genome(exRSE) <- "hg19"
+rowRanges(exRSE)$probe <- rowRanges$probe
+rowRanges(exRSE)$gene <- rowRanges$id
+rowRanges(exRSE)
 
 elementMetadata(rowRanges)
-
-# set summarized experiment, first a dirty conversion of the bed data. This is needed cause we need the 
-# genes as row names.
-temp <- data
-temp$chr <- NULL
-temp$start <- NULL
-temp$end <- NULL
-temp$gene <- NULL
-temp$strand <- NULL
-row.names(temp) <- temp$probe
-temp$probe <- NULL
-# Next option can also be used, but doesn't work with my data.
-#temp = read.csv('chr1_new.bed', sep = '\t', header = F)
-#drops <- c(1,2,3,5,6)
-
-# Create matrix with expression / count data
-count <- as.matrix(temp)
-dim(count)
-# counts <- as.matrix(temp)
 
 # read sample file, only include the samples u need! 
 sampleFile <- fread(paste0(CTMMROOT_loc, "/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_phenocov.sample"), 
@@ -214,16 +212,18 @@ sample.exp.new <- phenoData[phenoData$AlternativeID %in% data.samples,]
 
 colData <- DataFrame(sample.exp)
 colData.new <- DataFrame(sample.exp.new)
-library(SummarizedExperiment)
-se <- SummarizedExperiment(assays = list(counts = count), 
+
+se <- SummarizedExperiment(assays = list(assay(exRSE)), 
                            rowRanges = rowRanges, 
                            colData = colData)
-se.new <- SummarizedExperiment(assays = list(counts = count), 
+assay(se)
+se.new <- SummarizedExperiment(assays = list(assay(exRSE)), 
                                rowRanges = rowRanges, 
                                colData = colData.new)
+assay(se.new)
 ctmm.humanhtv4r2.SE = se
 ctmm.humanhtv4r2.SE.new = se.new
-rm(se, count, colData, data, rowRanges, sample.exp, sample.exp.new, sampleFile, temp, se.new)
+rm(se, data, sample.exp, sample.exp.new, sampleFile, temp, se.new)
 
 cat("\n*** Saving Final Datasets ***\n")
 save(ctmm.humanhtv4r2.SE, file = paste0(DATA_loc,"/",Today,".ctmm.humanhtv4r2.SE.RData"))
@@ -235,5 +235,4 @@ save(ctmm.humanhtv4r2.SE.new, file = paste0(PROJECT_loc,"/",Today,".ctmm.humanht
 cat("====================================================================================================\n")
 cat("SAVE THE DATA\n")
 save.image(paste0(DATA_loc,"/",Today,".SE_Creator.RData"))
-
 
