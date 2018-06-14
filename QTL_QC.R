@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
-* Version: v2.3.1
-* Last edit: 2018-03-14
+* Version: v2.3.2
+* Last edit: 2018-06-14
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -269,7 +269,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       # 12. The nominal P-value of association between the variant and the phenotype
       # 13. The corresponding regression slope
       # 14. A binary flag equal to 1 is the variant is the top variant in cis
-      RESULTS = RESULTS[ , c(1, 8, 7, 12, 13)]
+      RESULTS = RESULTS[ , c(1, 8, 7, 5, 12, 13)]
     }
     if (opt$analysetype == "TRANS") {
       # 1. Phenotype ID
@@ -281,9 +281,9 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       # 7. Nominal P-value of association
       # 8. Dummy here. Field used in approximated mapping in trans
       # 9. Regression slope
-      RESULTS = RESULTS[ , c(1, 4, 6, 7, 9)]
+      RESULTS = RESULTS[ , c(1, 4, 6, 5, 7, 9)]
     }
-    colnames(RESULTS) = c("ProbeID", "VARIANT", "Distance_VARIANT_ProbeID", "Nominal_P", "Beta")
+    colnames(RESULTS) = c("ProbeID", "VARIANT", "Distance_VARIANT_ProbeID", "Strand", "Nominal_P", "Beta")
     
     #--------------------------------------------------------------------------
     ### PLOTTING NOMINAL RESULTS
@@ -327,15 +327,15 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       # 17. The corresponding regression slope
       # 18. The P-value of association adjusted for the number of variants tested in cis given by the direct method (i.e. empirircal P-value)
       # 19. The P-value of association adjusted for the number of variants tested in cis given by the fitted beta distribution. We strongly recommend to use this adjusted P-value in any downstream analysis
-      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 16, 17, 18, 19)]
+      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
     }
     if (opt$analysetype == "TRANS") {
       # nog geen idee hoe de permuted results van QTLTools eruit zien
-      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 16, 17, 18, 19)]
+      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
     }  
     #RESULTS = read.table(opt$resultfile, head = FALSE, stringsAsFactors = FALSE)
     colnames(RESULTS) = c("ProbeID", "NVariants", "MLE_Beta_shape1", "MLE_Beta_shape2", "Dummy", 
-                          "VARIANT", "Distance_VARIANT_ProbeID", "Nominal_P", "Beta", "Perm_P", "Approx_Perm_P")
+                          "VARIANT", "Distance_VARIANT_ProbeID", "Strand", "Nominal_P", "Beta", "Perm_P", "Approx_Perm_P")
     
     #--------------------------------------------------------------------------
     ### PLOTTING PERMUTATION RESULTS
@@ -472,14 +472,14 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
-      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,20,21,22,23,24,25,26,29,28,31,30, # Variant information
-                                                14,12,3,16,17,18, # Gene information
-                                                5,8,4,9,10,11)] # association statistics
+      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,21,22,23,24,25,26,27,30,29,32,31, # Variant information
+                                                15,13,3,5,17,18,19, # Gene information
+                                                6,9,4,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,26,27,28,29,30,31,32,35,34,37,36, # Variant information
-                                                20,18,7,22,23,24, # Gene information
-                                                9,14,8,10,11,15,16,17)] # association statistics
+      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,7,27,28,29,30,31,32,33,36,35,38,37, # Variant information
+                                                21,19,8,5,23,24,25, # Gene information
+                                                10,15,9,11,12,16,17,18)] # association statistics
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
@@ -489,16 +489,16 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for an Athero-Express mQTL analysis...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
-      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,47,48,49,50,51,52,53,56,55,58,57, # Variant information
-                                                3,23,24,18, # CpG information
-                                                33,34,35,37,38,39,40,41,42,43,44, # CpG associated information
-                                                5,8,4,9,10,11)] # association statistics
+      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,48,49,50,51,52,53,54,57,56,59,58, # Variant information
+                                                3,5,24,25,19, # CpG information
+                                                34,35,36,38,39,40,41,42,43,44,45, # CpG associated information
+                                                5,9,4,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,53,54,55,56,57,58,59,62,61,64,63, # Variant information
-                                                7,29,30,24, # CpG information
-                                                39,40,41,43,44,45,46,47,48,49,50, # CpG associated information
-                                                9,14,8,10,11,15,16,17)] # association statistics
+      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,54,55,56,57,58,59,60,63,62,65,64, # Variant information
+                                                7,5,30,31,25, # CpG information
+                                                40,41,42,44,45,46,47,48,49,50,51, # CpG associated information
+                                                10,15,9,11,12,16,17,18)] # association statistics
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
@@ -532,11 +532,11 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n...for results of a CTMM eQTL analysis in monocytes...\n")
     if (opt$resulttype == "NOM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "GeneName", "EntrezID", "Distance_VARIANT_GENE", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
+                                     "GeneName", "EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
     } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "GeneName","EntrezID", "Distance_VARIANT_GENE", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
+                                     "GeneName","EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
@@ -547,14 +547,14 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n...for results of an Athero-Express mQTL analysis...\n")
     if (opt$resulttype == "NOM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "Distance_VARIANT_CpG", "Chr_CpG", "BP_CpG",
+                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG",
                                      "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
                                      "CpG_Island_Relation_UCSC", "Phantom", "DMR", "Enhancer", "HMM_Island",
                                      "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
     } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "Distance_VARIANT_CpG", "Chr_CpG", "BP_CpG",
+                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG",
                                      "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
                                      "CpG_Island_Relation_UCSC", "Phantom", "DMR", "Enhancer", "HMM_Island",
                                      "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",

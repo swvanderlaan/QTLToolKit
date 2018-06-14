@@ -6,9 +6,9 @@ print ""
 print ""
 print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-26"
+print "* Last update        : 2018-04-14"
 print "* Name               : QTLSumEditor"
-print "* Version            : v1.2.0"
+print "* Version            : v1.2.1"
 print ""
 print "* Description        : This script will collect r-square between locus and QTL "
 print "                       variant when data is clumped."
@@ -36,8 +36,8 @@ It now works only on nominal data cause this is the input data of the plotter sc
 What I need to do:
 read also the permuted summary, specify in plotter script
 
-Header nominal file = 'Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q
-Header permuted file = 'Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q'
+Header nominal file = 'Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr_Gene,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q
+Header permuted file = 'Locus,ProbeID,VARIANT,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr_Gene,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q'
 
 """
 
@@ -47,7 +47,7 @@ def read_summary():
 #         print str(i)
         print '* Updating data from summary file [ ' + str(argv[i] + ' ].\n')
         with gzip.open(argv[i], 'r') as file, gzip.open(argv[i] + '_temp.txt.gz', 'w') as out:
-            out.write('Locus,ProbeID,VARIANT,RSquare,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q\n')
+            out.write('Locus,ProbeID,VARIANT,RSquare,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr_Gene,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Bonferroni,BenjHoch,Q\n')
             for regel in file.readlines():
                 snp_found = 0
                 regel = regel.strip('\n')
@@ -84,7 +84,7 @@ def read_summary():
 #         print str(i)
         print '* Updating data from summary file [ ' + str(argv[i] + ' ].\n')
         with gzip.open(argv[i], 'r') as file, gzip.open(argv[i] + '_temp.txt.gz', 'w') as out:
-            out.write('Locus,ProbeID,VARIANT,RSquare,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q\n')
+            out.write('Locus,ProbeID,VARIANT,RSquare,Chr,BP,OtherAlleleA,CodedAlleleA,MAF,MAC,CAF,HWE,Info,Imputation,N,GeneName,EntrezID,Distance_VARIANT_GENE,Chr_Gene,GeneTxStart,GeneTxEnd,Beta,SE,Nominal_P,Perm_P,ApproxPerm_P,Bonferroni,BenjHoch,Q\n')
             for regel in file.readlines():
                 snp_found = 0
                 regel = regel.strip('\n')
