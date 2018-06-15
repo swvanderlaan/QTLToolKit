@@ -6,12 +6,18 @@ cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
 * Version: v2.3.2
-* Last edit: 2018-06-14
+* Last edit: 2018-06-15
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
 Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
 R 3+ installed, Mac OS X and Windows.
+
+NOTE 2018-06-15: I've edited the eQTL-part (nom/perm for cis) to match with the new 'strand' column. What 
+remains to be done:
+- double check the trans-part
+- double check the mQTL-part
+as the column numbers have changed by the addition of the 'strand' column in the output.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
@@ -97,15 +103,15 @@ option_list = list(
   make_option(c("-t", "--resulttype"), action = "store", default = NA, type = 'character',
               help = "The result type, either [NOM/PERM] for nominal or permutation results, respectively."),
   make_option(c("-q", "--qtltype"), action = "store", default = NA, type = 'character',
-              help = "The quantitative trait locus (QTL) analysis type , either [EQTL/MQTL] for expression or methylation QTL analysis, respectively."),
+              help = "The quantitative trait locus (QTL) type, either [EQTL/MQTL] for expression or methylation QTL analyses, respectively."),
+  make_option(c("-z", "--analysetype"), action = "store", default = NA, type = 'character',
+              help = "Cis- or trans-QTL analyse, either [CIS/TRANS]."), 
   make_option(c("-o", "--outputdir"), action = "store", default = NA, type = 'character',
               help = "Path to the output directory."),
   make_option(c("-a", "--annotfile"), action = "store", default = NA, type = 'character',
               help = "Path to the annotation file."),
   make_option(c("-j", "--genstats"), action = "store", default = NA, type = 'character',
               help = "Path to the summary statistics of the genotypes."),
-  make_option(c("-z", "--analysetype"), action = "store", default = NA, type = 'character',
-              help = "Cis or trans [CIS/TRANS] analyse ."), 
   make_option(c("-v", "--verbose"), action = "store_true", default = TRUE,
               help = "Should the program print extra stuff out? [default %default]"),
   make_option(c("-s", "--silent"), action = "store_false", dest = "verbose",
@@ -116,8 +122,8 @@ option_list = list(
 opt = parse_args(OptionParser(option_list = option_list))
 
 # *** THESE LINES ARE FOR DEBUGGING  ***
-# opt$projectdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
-# opt$outputdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/"
+# opt$projectdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/"
+# opt$outputdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/"
 # opt$resulttype = "NOM"
 # opt$resulttype="PERM"
 # opt$qtltype = "EQTL"
@@ -125,10 +131,10 @@ opt = parse_args(OptionParser(option_list = option_list))
 ### QTLTool
 # opt$analysetype = "CIS"
 ### nom
-# opt$resultfile = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/ctmm_QC_qtlnom_rs7528419_excl_EXCL_DEFAULT.txt.gz"
-# opt$genstats = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d/ctmm_1kGp3GoNL5_QC_rs7528419_excl_EXCL_DEFAULT.stats"
+# opt$resultfile = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_QC_qtlnom_rs7528419_excl_EXCL_DEFAULT.txt.gz"
+# opt$genstats = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_1kGp3GoNL5_QC_rs7528419_excl_EXCL_DEFAULT.stats"
 ### perm
-# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/first_qtltoolkit_data/ctmm_QC_qtlperm_clumped_rs10953541_excl_NONMONOCYTE.txt.gz"
+# opt$resultfile="/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_QC_qtlperm_rs7528419_excl_EXCL_DEFAULT.txt.gz"
 
 # opt$analysetype="TRANS"
 # opt$genstats="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/ctmm_1kGp3GoNL5_RAW_chr7.stats"
@@ -139,7 +145,7 @@ opt = parse_args(OptionParser(option_list = option_list))
 # opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_permuted_cis.txt.gz"
 
 ### End result_data
-# opt$annotfile = "/Users/swvanderlaan/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/ctmm.humanhtv4r2.annotation.txt"
+# opt$annotfile = "/Users/swvanderlaan/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/ctmm.humanhtv4r2.annotation.csv"
 
 #genstatistics=read.table("/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7.newstats.stats")
 # *** THESE LINES ARE FOR DEBUGGING  ***
@@ -161,8 +167,10 @@ if (opt$verbose) {
   cat(opt$annotfile)
   cat("\n\nThe results type.........................: ")
   cat(opt$resulttype)
-  cat("\n\nThe QTL analysis type....................: ")
+  cat("\n\nThe QTL-type.............................: ")
   cat(opt$qtltype)
+  cat("\n\nThe analysis type........................: ")
+  cat(opt$analysetype)
   cat("\n\nThe variant summary statistics...........: ")
   cat(opt$genstats)
   cat("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
@@ -249,8 +257,9 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                              "MAF", "MAC", "CAF", 
                              "AvgMAxPostCall", "Info", "HWE", "N", "Imputation")
 
-  ### Loading *nominal* results
+  ### Loading main results
   RESULTS = read.table(opt$resultfile, header = FALSE, stringsAsFactors = FALSE)
+  ### Loading *nominal* results 
   if (opt$resulttype == "NOM") { # argument 3
     cat("\n\nLoading data from 'nominal pass'...\n")
     
@@ -327,11 +336,11 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       # 17. The corresponding regression slope
       # 18. The P-value of association adjusted for the number of variants tested in cis given by the direct method (i.e. empirircal P-value)
       # 19. The P-value of association adjusted for the number of variants tested in cis given by the fitted beta distribution. We strongly recommend to use this adjusted P-value in any downstream analysis
-      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
+      RESULTS = RESULTS[ , c(1, 6, 14, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
     }
     if (opt$analysetype == "TRANS") {
       # nog geen idee hoe de permuted results van QTLTools eruit zien
-      RESULTS = RESULTS[ , c(1, 6, 15, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
+      RESULTS = RESULTS[ , c(1, 6, 14, 15, 13, 8, 7, 5, 16, 17, 18, 19)]
     }  
     #RESULTS = read.table(opt$resultfile, head = FALSE, stringsAsFactors = FALSE)
     colnames(RESULTS) = c("ProbeID", "NVariants", "MLE_Beta_shape1", "MLE_Beta_shape2", "Dummy", 
@@ -374,10 +383,13 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   RESULTS$Z = qnorm(RESULTS$Nominal_P)
   
   ### Get standard deviation (SD)
+  ### NOTE: incorrect formula -- it is not used in any way or form!!
+  ### removing this line and variable means we have to figure out the column numbers
+  ### downstream - major hassle.
   RESULTS$SD = (RESULTS$Beta - mean(RESULTS$Beta))/RESULTS$Z
   
   ### Get standard error of the mean (SEM)
-  RESULTS$SEM = RESULTS$Beta/RESULTS$Z
+  RESULTS$SEM = abs(RESULTS$Beta/RESULTS$Z)
   
   #--------------------------------------------------------------------------
   #### APPLY MULTIPLE TESTING CORRECTION ###
@@ -418,10 +430,10 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ###     - http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html
   ### Requires a bioconductor package: "qvalue"
   if(opt$resulttype == "NOM") {
-  ### RESULTS$Q = qvalue(RESULTS$Nominal_P))$qvalues # original code
+  #RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
   RESULTS$Q = "Not calculated: throws an error when p-value is infinite or NA. NEED FIXING"
   } else if(opt$resulttype == "PERM") {
-   ### RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
+   #RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
    RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
   } else {
    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
@@ -473,13 +485,13 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,21,22,23,24,25,26,27,30,29,32,31, # Variant information
-                                                15,13,3,5,17,18,19, # Gene information
-                                                6,9,4,10,11,12)] # association statistics
+                                                15,13,3,4,17,18,19, # Gene information
+                                                6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,7,27,28,29,30,31,32,33,36,35,38,37, # Variant information
-                                                21,19,8,5,23,24,25, # Gene information
-                                                10,15,9,11,12,16,17,18)] # association statistics
+      RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
+                                                21,19,7,8,23,24,25, # Gene information
+                                                10,14,9,11,12,15,16,17)] # association statistics
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
