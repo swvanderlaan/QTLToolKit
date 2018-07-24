@@ -101,7 +101,7 @@ In addition, there are multiple scripts that work in union or solo. Below a desc
 
 <img src="/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf" alt="QTLToolKit Workflow (image version: beta_1.0.0)"/>
 
-#######_[TOP](#qtltoolkit)_
+######_[TOP](#qtltoolkit)_
 
 --------------
 
@@ -121,7 +121,8 @@ There are definitely improvements needed. Below of things I'd like to add or edi
     - [ ] - **M** - double check the mQTL-part to match with the new 'strand' column (as the column numbers have changed by the addition of the 'strand' column in the output)
 - [ ] - **C** - add an annotation creation script
 - [ ] - **M** - add a routine (somewhere) to remove CpGs (probes) containing SNPs or that map to multiple locations. Refer to: [Zhou W. *et al*. Nucleic Acids Res. 2016](https://www.ncbi.nlm.nih.gov/pubmed/27924034).
-- [ ] - **M** - add in script to create BED-files. 
+- [X] - **M** - add in script to create BED-files. 
+- [ ] - **M** - update workflow image. 
 
 #######_[TOP](#qtltoolkit)_
 
