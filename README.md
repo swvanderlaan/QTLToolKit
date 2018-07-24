@@ -89,16 +89,15 @@ In addition, there are multiple scripts that work in union or solo. Below a desc
 |*runFDR_atrans.R*           | Extract and FDR-correct adjusted and permuted trans-    | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
 |                            | QTL-analysis results.                                   |                 |                        |
 |*plotTrans.R*               | Plot trans-QTL analysis results.                        | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
-|----------------------------|---------------------------------------------------------|-----------------|------------------------|
 
-
+_[TOP](#qtltoolkit)_
 --------------
 
 #### COMMON WORKFLOW 
 
 \*A schematic will be put here\*.
 
-
+_[TOP](#qtltoolkit)_
 --------------
 
 #### TO DO
@@ -119,6 +118,7 @@ There are definitely improvements needed. Below of things I'd like to add or edi
 - [ ] - **M** - add a routine (somewhere) to remove CpGs (probes) containing SNPs or that map to multiple locations. Refer to: [Zhou W. *et al*. Nucleic Acids Res. 2016](https://www.ncbi.nlm.nih.gov/pubmed/27924034).
 - [ ] - **M** - add in script to create BED-files. 
 
+_[TOP](#qtltoolkit)_
 --------------
 
 #### The MIT License (MIT)
