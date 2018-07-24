@@ -6,6 +6,7 @@ QTLToolKit
 
 All scripts are annotated for debugging purposes - and future reference. The scripts will work within the context of a certain Linux environment (in this case a CentOS7 system on a SUN Grid Engine background). As such we have tested **QTLToolKit** on CentOS6.6, CentOS7, and OS X El Capitan (version 10.11.[x]). 
 
+#######_[TOP](#qtltoolkit)_
 
 --------------
 
@@ -28,6 +29,8 @@ if [ -d ~/git/QTLToolKit/.git ]; then \
 		cd ~/git/ && git clone https://github.com/swvanderlaan/QTLToolKit.git; \
 	fi
 ```
+
+#######_[TOP](#qtltoolkit)_
 
 --------------
 
@@ -90,14 +93,16 @@ In addition, there are multiple scripts that work in union or solo. Below a desc
 |                            | QTL-analysis results.                                   |                 |                        |
 |*plotTrans.R*               | Plot trans-QTL analysis results.                        | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
 
-_[TOP](#qtltoolkit)_
+#######_[TOP](#qtltoolkit)_
+
 --------------
 
 #### COMMON WORKFLOW 
 
-\*A schematic will be put here\*.
+<img src="/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf" alt="QTLToolKit Workflow (image version: beta_1.0.0)"/>
 
-_[TOP](#qtltoolkit)_
+#######_[TOP](#qtltoolkit)_
+
 --------------
 
 #### TO DO
@@ -118,7 +123,8 @@ There are definitely improvements needed. Below of things I'd like to add or edi
 - [ ] - **M** - add a routine (somewhere) to remove CpGs (probes) containing SNPs or that map to multiple locations. Refer to: [Zhou W. *et al*. Nucleic Acids Res. 2016](https://www.ncbi.nlm.nih.gov/pubmed/27924034).
 - [ ] - **M** - add in script to create BED-files. 
 
-_[TOP](#qtltoolkit)_
+#######_[TOP](#qtltoolkit)_
+
 --------------
 
 #### The MIT License (MIT)
