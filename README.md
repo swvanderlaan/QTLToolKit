@@ -101,7 +101,7 @@ In addition, there are multiple scripts that work in union or solo. Below a desc
 
 <img src="/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf" alt="QTLToolKit Workflow (image version: beta_1.0.0)"/>
 
-######_[TOP](#qtltoolkit)_
+_[TOP](#qtltoolkit)_
 
 --------------
 
