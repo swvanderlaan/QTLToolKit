@@ -102,7 +102,7 @@ _[back-to-top](#qtltoolkit)_
 
 #### COMMON WORKFLOW 
 
-![QTLToolKit Workflow (version: beta 1.0.0)](/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf)
+![QTLToolKit Workflow (version: beta 1.0.0)](/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.png)
 
 
 _[back-to-top](#qtltoolkit)_
