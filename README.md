@@ -6,11 +6,12 @@ QTLToolKit
 
 All scripts are annotated for debugging purposes - and future reference. The scripts will work within the context of a certain Linux environment (in this case a CentOS7 system on a SUN Grid Engine background). As such we have tested **QTLToolKit** on CentOS6.6, CentOS7, and OS X El Capitan (version 10.11.[x]). 
 
-#######_[TOP](#qtltoolkit)_
+
+_[back-to-top](#qtltoolkit)_
 
 --------------
 
-#### Installing the scripts locally
+#### INSTALLATION
 
 You can use the scripts locally to run analyses on a Unix-based system, like Mac OS X (Mountain Lion+). We need to make an appropriate directory to download 'gits' to, and install this 'git'.
 
@@ -30,7 +31,8 @@ if [ -d ~/git/QTLToolKit/.git ]; then \
 	fi
 ```
 
-#######_[TOP](#qtltoolkit)_
+
+_[back-to-top](#qtltoolkit)_
 
 --------------
 
@@ -93,15 +95,17 @@ In addition, there are multiple scripts that work in union or solo. Below a desc
 |                            | QTL-analysis results.                                   |                 |                        |
 |*plotTrans.R*               | Plot trans-QTL analysis results.                        | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
 
-#######_[TOP](#qtltoolkit)_
+
+_[back-to-top](#qtltoolkit)_
 
 --------------
 
 #### COMMON WORKFLOW 
 
-<img src="/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf" alt="QTLToolKit Workflow (image version: beta_1.0.0)"/>
+![QTLToolKit Workflow (version: beta 1.0.0)](/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.pdf)
 
-_[TOP](#qtltoolkit)_
+
+_[back-to-top](#qtltoolkit)_
 
 --------------
 
@@ -124,7 +128,8 @@ There are definitely improvements needed. Below of things I'd like to add or edi
 - [X] - **M** - add in script to create BED-files. 
 - [ ] - **M** - update workflow image. 
 
-#######_[TOP](#qtltoolkit)_
+
+_[back-to-top](#qtltoolkit)_
 
 --------------
 
