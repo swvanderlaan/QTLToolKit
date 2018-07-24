@@ -44,52 +44,52 @@ bash QTLAnalyzer.sh $(pwd)/qtl.conf
 
 In addition, there are multiple scripts that work in union or solo. Below a description of each.
 
-**Script** 					| **Description**                                         | **Location**    | **Usage**
-----------------------------|---------------------------------------------------------|-----------------|------------------------
-*prepare_QTL.sh*            | You can use this scripts to prepare the input-data.     | Root            | Standalone
-                            | This script will:                                       |                 | 
-                            | - create, and index the 'phenotype' bed-file, _i.e._    |                 | 
-                            |   the expression or methylation data.                   |                 | 
-                            | - convert VCF files from bgen-files.                    |                 | 
-*QTLAnalyzer.sh*            | Analysis script. This is the 'master' script that       | Root            | Main script
-                            | controls the whole analysis in conjunction with the     |                 |  
-                            | configuration file.                                     |                 | 
-*qtl.config*                | The configuration file in which you can add/edit paths  |                 | Configuration
-*NominalResultsParser.py*   | Parses the nominal QTL analysis results for downstream  |                 | QTLToolKit
-                            | workflow.                                               |                 | 
-*QTL_QC.R*                  | Quality control of QTL analysis results.                |                 | QTLToolKit
-*QTLChecker.sh*             | Checks and wraps up the QTL analysis results.           | Root            | QTLToolKit
-*QTLClumpanator.py*         | Clumps results to focus only on a particular list of    | Root            | QTLToolKit 
-                            | variants/loci.                                          |                 |  
-*QTLPlotter.sh*             | Creates relevant plots of analysis results, including   | Root            | QTLToolKit
-                            | LocusZoom plots after eQTL analysis results. Note:      |                 |
-                            | regional association plots are (so far) not possible    |                 |
-                            | for mQTL analyses, as there are many CpGs in a typical  |                 |
-                            | analysis. This would require a bit more integrated      |                 |
-                            | plotting to show the regional effects on proximal CpGs. |                 |
-*QTLSummarizer.sh*           | Summarises the QTL-analysis results into a folder, and  | Root            | QTLToolKit
-                            | zipped files. Including a small, incomplete analysis    |                 |
-                            | report (see [TO DO](#to-do) list below).                |                 |
-*QTLSumEditor.py*            | Adds linkage disequilibrium r^2 when `CLUMP="Y"` into   | Root            | QTLToolKit
-                            | the summarised results.                                 |                 |
-*QTLSumParser.py*           | Parses some of the summarised results when `CLUMP="Y"`. | Root            | QTLToolKit
-*parse_clumps_eqtl.pl*      | Script to parse clumps of QTL results.                  | Root/SCRIPTS    | Legacy
-*parse_input.py*            |      | Root/SCRIPTS    | QTLToolKit
-*BED_Annotation_Creator.R*  | Create appropriate annotation file for QTL analyses.    | Root/SCRIPTS    | Standalone
-*BED_Creator_DNAmArrays.R*  | Create the required BED files from DNAmArray data.      | Root/SCRIPTS    | Standalone 
-*SE_Creator.R*              | Create a SummarizedExperiment object in R of the        | Root/SCRIPTS    | Standalone
-                            | expression, methylation or other 'omics'-data.          |                 |
-*parseTable.pl*             | Utility script to parse a table.                        | Root/SCRIPTS    | QTLToolKit/Standalone
-*removedupes.pl*            | Remove duplicate lines from a text-table.               | Root/SCRIPTS    | QTLToolKit/Standalone
-*runFDR_cis.R*              | Correct for false-discovery rate (FDR), used for        | Root/SCRIPTS    | QTLToolKit
-                            | functional density, and Regulatory Trait Cconcordance   |                 |
-                            | (RTC), and functional enrichment analysis.              |                 |
-*QTLTransHitParser.py*      | Parser of trans-QTL-analysis results.                   | Root            | QTLToolKit (_BETA_)
-*runFDR_ftrans.R*           | Correct for FDR, used after trans-QTL-analysis.         | Root/SCRIPTS    | QTLToolKit (_BETA_)
-*runFDR_atrans.R*           | Extract and FDR-correct adjusted and permuted trans-    | Root/SCRIPTS    | QTLToolKit (_BETA_)
-                            | QTL-analysis results.                                   |                 |
-*plotTrans.R*               | Plot trans-QTL analysis results.                        | Root/SCRIPTS    | QTLToolKit (_BETA_)
-----------------------------|---------------------------------------------------------|-----------------|------------------------
+|**Script** 				 | **Description**                                         | **Location**    | **Usage**              |
+|----------------------------|---------------------------------------------------------|-----------------|------------------------|
+|*prepare_QTL.sh*            | You can use this scripts to prepare the input-data.     | Root            | Standalone             |
+|                            | This script will:                                       |                 |                        |
+|                            | - create, and index the 'phenotype' bed-file, _i.e._    |                 |                        |
+|                            |   the expression or methylation data.                   |                 |                        |
+|                            | - convert VCF files from bgen-files.                    |                 |                        |
+|*QTLAnalyzer.sh*            | Analysis script. This is the 'master' script that       | Root            | Main script            |
+|                            | controls the whole analysis in conjunction with the     |                 |                        |
+|                            | configuration file.                                     |                 |                        |
+|*qtl.config*                | The configuration file in which you can add/edit paths  |                 | Configuration          |
+|*NominalResultsParser.py*   | Parses the nominal QTL analysis results for downstream  |                 | QTLToolKit             |
+|                            | workflow.                                               |                 |                        |
+|*QTL_QC.R*                  | Quality control of QTL analysis results.                |                 | QTLToolKit             |
+|*QTLChecker.sh*             | Checks and wraps up the QTL analysis results.           | Root            | QTLToolKit             |
+|*QTLClumpanator.py*         | Clumps results to focus only on a particular list of    | Root            | QTLToolKit             |
+|                            | variants/loci.                                          |                 |                        |
+|*QTLPlotter.sh*             | Creates relevant plots of analysis results, including   | Root            | QTLToolKit             |
+|                            | LocusZoom plots after eQTL analysis results. Note:      |                 |                        |
+|                            | regional association plots are (so far) not possible    |                 |                        |
+|                            | for mQTL analyses, as there are many CpGs in a typical  |                 |                        |
+|                            | analysis. This would require a bit more integrated      |                 |                        |
+|                            | plotting to show the regional effects on proximal CpGs. |                 |                        |
+|*QTLSummarizer.sh*          | Summarises the QTL-analysis results into a folder, and  | Root            | QTLToolKit             |
+|                            | zipped files. Including a small, incomplete analysis    |                 |                        |
+|                            | report (see [TO DO](#to-do) list below).                |                 |                        |
+|*QTLSumEditor.py*           | Adds linkage disequilibrium r^2 when `CLUMP="Y"` into   | Root            | QTLToolKit             |
+|                            | the summarised results.                                 |                 |                        |
+|*QTLSumParser.py*           | Parses some of the summarised results when `CLUMP="Y"`. | Root            | QTLToolKit             |
+|*parse_clumps_eqtl.pl*      | Script to parse clumps of QTL results.                  | Root/SCRIPTS    | Legacy                 |
+|*parse_input.py*            | Utility script to get the number of loci per chromosome.| Root/SCRIPTS    | QTLToolKit             |
+|*BED_Annotation_Creator.R*  | Create appropriate annotation file for QTL analyses.    | Root/SCRIPTS    | Standalone             |
+|*BED_Creator_DNAmArrays.R*  | Create the required BED files from DNAmArray data.      | Root/SCRIPTS    | Standalone             |
+|*SE_Creator.R*              | Create a SummarizedExperiment object in R of the        | Root/SCRIPTS    | Standalone             |
+|                            | expression, methylation or other 'omics'-data.          |                 |                        |
+|*parseTable.pl*             | Utility script to parse a table.                        | Root/SCRIPTS    | QTLToolKit/Standalone  |
+|*removedupes.pl*            | Remove duplicate lines from a text-table.               | Root/SCRIPTS    | QTLToolKit/Standalone  |
+|*runFDR_cis.R*              | Correct for false-discovery rate (FDR), used for        | Root/SCRIPTS    | QTLToolKit             |
+|                            | functional density, and Regulatory Trait Cconcordance   |                 |                        |
+|                            | (RTC), and functional enrichment analysis.              |                 |                        |
+|*QTLTransHitParser.py*      | Parser of trans-QTL-analysis results.                   | Root            | QTLToolKit (_BETA_)    |
+|*runFDR_ftrans.R*           | Correct for FDR, used after trans-QTL-analysis.         | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
+|*runFDR_atrans.R*           | Extract and FDR-correct adjusted and permuted trans-    | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
+|                            | QTL-analysis results.                                   |                 |                        |
+|*plotTrans.R*               | Plot trans-QTL analysis results.                        | Root/SCRIPTS    | QTLToolKit (_BETA_)    |
+|----------------------------|---------------------------------------------------------|-----------------|------------------------|
 
 
 --------------
