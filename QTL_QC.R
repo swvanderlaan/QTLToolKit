@@ -484,15 +484,26 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
+      print(head(RESULTS.toANNOTATE2))
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,21,22,23,24,25,26,27,30,29,32,31, # Variant information
                                                 15,13,3,4,17,18,19, # Gene information
                                                 6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-      print(head(RESULTS.toANNOTATE2))
+#      print(head(RESULTS.toANNOTATE2))
+#      1 ProbeID 2 NVariants 3 MLE_Beta_shape1 4 MLE_Beta_shape2 5 Dummy 
+#      6 VARIANT 7 Distance_VARIANT_ProbeID 8 Strand 9 Nominal_P 
+#      10 Beta 11 Perm_P 12 Approx_Perm_P 13 Z 14 SD 15 SEM 16 Bonferroni 17 BenjHoch 18 Q 
+#      19 EntrezID 20 ArrayID 21 GeneName 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
+#      26 VARIANT 27 Chr 28 BP 29 OtherAlleleA 30 CodedAlleleA 
+#      31 MAF 32 MAC 33 CAF 34 AvgMAxPostCall 35 Info 36 HWE 37 N 38 Imputation
+      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
+                                     "GeneName","EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
+                                     "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
+                                     
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
-                                                10,14,9,11,12,15,16,17)] # association statistics
+                                                10,15,9,11,12,16,17,18)] # association statistics
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
