@@ -497,9 +497,6 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
 #      19 EntrezID 20 ArrayID 21 GeneName 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
 #      26 VARIANT 27 Chr 28 BP 29 OtherAlleleA 30 CodedAlleleA 
 #      31 MAF 32 MAC 33 CAF 34 AvgMAxPostCall 35 Info 36 HWE 37 N 38 Imputation
-      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "GeneName","EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
-                                     "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
                                      
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
