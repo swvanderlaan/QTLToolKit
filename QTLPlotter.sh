@@ -330,7 +330,7 @@ else
 				LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
 			
 				### Directory prefix
-				PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
+				PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}"
 			
 				# find ranges to highlight with locuszoom
 				HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 2)
@@ -402,7 +402,7 @@ else
 			LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
 		
 			### Directory prefix
-			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}_"
+			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}"
 		
 			# find ranges to highlight with locuszoom
 			HISTART=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 2)
