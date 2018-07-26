@@ -15,9 +15,8 @@ cat("  * FDR    = ", opt_fdr, "\n");
 cat("  * Output = [", opt_output, "]\n");
 
 #Read data
-cat("\nRead Input data.\n");
-# /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/cardiogramplusc4d_88loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/chr2_21378433_D_cardiogramplusc4d_88loci_4real_complete_with_4pcs/ctmm_QC_qtlperm_chr2_21378433_D_excl_EXCL_DEFAULT.txt.gz
-D = read.table(opt_input,head=FALSE, stringsAsFactors=FALSE)
+cat("\nRead Input data. Note: we expect a file with 19 columns i.e. it is best to use the results from a permutation test.\n");
+D = read.table(opt_input, head = FALSE, stringsAsFactors = FALSE)
 exon_offset = ifelse(ncol(D) == 19, 0, 2)
 if (exon_offset == 2) cat("  * Gene level correction detected\n")
 MASK=!is.na(D[,18+exon_offset])

@@ -98,8 +98,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-07-23                                                                            +"
-echobold "+ * Version     : 2.6.1                                                                                 +"
+echobold "+ * Last update : 2018-07-26                                                                            +"
+echobold "+ * Version     : 2.6.2                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using  your methylation or expression data.      +"
@@ -692,7 +692,7 @@ else
  	# 22 Beta, 23 SE, 24 Nominal_P, 25 Bonferroni, 26 BenjHoch, 27 Q
  	
  	echo "zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | awk -F, ' { print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11, \$12, \$13, \$14, \$15, \$16, \$17, \$18, \$19, \$20, \$21, \$22, \$23, \$24, \$25, \$26 } ' | ${QTLTOOLKIT}/SCRIPTS/parseTable.pl --col Chr,BP,VARIANT,ProbeID,BenjHoch,GeneTxStart | tail -n +2 | awk '\$5 < 0.05 && \$6 != \"NA\" ' | awk ' { print \$1, \$2, \$2+1, \$3, \$4, \"+\" } ' | tr \" \" \"\t\" | sort -k1,1 -k2,2n > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.significant.bed" > ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.sh	
- 	echo "zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | awk -F, ' { print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11, \$12, \$13, \$14, \$15, \$16, \$17, \$18, \$19, \$20, \$21, \$22, \$23, \$24, \$25, \$26 } ' | ${QTLTOOLKIT}/SCRIPTS/parseTable.pl --col Chr,GeneTxStart,GeneTxEnd,ProbeID,VARIANT,BenjHoch | tail -n +2 | awk '\$6 < 0.05 && \$2 != \"NA\" ' | awk ' { print \$1, \$2, \$3, \$4, \$5, \"+\" } ' | tr \" \" \"\t\" | sort -k1,1 -k2,2n > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.quantified.bed" >> ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.sh	
+ 	echo "zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | awk -F, ' { print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11, \$12, \$13, \$14, \$15, \$16, \$17, \$18, \$19, \$20, \$21, \$22, \$23, \$24, \$25, \$26 } ' | ${QTLTOOLKIT}/SCRIPTS/parseTable.pl --col Chr,GeneTxStart,GeneTxEnd,ProbeID,VARIANT,BenjHoch,Strand | tail -n +2 | awk '\$6 < 0.05 && \$2 != \"NA\" ' | awk ' { print \$1, \$2, \$3, \$4, \$5, \$7 } ' | tr \" \" \"\t\" | sort -k1,1 -k2,2n > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.quantified.bed" >> ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.sh	
  	echo "${QTLTOOLS} fenrich --qtl ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.significant.bed --tss ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.quantified.bed --bed ${QCTOOLKIT}/RESOURCES/${FUNCINFORMATION} --out ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.enrichement.QTL.in.TF.txt" >> ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.sh
  
  	qsub -S /bin/bash -N QTLFuncEnrich_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.errors -o ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_FUNCENRICH_CONFIG} -l h_vmem=${VMEM_FUNCENRICH_CONFIG} -M ${EMAIL} -m ${MAILTYPE} -wd ${SUMMARY} ${SUMMARY}/${STUDYNAME}_QTLFuncEnrich_excl_${EXCLUSION_TYPE}.sh
@@ -705,7 +705,7 @@ else
  	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
  	echo "Calculating Regulatory Trait Concordance (RTC)."
  	echo ""
-     if [[ ${RTCCALCULATION} == "Y" ]]; then
+    if [[ ${RTCCALCULATION} == "Y" ]]; then
  
  	while IFS='' read -r REGIONOFINTEREST || [[ -n "$REGIONOFINTEREST" ]]; do
  		###	1		2		3	4	5		6		7			8		9
@@ -734,18 +734,20 @@ else
  		REGIONALDIR=${RESULTS}/${VARIANT}_${PROJECTNAME}
  
  		echo ""
- 		echo "* calculate FDR on cis-acting variants."
+ 		echo "* Calculate FDR on cis-acting variants."
     		echo "Rscript ${QTLTOOLKIT}/SCRIPTS/runFDR_cis.R ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.txt.gz ${RTCPVALLEVEL} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}" > ${REGIONALDIR}/${STUDYNAME}_QTLFDR_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
  		qsub -S /bin/bash -N QTLFDR_${STUDYNAME}_QTLRTC_excl_${EXCLUSION_TYPE} -hold_jid QTLSum_${STUDYJOBNAME}_excl_${EXCLUSION_TYPE}_${PROJECTNAME} -e ${REGIONALDIR}/${STUDYNAME}_QTLFDR_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLFDR_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_RTC_CONFIG} -l h_vmem=${VMEM_RTC_CONFIG} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLFDR_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
  
  		echo ""	
- 		echo "* calculate RTC score." 
+ 		echo "* Calculate RTC score." 
  		
  		if [[ ${RTCTYPE} == "CONDITIONAL" ]]; then
+ 			echo "> A conditional analysis is done on independent variants."
  			echo "${QTLTOOLS} rtc --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --hotspot ${QCTOOLKIT}/RESOURCES/${RTCHOTSPOTS} --gwas-cis ${QCTOOLKIT}/RESOURCES/${RTCGWAS} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.significant.txt --normal --conditional --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.significant.rtc_results.txt" > ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
  			qsub -S /bin/bash -N QTLRTC_${STUDYNAME}_QTLRTC_excl_${EXCLUSION_TYPE} -hold_jid QTLFDR_${STUDYNAME}_QTLRTC_excl_${EXCLUSION_TYPE} -e ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_RTC_CONFIG} -l h_vmem=${VMEM_RTC_CONFIG} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
  
  		elif [[ ${RTCTYPE} == "NORMAL" ]]; then
+ 			echo "> A genome-wide cis-eQTL analysis was done."
  			echo "${QTLTOOLS} rtc --vcf ${REGIONALDIR}/${SNPTESTOUTPUTDATA}_QC_${VARIANT}_excl_${EXCLUSION_TYPE}.vcf.gz --bed ${QTLDATA} --exclude-samples ${EXCLUSION_LIST} --exclude-covariates ${EXCLUSION_COV} --cov ${COVARIATES} --hotspot ${QCTOOLKIT}/RESOURCES/${RTCHOTSPOTS} --gwas-cis ${QCTOOLKIT}/RESOURCES/${RTCGWAS} ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.significant.txt --normal --out ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.significant.rtc_results.txt" > ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
          	qsub -S /bin/bash -N QTLRTC_${STUDYNAME}_QTLRTC_excl_${EXCLUSION_TYPE} -hold_jid QTLFDR_${STUDYNAME}_QTLRTC_excl_${EXCLUSION_TYPE} -e ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.errors -o ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.log -l h_rt=${QUEUE_RTC_CONFIG} -l h_vmem=${VMEM_RTC_CONFIG} -M ${EMAIL} -m ${MAILTYPE} -wd ${REGIONALDIR} ${REGIONALDIR}/${STUDYNAME}_QTLRTC_${VARIANT}_excl_${EXCLUSION_TYPE}.sh
  
