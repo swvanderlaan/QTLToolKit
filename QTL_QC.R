@@ -434,7 +434,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   #RESULTS$Q = "Not calculated: throws an error when p-value is infinite or NA. NEED FIXING"
   RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
   } else if(opt$resulttype == "PERM") {
-  print(head(RESULTS))
+  print((RESULTS))
    #RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
    RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
   } else {
