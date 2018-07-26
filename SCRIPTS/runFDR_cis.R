@@ -9,14 +9,15 @@ opt_fdr    = as.numeric(args[2]);
 opt_output = args[3];
 
 #Verbose
-cat("\nProcessing fastQTL output\n");
+cat("\nProcessing QTLtools output.\n");
 cat("  * Input  = [", opt_input, "]\n");
 cat("  * FDR    = ", opt_fdr, "\n");
 cat("  * Output = [", opt_output, "]\n");
 
 #Read data
-cat("\nRead Input data\n");
-D = read.table(opt_input,hea=FALSE, stringsAsFactors=FALSE)
+cat("\nRead Input data.\n");
+# /hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/cardiogramplusc4d_88loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/chr2_21378433_D_cardiogramplusc4d_88loci_4real_complete_with_4pcs/ctmm_QC_qtlperm_chr2_21378433_D_excl_EXCL_DEFAULT.txt.gz
+D = read.table(opt_input,head=FALSE, stringsAsFactors=FALSE)
 exon_offset = ifelse(ncol(D) == 19, 0, 2)
 if (exon_offset == 2) cat("  * Gene level correction detected\n")
 MASK=!is.na(D[,18+exon_offset])
@@ -27,7 +28,7 @@ cat("  * Number of NA lines =" , nrow(Dnas), "\n")
 cat("  * Correlation between Beta approx. and Empirical p-values =", round(cor(D[, 18+exon_offset], D[, 19+exon_offset]), 4), "\n")
 
 #Run qvalue on pvalues for best signals
-cat("\nProcess Input data with Qvalue\n");
+cat("\nProcess Input data with Qvalue.\n");
 MASK=!is.na(D[,18+exon_offset])
 Q = qvalue(D[MASK,19+exon_offset]);
 D$qval = NA;
