@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
-* Version: v2.3.2
-* Last edit: 2018-06-15
+* Version: v2.3.3
+* Last edit: 2018-07-26
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -182,7 +182,7 @@ cat("Wow, we are all set. Starting \"QTL Results Quality Control & Parser\".")
 ### START OF THE PROGRAM
 # main point of program is here, do this whether or not "verbose" is set
 if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !is.na(opt$annotfile) & !is.na(opt$resulttype) & !is.na(opt$qtltype) & !is.na(opt$genstats)) {
-  cat(paste("\nWe are going to make some graphs for quality control of you fastQTL analysis. \n\nAnalysing these results...............: '",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"'\nParsed results will be saved here.....: '", opt$outputdir, "'.\n",sep = ''))
+  cat(paste("\nWe are going to make some graphs for quality control of you QTLtools analysis. \n\nAnalysing these results...............: '",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"'\nParsed results will be saved here.....: '", opt$outputdir, "'.\n",sep = ''))
   
   #--------------------------------------------------------------------------
   ### GENERAL SETUP
@@ -489,6 +489,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                                                 6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
+      head(RESULTS.toANNOTATE2)
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
                                                 10,14,9,11,12,15,16,17)] # association statistics
@@ -630,7 +631,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
 
 #--------------------------------------------------------------------------
 ### CLOSING MESSAGE
-cat(paste("All done parsing fastQTL data on",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),".\n"))
+cat(paste("All done parsing QTLtools data on",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),".\n"))
 cat(paste("\nToday's: ",Today, "\n"))
 cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
