@@ -432,13 +432,13 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   if(opt$resulttype == "NOM") {
   # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
   # RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
-  RESULTS$Q = "Not calculated: throws an error when p-value is infinite or NA. NEED FIXING"
+  RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
 
   } else if(opt$resulttype == "PERM") {
   print((RESULTS))
    # RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
    # RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
-   RESULTS$Q = "Not calculated: throws an error when p-value is infinite or NA. NEED FIXING"
+   RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
 
   } else {
    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
