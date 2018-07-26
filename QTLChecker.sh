@@ -105,8 +105,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan                                                                +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echobold "+ * Last update : 2018-02-26                                                                            +"
-echobold "+ * Version     : 1.1.3                                                                                 +"
+echobold "+ * Last update : 2018-07-26                                                                            +"
+echobold "+ * Version     : 1.1.4                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echobold "+                 submit this in a job.                                                                 +"
@@ -285,7 +285,7 @@ else
 		fi
 
 		echo ""
-		echo "* Checking nominal fastQTL analysis..."
+		echo "* Checking nominal QTLTools analysis..."
 		if [[ -n $(grep "Running time" ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log) ]]; then
 			echo "Nominal fastQTL analysis successfully completed for ${VARIANT}."
 			echo "* nominal analysis: success" >> ${SUMMARY}/analysis.check.txt
