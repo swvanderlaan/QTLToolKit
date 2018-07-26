@@ -489,7 +489,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                                                 6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-      head(RESULTS.toANNOTATE2)
+      print(head(RESULTS.toANNOTATE2))
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
                                                 10,14,9,11,12,15,16,17)] # association statistics
