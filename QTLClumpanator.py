@@ -6,9 +6,9 @@ print ""
 print ""
 print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-02-24"
+print "* Last update        : 2018-07-26"
 print "* Name               : QTLClumpanator"
-print "* Version            : v1.1.0"
+print "* Version            : v1.1.1"
 print ""
 print "* Description        : In case of a QTL analysis this script will collect all "
 print "                       variants in LD with index variants based on a specific GWAS"
@@ -67,14 +67,14 @@ try:
     clump_gwas_snpfield = sys.argv[13]
 
 except IndexError:
-    print 'The clump variangt field..'
+    print 'The clump varianID field.'
     clump_gwas_snpfield = "SNP"
 
 try:
     clump_gwas_pval = sys.argv[14]
 
 except IndexError:
-    print 'No clump range threshold given, set to 1000kb.'
+    print 'The clump p-value field.'
     clump_gwas_pval = "P"
 
 if not isfile(sys.argv[0]):

@@ -108,8 +108,7 @@ echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                      
 echobold "+ * Last update : 2018-07-26                                                                            +"
 echobold "+ * Version     : 1.1.5                                                                                 +"
 echobold "+                                                                                                       +"
-echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
-echobold "+                 submit this in a job.                                                                 +"
+echobold "+ * Description : This script will check the regular nominal and permuted QTL results for success.      +"
 echobold "+                                                                                                       +"
 echobold "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Today's date and time: "$(date)
@@ -290,14 +289,14 @@ else
 			echo "Nominal QTLTools analysis successfully completed for ${VARIANT}."
 			echo "* nominal analysis: success" >> ${SUMMARY}/analysis.check.txt
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors 
-			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output
+			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.log
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.sh
 			gzip -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log			
 		else
 			echo "*** ERROR *** Nominal QTLTools analysis failed for ${VARIANT}."
 			echo "* nominal analysis: failed" >> ${SUMMARY}/analysis.check.txt
 			echo "* error message: " >> ${SUMMARY}/analysis.check.txt
-			cat ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log | grep "ERROR" >> ${SUMMARY}/analysis.check.txt
+			cat ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.log | grep "ERROR" >> ${SUMMARY}/analysis.check.txt
 		    #rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.*
 		    #rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.*
 		    echo "${VARIANT} ${LOCUS} ${CHR} ${BP} ${START} ${END} ${WINDOWSIZE} ${TYPE} ${PHENOTYPE}" >> ${SUMMARY}/regions_for_qtl.failedNom.temp.txt
@@ -309,7 +308,7 @@ else
 			echo "Permutation QTLTools analysis successfully completed for ${VARIANT}."
 			echo "* permutation analysis: success" >> ${SUMMARY}/analysis.check.txt
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.errors
-			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.output
+			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.log
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}_PERMUTE.sh
 			gzip -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.log			
 		else

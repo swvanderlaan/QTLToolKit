@@ -43,11 +43,17 @@ def search():
 				all_snps.append(line[0])
 				# print line[23]
 				try:
-					# PERMUTED RESULTS
+					# PERMUTED RESULTS - clumped
 					# 0 Locus, 1 ProbeID, 2 VARIANT, 3 RSquare, 4 Chr, 5 BP, 6 OtherAlleleA, 7 CodedAlleleA,
 					# 8 MAF, 9 MAC, 10 CAF, 11 HWE, 12 Info, 13 Imputation, 14 N, 15 GeneName, 16 EntrezID,
 					# 17 Distance_VARIANT_GENE, 18 Chr, 19 GeneTxStart, 20 GeneTxEnd, 21 Beta, 22 SE,
 					# 23 Nominal_P, 24 Perm_P, 25 ApproxPerm_P, 26 Bonferroni, 27 BenjHoch, 28 Q
+					#
+					# PERMUTED RESULTS
+					# 0 Locus, 1 ProbeID, 2 VARIANT, 3 Chr, 4 BP, 5 OtherAlleleA, 6 CodedAlleleA,
+					# 7 MAF, 8 MAC, 9 CAF, 10 HWE, 11 Info, 12 Imputation, 13 N, 14 GeneName, 15 EntrezID,
+					# 16 Distance_VARIANT_GENE, 17 Chr, 18 GeneTxStart, 19 GeneTxEnd, 20 Beta, 21 SE,
+					# 22 Nominal_P, 23 Perm_P, 24 ApproxPerm_P, 25 Bonferroni, 26 BenjHoch, 27 Q
 					snp = line[0]
 					var = line[2]
 					nom_pval = float(line[23])
@@ -169,11 +175,17 @@ def second():
 				pass
 			# print line[23]
 			try:
-				# NOMINAL RESULTS
+				# NOMINAL RESULTS - clumped
 				# 0 Locus, 1 ProbeID, 2 VARIANT, 3 RSquare, 4 Chr, 5 BP, 6 OtherAlleleA, 7 CodedAlleleA,
 				# 8 MAF, 9 MAC, 10 CAF, 11 HWE, 12 Info, 13 Imputation, 14 N, 15 GeneName, 16 EntrezID,
 				# 17 Distance_VARIANT_GENE, 18 Chr, 19 GeneTxStart, 20 GeneTxEnd, 21 Beta, 22 SE,
 				# 23 Nominal_P, 24 Bonferroni, 25 BenjHoch, 26 Q
+				
+				# NOMINAL RESULTS - regular
+				# 0 Locus, 1 ProbeID, 2 VARIANT, 3 Chr, 4 BP, 5 OtherAlleleA, 6 CodedAlleleA, 
+				# 7 MAF, 8 MAC, 9 CAF, 10 HWE, 11 Info, 12 Imputation, 13 N, 14 GeneName, 15 EntrezID, 
+				# 16 Distance_VARIANT_GENE, 17 Strand, 18 Chr_Gene, 19 GeneTxStart, 20 GeneTxEnd, 
+				# 21 Beta, 22 SE, 23 Nominal_P, 24 Bonferroni, 25 BenjHoch, 26 Q
 				snp = ''
 				var = ''
 				nom_pval = ''
