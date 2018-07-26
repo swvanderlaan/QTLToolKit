@@ -102,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-03-14                                                                            +"
-echobold "+ * Version     : 1.3.0                                                                                 +"
+echobold "+ * Last update : 2018-07-26                                                                            +"
+echobold "+ * Version     : 1.3.1                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will produce regional association plots of QTL results, using             +"
 echobold "+                 LocusZoom v1.3.                                                                       +"
@@ -156,9 +156,6 @@ echo ""
 	### GENERIC SETTINGS
 	SOFTWARE=${SOFTWARE}
 	QTLTOOLKIT=${QTLTOOLKIT}
-	### FOR DEBUG
-	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
-	### FOR DEBUG
 	QCTOOL=${QCTOOL}
 	SNPTEST252=${SNPTEST252}
 	QTLTOOLS=${QTLTOOLS}
@@ -207,7 +204,6 @@ else
 	echo "Where \"Python\" resides                             ${PYTHON}"
 	echo ""
 	echo "Project directory                                  ${PROJECTDIR}"
-	echo "Results directory                                  ${RESULTS}"
 	echo "Summary directory                                  ${SUMMARY}"
 	echo "Clump directory                                    ${CLUMPDIR}"
 	echo "Regions of interest file                           ${REGIONS}"

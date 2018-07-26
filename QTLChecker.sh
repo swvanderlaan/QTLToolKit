@@ -106,7 +106,7 @@ echobold "+                                                                     
 echobold "+ * Written by  : Sander W. van der Laan                                                                +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
 echobold "+ * Last update : 2018-07-26                                                                            +"
-echobold "+ * Version     : 1.1.4                                                                                 +"
+echobold "+ * Version     : 1.1.5                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, execute something in a for-loop, and will then +"
 echobold "+                 submit this in a job.                                                                 +"
@@ -129,8 +129,8 @@ EXCLUSION_TYPE=${EXCLUSION_TYPE} # The exclusion type -- refer to QTLAnalyzer.sh
 
 ### PROJECT SPECIFIC 
 ROOTDIR=${ROOTDIR} # the root directory, e.g. /hpc/dhl_ec/svanderlaan/projects/test_qtl
-RESULTS=${2} # The directory in which the fastQTL results are saved -- refer to QTLAnalyzer.sh for information
-SUMMARY=${3} # The directory in which the fastQTL results are saved -- refer to QTLAnalyzer.sh for information
+RESULTS=${2} # The directory in which the QTLToolKit results are saved -- refer to QTLAnalyzer.sh for information
+SUMMARY=${3} # The directory in which the QTLToolKit results are saved -- refer to QTLAnalyzer.sh for information
 PROJECTNAME=${PROJECTNAME} # What is the projectname? E.g. 'CAD' -- refer to QTLAnalyzer.sh for information
 REGIONS=${REGIONS_FILE} # The file containing the regions of interest -- refer to QTLAnalyzer.sh for information
 QTL_TYPE=${QTL_TYPE} # QTL type, cis or trans
@@ -287,7 +287,7 @@ else
 		echo ""
 		echo "* Checking nominal QTLTools analysis..."
 		if [[ -n $(grep "Running time" ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.log) ]]; then
-			echo "Nominal fastQTL analysis successfully completed for ${VARIANT}."
+			echo "Nominal QTLTools analysis successfully completed for ${VARIANT}."
 			echo "* nominal analysis: success" >> ${SUMMARY}/analysis.check.txt
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.errors 
 			rm -v ${REGIONALDIR}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}_NOM.output
@@ -339,9 +339,9 @@ else
 
 	echo ""
 	echo "* Counting totals to be re-run."
-	TOTALQTL=$(cat ${SUMMARY}/regions_for_qtl.failedQTLs.txt | wc -l | awk '{printf ("%'\''d\n", $0)}')
-	TOTALNOM=$(cat ${SUMMARY}/regions_for_qtl.failedNom.txt | wc -l | awk '{printf ("%'\''d\n", $0)}')
-	TOTALPERM=$(cat ${SUMMARY}/regions_for_qtl.failedPerm.txt | wc -l | awk '{printf ("%'\''d\n", $0)}')
+	TOTALQTL=$(cat ${SUMMARY}/regions_for_qtl.failedQTLs.txt | wc -l | awk '{ printf ("%'\''d\n", $0) }')
+	TOTALNOM=$(cat ${SUMMARY}/regions_for_qtl.failedNom.txt | wc -l | awk '{ printf ("%'\''d\n", $0) }')
+	TOTALPERM=$(cat ${SUMMARY}/regions_for_qtl.failedPerm.txt | wc -l | awk '{ printf ("%'\''d\n", $0) }')
 	echo "  - failed extractions............: "${TOTALQTL}
 	echo "  - failed nominal analyses.......: "${TOTALNOM}
 	echo "  - failed permutation analyses...: "${TOTALPERM}
