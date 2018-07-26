@@ -489,7 +489,13 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
-      print(head(RESULTS.toANNOTATE2))
+#      print(head(RESULTS.toANNOTATE2))
+#      1 ProbeID 2 VARIANT 3 Distance_VARIANT_ProbeID 4 Strand 5 Nominal_P 
+#      6 Beta 7 Z 8 SD 9 SEM 10 Bonferroni 11 BenjHoch 12 Q 
+#      13 EntrezID 14 ArrayID 15 GeneName 16 GeneInfo 17 Chr 18 GeneTxStart 19 GeneTxEnd 
+#      20 VARIANT 21 Chr 22 BP 23 OtherAlleleA 24 CodedAlleleA 
+#      25 MAF 26 MAC 27 CAF 28 AvgMAxPostCall 29 Info 30 HWE 31 N 32 Imputation
+                                     
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,21,22,23,24,25,26,27,30,29,32,31, # Variant information
                                                 15,13,3,4,17,18,19, # Gene information
                                                 6,9,5,10,11,12)] # association statistics
