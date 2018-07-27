@@ -105,8 +105,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan                                                                +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl                                                        +"
-echobold "+ * Last update : 2018-07-26                                                                            +"
-echobold "+ * Version     : 1.1.5                                                                                 +"
+echobold "+ * Last update : 2018-07-27                                                                            +"
+echobold "+ * Version     : 1.1.6                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will check the regular nominal and permuted QTL results for success.      +"
 echobold "+                                                                                                       +"
@@ -145,9 +145,6 @@ else
 	### GENERIC SETTINGS
 	SOFTWARE=${SOFTWARE}
 	QTLTOOLKIT=${QTLTOOLKIT}
-	### FOR DEBUG
-	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
-	### FOR DEBUG
 	QCTOOL=${QCTOOL}
 	SNPTEST252=${SNPTEST252}
 	QTLTOOLS=${QTLTOOLS}
