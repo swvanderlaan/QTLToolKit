@@ -102,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-07-26                                                                            +"
-echobold "+ * Version     : 1.3.1                                                                                 +"
+echobold "+ * Last update : 2018-07-29                                                                            +"
+echobold "+ * Version     : 1.3.2                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will produce regional association plots of QTL results, using             +"
 echobold "+                 LocusZoom v1.3.                                                                       +"
@@ -159,7 +159,7 @@ echo ""
 	QCTOOL=${QCTOOL}
 	SNPTEST252=${SNPTEST252}
 	QTLTOOLS=${QTLTOOLS}
-	LZ13=${LZ13}
+	LOCUSZOOM=${LOCUSZOOM}
 	BGZIP=${BGZIP}
 	TABIX=${TABIX}
 	PLINK=${PLINK}
@@ -199,7 +199,7 @@ else
 	echo "Where \"bgzip\" resides                              ${BGZIP}"
 	echo "Where \"tabix\" resides                              ${TABIX}"
 	echo "Where \"snptest \" resides                           ${SNPTEST252}"
-	echo "Where \"LocusZoom 1.3\" resides                      ${LZ13}"
+	echo "Where \"LocusZoom 1.3\" resides                      ${LOCUSZOOM}"
 	echo "Where \"PLINK\" resides                              ${PLINK}"
 	echo "Where \"Python\" resides                             ${PYTHON}"
 	echo ""
@@ -323,12 +323,16 @@ else
 			
 				### Setting up LocusZoom v1.3+ plotting
 				### Some general settings
-				LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
-
-
+				LOCUSZOOM_SETTINGS=${LOCUSZOOM_SETTINGS}
+				# LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
+				echo "*** DEBUGGING ***"
+ 				echo $LOCUSZOOM_SETTINGS
+ 				
 				### The proper genome-build
-				LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
-			
+				LDMAP="--pop ${LDPOP} --build ${LDBUILD} --source ${LDSOURCE}"
+ 				echo "*** DEBUGGING ***"
+ 				echo $LDMAP
+ 				
 				### Directory prefix
 				PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}"
 			
@@ -337,7 +341,7 @@ else
 				HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 3)
 			
 				### Actual plotting
-				${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
+				${LOCUSZOOM} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --refsnp ${LOCUSVARIANT} --markercol ${LZMARKERNAME} --pvalcol ${LZPVALUE} --delim ${LZDELIMITER} --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=${LZTHEME} title="${LOCUSVARIANT} - ${GENENAME} (${PROBEID})"
 			
 			done < ${LOCUSHITS}
 
@@ -395,11 +399,15 @@ else
 		
 			### Setting up LocusZoom v1.3+ plotting
 			### Some general settings
-			LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
-
-
+			LOCUSZOOM_SETTINGS=${LOCUSZOOM_SETTINGS}
+			# LOCUSZOOM_SETTINGS="ldColors=\"#595A5C,#4C81BF,#1396D8,#C5D220,#F59D10,red,#9A3480\" showRecomb=TRUE drawMarkerNames=FALSE showRug=FALSE showAnnot=TRUE showRefsnpAnnot=TRUE showGenes=TRUE clean=TRUE bigDiamond=TRUE rfrows=10 refsnpLineWidth=2 refsnpTextSize=1.0 axisSize=1.25 axisTextSize=1.25 geneFontSize=1.25"
+			echo "*** DEBUGGING ***"
+ 			echo $LOCUSZOOM_SETTINGS
+ 			
 			### The proper genome-build
-			LDMAP="--pop EUR --build hg19 --source 1000G_March2012"
+			LDMAP="--pop ${LDPOP} --build ${LDBUILD} --source ${LDSOURCE}"
+ 			echo "*** DEBUGGING ***"
+ 			echo $LDMAP
 		
 			### Directory prefix
 			PREFIX="${LOCUSVARIANT}_${GENENAME}_${PROBEID}_excl_${EXCLUSION_TYPE}"
@@ -409,7 +417,7 @@ else
 			HIEND=$(grep ${LOCUSVARIANT} ${CLUMPDIR}/highlight_ranges_${LOCUSVARIANT}.list |  cut -d ',' -f 3)
 		
 			### Actual plotting
-			${LZ13} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${TAGVARIANT} --markercol MarkerName --pvalcol P-value --delim tab --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=publication title="${LOCUSVARIANT} tagged by ${TAGVARIANT} - ${GENENAME} (${PROBEID})"
+			${LOCUSZOOM} --metal ${SUMMARY}/_probes/${LOCUSVARIANT}_${GENENAME}_${PROBEID}.lz --add-refsnp ${TAGVARIANT} --markercol ${LZMARKERNAME} --pvalcol ${LZPVALUE} --delim ${LZDELIMITER} --chr ${CHR} --start ${START} --end ${END} ${LDMAP} ${LOCUSZOOM_SETTINGS} --prefix=${PREFIX} hiStart=${HISTART} hiEnd=${HIEND} theme=${LZTHEME} title="${LOCUSVARIANT} tagged by ${TAGVARIANT} - ${GENENAME} (${PROBEID})"
 			
 		done < ${PERMUTEDHITSPARSED}
 		

@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                          QTL RESULTS QUALITY CONTROL & PARSER v2
 \n
-* Version: v2.3.3
-* Last edit: 2018-07-26
+* Version: v2.3.4
+* Last edit: 2018-07-29
 * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 \n
 * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -120,35 +120,6 @@ option_list = list(
   #            help="a variable named c, with a default [default %default]")  
 )
 opt = parse_args(OptionParser(option_list = option_list))
-
-# *** THESE LINES ARE FOR DEBUGGING  ***
-# opt$projectdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/"
-# opt$outputdir = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/"
-# opt$resulttype = "NOM"
-# opt$resulttype="PERM"
-# opt$qtltype = "EQTL"
-
-### QTLTool
-# opt$analysetype = "CIS"
-### nom
-# opt$resultfile = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_QC_qtlnom_rs7528419_excl_EXCL_DEFAULT.txt.gz"
-# opt$genstats = "/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_1kGp3GoNL5_QC_rs7528419_excl_EXCL_DEFAULT.stats"
-### perm
-# opt$resultfile="/Users/swvanderlaan/PLINK/analyses/ctmm/cardiogramplusc4d/ctmm_eqtl/cardiogramplusc4d_clumped_4real_complete_with_4pcs/EXCL_DEFAULT_qtl/rs7528419_cardiogramplusc4d_clumped_4real_complete_with_4pcs/ctmm_QC_qtlperm_rs7528419_excl_EXCL_DEFAULT.txt.gz"
-
-# opt$analysetype="TRANS"
-# opt$genstats="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/ctmm_1kGp3GoNL5_RAW_chr7.stats"
-### nom
-# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/final_chr7_p0.05_trans.txt.hits_cut.txt.gz"
-# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_nominal.hits.txt.gz"
-### perm
-# opt$resultfile="/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7_permuted_cis.txt.gz"
-
-### End result_data
-# opt$annotfile = "/Users/swvanderlaan/PLINK/_CTMM_Originals/CTMMHumanHT12v4r2_15002873B/ctmm.humanhtv4r2.annotation.csv"
-
-#genstatistics=read.table("/Users/slidetoolkit/Desktop/Jacco/expression_analysis/data/chr7.newstats.stats")
-# *** THESE LINES ARE FOR DEBUGGING  ***
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 
@@ -603,7 +574,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   }
   
   cat("\n* Remove temporary files...\n")
-  #rm(RESULTS.toANNOTATE, RESULTS.toANNOTATE2)
+  rm(RESULTS.toANNOTATE, RESULTS.toANNOTATE2)
   
   #--------------------------------------------------------------------------
   ### SAVE NEW DATA ###
