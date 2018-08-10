@@ -101,8 +101,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-07-31                                                                            +"
-echobold "+ * Version     : 2.6.6                                                                                 +"
+echobold "+ * Last update : 2018-08-10                                                                            +"
+echobold "+ * Version     : 2.6.7                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using  your methylation or expression data.      +"
@@ -328,7 +328,6 @@ else
 		echo "* ${LINE}"
 		done < ${REGIONS}
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
 
 	###EXTRACTION OF DATA AND ANALYSIS
 	echo ""
