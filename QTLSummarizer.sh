@@ -102,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-08-20                                                                            +"
-echobold "+ * Version     : 1.1.4                                                                                 +"
+echobold "+ * Last update : 2018-06-15                                                                            +"
+echobold "+ * Version     : 1.1.3                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -156,6 +156,17 @@ echo ""
 	### GENERIC SETTINGS
 	SOFTWARE=${SOFTWARE}
 	QTLTOOLKIT=${QTLTOOLKIT}
+	### FOR DEBUG
+	### QTLTOOLKIT=/hpc/dhl_ec/jschaap/QTLToolKit
+	### FOR DEBUG
+	QCTOOL=${QCTOOL}
+	SNPTEST252=${SNPTEST252}
+	QTLTOOLS=${QTLTOOLS}
+	LZ13=${LZ13}
+	BGZIP=${BGZIP}
+	TABIX=${TABIX}
+	PLINK=${PLINK}
+	PYTHON=${PYTHON}
 	
 	STUDYNAME=${STUDYNAME} # What is the study name to be used in files -- refer to 'qtl.config' for information
 	PROJECTDIR=${ROOTDIR}/${PROJECTNAME} # What is the project directory?  -- refer to 'qtl.config' for for information
@@ -179,6 +190,28 @@ if [[ $# -lt 4 ]]; then
 	script_arguments_error "You must supply at least [4] arguments when summarizing QTL results!"
 
 else
+
+#	###FOR DEBUGGING
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#	echo "The following is set:"
+#	echo ""
+#	echo "Software directory                                 ${SOFTWARE}"
+#	echo "Where \"qctool\" resides                             ${QCTOOL}"
+#	echo "Where \"QTLTools\" resides                           ${FASTQTL}"
+#	echo "Where \"bgzip\" resides                              ${BGZIP}"
+#	echo "Where \"tabix\" resides                              ${TABIX}"
+#	echo "Where \"snptest 2.5.2\" resides                      ${SNPTEST252}"
+#	echo ""
+#	echo "Project directory                                  ${PROJECTDIR}"
+#	echo "Results directory                                  ${RESULTS}"
+#	echo "Summary directory                                  ${SUMMARY}"
+#	echo "Clump directory                                    ${CLUMPDIR}"
+#	echo "Regions of interest file                           ${REGIONS}"
+#	echo "Exclusion type                                     ${EXCLUSION_TYPE}"
+#	echo "QTL-type                                           ${QTL_TYPE}"
+#	echo ""     
+#	echo "We will run this script on                         ${TODAY}"
+#	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 	### OVERVIEW OF REGIONS
 	echo ""
@@ -301,11 +334,11 @@ else
 			echo ""
 			echo "Nominal results..."
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
+			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
 	
 			if [[ ${CLUMP} == "Y" ]]; then
 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
+				gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
 
 			else
 				echo ""
@@ -316,11 +349,11 @@ else
 			echo ""
 			echo "Permutation results..."
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt
+			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt
 		
 			if [[ ${CLUMP} == "Y" ]]; then
 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q_05.txt
+				gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q_05.txt
 
 			else
 				echo ""
@@ -330,7 +363,7 @@ else
 		
 		elif [[ ${QTL_TYPE} == "TRANS" ]]; then
 			cat ${SUMMARY}/${VARIANT}.hits_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -fv ${SUMMARY}/${VARIANT}_nominal.all.txt
+			gzip -v ${SUMMARY}/${VARIANT}_nominal.all.txt
 		fi
 		
 	done < ${REGIONS}
@@ -364,7 +397,11 @@ else
 
 	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-
+		
+		# why is this removed???
+		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt 
 
 	fi
 	
