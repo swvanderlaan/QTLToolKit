@@ -351,13 +351,20 @@ else
 			zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
 		
-		else
+		elif [[ ${ANALYSIS_TYPE} == "MQTL" ]]; then
 			echo "* Non-clumped ${QTL_TYPE}-QTL results."
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
 			
 			echo "* And re-ordering based on p-value."
-			zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 32) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+			
+		else
+			echo "* Non-clumped ${QTL_TYPE}-QTL results."
+			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
+			
+			echo "* And re-ordering based on p-value."
+			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 			
 		fi
