@@ -404,11 +404,6 @@ else
 
 	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-		
-		# why is this removed???
-		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-		### rm -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt 
 
 	fi
 	
