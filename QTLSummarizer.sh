@@ -102,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-06-15                                                                            +"
-echobold "+ * Version     : 1.1.3                                                                                 +"
+echobold "+ * Last update : 2018-08-21                                                                            +"
+echobold "+ * Version     : 1.1.4                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -334,11 +334,11 @@ else
 			echo ""
 			echo "Nominal results..."
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
+			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
 	
 			if [[ ${CLUMP} == "Y" ]]; then
 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-				gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
+				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.nominal.all.txt
 
 			else
 				echo ""
@@ -349,11 +349,11 @@ else
 			echo ""
 			echo "Permutation results..."
 			cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
-			gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt
+			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt
 		
 			if [[ ${CLUMP} == "Y" ]]; then
 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q0_05.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-				gzip -v ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q_05.txt
+				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_${VARIANT}_excl_${EXCLUSION_TYPE}.perm.Q_05.txt
 
 			else
 				echo ""
@@ -363,7 +363,7 @@ else
 		
 		elif [[ ${QTL_TYPE} == "TRANS" ]]; then
 			cat ${SUMMARY}/${VARIANT}.hits_nominal.all.txt | tail -n +2 | awk -v LOCUS_VARIANT=$VARIANT '{ print LOCUS_VARIANT, $0 }' OFS=","  >> ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -v ${SUMMARY}/${VARIANT}_nominal.all.txt
+			gzip -fv ${SUMMARY}/${VARIANT}_nominal.all.txt
 		fi
 		
 	done < ${REGIONS}
@@ -373,39 +373,49 @@ else
 	echo ""
 	echo "Compressing the final summary results..."
 	
-	if [[ ${QTL_TYPE} == "CIS" ]]; then
-	
-		if [[ ${CLUMP} == "Y" ]]; then
-			echo "* Clumped ${QTL_TYPE}-QTL results."
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
-			
-			echo "* And re-ordering based on p-value."
-			zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
-		
-		elif [[ ${ANALYSIS_TYPE} == "MQTL" ]]; then
-			echo "* Non-clumped ${QTL_TYPE}-QTL results."
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
-			
-			echo "* And re-ordering based on p-value."
-			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 32) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			
-		else
-			echo "* Non-clumped ${QTL_TYPE}-QTL results."
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
-			
-			echo "* And re-ordering based on p-value."
-			cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-			
-		fi
+ 	if [[ ${QTL_TYPE} == "CIS" ]]; then
+ 	
+ 		if [[ ${CLUMP} == "Y" ]]; then
+ 			if [[ ${ANALYSIS_TYPE} == "MQTL" ]]; then
+ 				echo "* Clumped ${QTL_TYPE}-${ANALYSIS_TYPE} results."
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+ 				
+ 				echo "* And re-ordering based on p-value."
+ 				zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 32) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.reorder.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.reorder.txt
+ 			else
+ 				echo "* Clumped ${QTL_TYPE}-QTL results."
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_clumped_summary.txt
+ 				
+ 				echo "* And re-ordering based on p-value."
+ 				zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
+ 			fi	
+ 		else
+ 			if [[ ${ANALYSIS_TYPE} == "MQTL" ]]; then
+ 				echo "* Non-clumped ${QTL_TYPE}-${ANALYSIS_TYPE} results."
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
+ 				
+ 				echo "* And re-ordering based on p-value."
+ 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 32) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
+ 			else 
+ 				echo "* Non-clumped ${QTL_TYPE}-QTL results."
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
+ 				
+ 				echo "* And re-ordering based on p-value."
+ 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+ 			fi
+ 		fi
+ 		
+ 	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
+ 		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 
-	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
-		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
-
-	fi
+ 
+ 	fi
 	
 
 ### END of if-else statement for the number of command-line arguments passed ###

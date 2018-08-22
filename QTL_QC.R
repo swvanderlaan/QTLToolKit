@@ -3,38 +3,26 @@
 # Alternative shebang for local Mac OS X: "#!/usr/local/bin/Rscript --vanilla"
 # Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript --vanilla
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                                         QTL RESULTS QUALITY CONTROL & PARSER v2
-\n
-* Version: v2.3.4
-* Last edit: 2018-07-29
-* Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
-\n
-* Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
-Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
-R 3+ installed, Mac OS X and Windows.
-
-NOTE 2018-06-15: I've edited the eQTL-part (nom/perm for cis) to match with the new 'strand' column. What 
-remains to be done:
-- double check the trans-part
-- double check the mQTL-part
-as the column numbers have changed by the addition of the 'strand' column in the output.
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+    QTL RESULTS QUALITY CONTROL & PARSER v2
+    \n
+    * Version: v2.3.5
+    * Last edit: 2018-08-21
+    * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
+    \n
+    * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
+    Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
+    R 3+ installed, Mac OS X and Windows.
+    
+    NOTE 2018-06-15: I've edited the eQTL-part (nom/perm for cis) to match with the new 'strand' column. What 
+    remains to be done:
+    - double check the trans-part
+    as the column numbers have changed by the addition of the 'strand' column in the output.
+    
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
 # usage: ./QTL_QC.R -p projectdir -r resultfile -o outputdir -t resulttype -q qtltype -a annotfile -j genstatsfile [OPTIONAL: -v verbose (DEFAULT) -q quiet]
 #        ./QTL_QC.R --projectdir projectdir --resultsfile resultfile --outputdir outputdir --resulttype resulttype --qtltype qtltype --annotfile annotfile --genstats genestatfile [OPTIONAL: --verbose verbose (DEFAULT) -quiet quiet]
 
-#--------------------------------------------------------------------------
-# 1. Phenotype ID
-# 2. Phenotype chrID
-# 3. Phenotype start
-# 4. Variant ID
-# 5. Variant chrID
-# 6. Variant position
-# 7. Nominal P-value of association
-# 8. Dummy here. Field used in approximated mapping in trans
-# 9. Regression slope
-#--------------------------------------------------------------------------
 cat("\n* Clearing the environment...\n\n")
 ### CLEAR THE BOARD
 rm(list = ls())
@@ -122,6 +110,15 @@ option_list = list(
 opt = parse_args(OptionParser(option_list = option_list))
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
+### opt$projectdir="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/"
+### opt$resultfile="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/aems450k1_QC_qtlperm_cg00002028_excl_EXCL_FEMALES.txt.gz"
+### opt$resulttype="PERM"
+### opt$qtltype="MQTL"
+### opt$outputdir="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/"
+### opt$annotfile="/Users/svanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
+### opt$genstats="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/aegs_1kGp3GoNL5_QC_cg00002028_excl_EXCL_FEMALES.stats"
+### opt$analysetype="CIS"
+### OPTIONLIST | FOR LOCAL DEBUGGING
 
 if (opt$verbose) {
   # You can use either the long or short name; so opt$a and opt$avar are the same.
@@ -190,7 +187,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                                   "UCSC_RefGene_Dist")
   } else {
     cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file = stderr()) # print error messages to stder
+        file = stderr()) # print error messages to stder
   }
   
   cat("\nLoading variant statistics...\n")
@@ -222,12 +219,12 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                                      24,        # caf, (24)
                                      8,9,21,18, # imputation quality (8, 9), and HWE (21), and N (18)
                                      25)]       # imputation, (25)
-
+  
   # Change the column names
   colnames(VARIANTSTATS) = c("VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", 
                              "MAF", "MAC", "CAF", 
                              "AvgMAxPostCall", "Info", "HWE", "N", "Imputation")
-
+  
   ### Loading main results
   RESULTS = read.table(opt$resultfile, header = FALSE, stringsAsFactors = FALSE)
   ### Loading *nominal* results 
@@ -273,14 +270,14 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                file_path_sans_ext(basename(opt$resultfile), compression = TRUE), # get the basename file without the extension and any compression extensions
                "_histogram_nominal_beta.pdf"), onefile = TRUE)
-      hist(RESULTS$Beta, 
-           breaks = 10000,
-           xlab = "Effect size", ylab = "Distribution", 
-           main = "Overall distribution of effect size", 
-           col = "#1290D9")
-      abline(v = mean(RESULTS$Beta), col = "#E55738")
-      abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
-      abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+    hist(RESULTS$Beta, 
+         breaks = 10000,
+         xlab = "Effect size", ylab = "Distribution", 
+         main = "Overall distribution of effect size", 
+         col = "#1290D9")
+    abline(v = mean(RESULTS$Beta), col = "#E55738")
+    abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+    abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
     dev.off()
     
   } else if (opt$resulttype == "PERM") { ### Loading *permutation* results 
@@ -324,26 +321,26 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                file_path_sans_ext(basename(opt$resultfile), compression = TRUE), # get the basename file without the extension and any compression extensions
                "_comparing_permutation_pvalues.pdf"), onefile = TRUE)
     
-      plot(RESULTS$Perm_P, RESULTS$Approx_Perm_P, 
-           xlab = "Direct method", ylab = "Beta approximation", 
-           main = "Comparing permuted p-values", bty = "n", 
-           pch = 20, col = "#1290D9")
-      abline(0, 1, col = "#E55738")
-      hist(RESULTS$Beta, 
-           breaks = 25,
-           xlab = "Effect size", ylab = "Distribution", 
-           main = "Overall distribution of effect size", 
-           #bty = "n", 
-           col = "#1290D9"
-      )
-      abline(v = mean(RESULTS$Beta), col = "#E55738")
-      abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
-      abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+    plot(RESULTS$Perm_P, RESULTS$Approx_Perm_P, 
+         xlab = "Direct method", ylab = "Beta approximation", 
+         main = "Comparing permuted p-values", bty = "n", 
+         pch = 20, col = "#1290D9")
+    abline(0, 1, col = "#E55738")
+    hist(RESULTS$Beta, 
+         breaks = 25,
+         xlab = "Effect size", ylab = "Distribution", 
+         main = "Overall distribution of effect size", 
+         #bty = "n", 
+         col = "#1290D9"
+    )
+    abline(v = mean(RESULTS$Beta), col = "#E55738")
+    abline(v = (mean(RESULTS$Beta) - 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
+    abline(v = (mean(RESULTS$Beta) + 4*sd(RESULTS$Beta)), col = "#E55738", lty = 2)
     dev.off()
     
   } else {
     cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file = stderr()) # print error messages to stder
+        file = stderr()) # print error messages to stder
   }
   
   #--------------------------------------------------------------------------
@@ -401,21 +398,21 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ###     - http://svitsrv25.epfl.ch/R-doc/library/qvalue/html/qvalue.html
   ### Requires a bioconductor package: "qvalue"
   if(opt$resulttype == "NOM") {
-  # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
-  # RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
-  RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
-
+    # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
+    # RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
+    RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
+    
   } else if(opt$resulttype == "PERM") {
-  print((RESULTS))
-   # RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
-   # RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
-   RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
-
+    print((RESULTS))
+    # RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
+    # RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
+    RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
+    
   } else {
-   cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
-        file=stderr()) # print error messages to stder
+    cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
+         file=stderr()) # print error messages to stder
   }
-
+  
   #--------------------------------------------------------------------------
   #### ADD IN THE ANNOTATIONS ###
   cat("\nApplying annotations.\n")
@@ -460,26 +457,26 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for a CTMM eQTL analysis in monocytes...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
-#      print(head(RESULTS.toANNOTATE2))
-#      1 ProbeID 2 VARIANT 3 Distance_VARIANT_ProbeID 4 Strand 5 Nominal_P 
-#      6 Beta 7 Z 8 SD 9 SEM 10 Bonferroni 11 BenjHoch 12 Q 
-#      13 EntrezID 14 ArrayID 15 GeneName 16 GeneInfo 17 Chr 18 GeneTxStart 19 GeneTxEnd 
-#      20 VARIANT 21 Chr 22 BP 23 OtherAlleleA 24 CodedAlleleA 
-#      25 MAF 26 MAC 27 CAF 28 AvgMAxPostCall 29 Info 30 HWE 31 N 32 Imputation
-                                     
+      #      print(head(RESULTS.toANNOTATE2))
+      #      1 ProbeID 2 VARIANT 3 Distance_VARIANT_ProbeID 4 Strand 5 Nominal_P 
+      #      6 Beta 7 Z 8 SD 9 SEM 10 Bonferroni 11 BenjHoch 12 Q 
+      #      13 EntrezID 14 ArrayID 15 GeneName 16 GeneInfo 17 Chr 18 GeneTxStart 19 GeneTxEnd 
+      #      20 VARIANT 21 Chr 22 BP 23 OtherAlleleA 24 CodedAlleleA 
+      #      25 MAF 26 MAC 27 CAF 28 AvgMAxPostCall 29 Info 30 HWE 31 N 32 Imputation
+      
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,21,22,23,24,25,26,27,30,29,32,31, # Variant information
                                                 15,13,3,4,17,18,19, # Gene information
                                                 6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
-#      print(head(RESULTS.toANNOTATE2))
-#      1 ProbeID 2 NVariants 3 MLE_Beta_shape1 4 MLE_Beta_shape2 5 Dummy 
-#      6 VARIANT 7 Distance_VARIANT_ProbeID 8 Strand 9 Nominal_P 
-#      10 Beta 11 Perm_P 12 Approx_Perm_P 13 Z 14 SD 15 SEM 16 Bonferroni 17 BenjHoch 18 Q 
-#      19 EntrezID 20 ArrayID 21 GeneName 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
-#      26 VARIANT 27 Chr 28 BP 29 OtherAlleleA 30 CodedAlleleA 
-#      31 MAF 32 MAC 33 CAF 34 AvgMAxPostCall 35 Info 36 HWE 37 N 38 Imputation
-                                     
+      #      print(head(RESULTS.toANNOTATE2))
+      #      1 ProbeID 2 NVariants 3 MLE_Beta_shape1 4 MLE_Beta_shape2 5 Dummy 
+      #      6 VARIANT 7 Distance_VARIANT_ProbeID 8 Strand 9 Nominal_P 
+      #      10 Beta 11 Perm_P 12 Approx_Perm_P 13 Z 14 SD 15 SEM 16 Bonferroni 17 BenjHoch 18 Q 
+      #      19 EntrezID 20 ArrayID 21 GeneName 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
+      #      26 VARIANT 27 Chr 28 BP 29 OtherAlleleA 30 CodedAlleleA 
+      #      31 MAF 32 MAC 33 CAF 34 AvgMAxPostCall 35 Info 36 HWE 37 N 38 Imputation
+      
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
                                                 10,15,9,11,12,16,17,18)] # association statistics
@@ -493,14 +490,16 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for an Athero-Express mQTL analysis...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
+      str(RESULTS.toANNOTATE2)
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,48,49,50,51,52,53,54,57,56,59,58, # Variant information
-                                                3,5,24,25,19, # CpG information
-                                                34,35,36,38,39,40,41,42,43,44,45, # CpG associated information
-                                                5,9,4,10,11,12)] # association statistics
+                                                3,4,24,25,19, # CpG information
+                                                34,35,36,38, # CpG associated information
+                                                39,40,41,42,43,44,45, # CpG associated information
+                                                6,9,5,10,11,12)] # association statistics
     } else if (opt$resulttype == "PERM") {
       cat("\n--- permuted results ---\n")
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,54,55,56,57,58,59,60,63,62,65,64, # Variant information
-                                                7,5,30,31,25, # CpG information
+                                                7,8,30,31,25, # CpG information
                                                 40,41,42,44,45,46,47,48,49,50,51, # CpG associated information
                                                 10,15,9,11,12,16,17,18)] # association statistics
     } else {
@@ -551,26 +550,24 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n...for results of an Athero-Express mQTL analysis...\n")
     if (opt$resulttype == "NOM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG",
-                                     "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
-                                     "CpG_Island_Relation_UCSC", "Phantom", "DMR", "Enhancer", "HMM_Island",
-                                     "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
+                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG", "ProbeType", 
+                                     "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
+                                     "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
     } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
-                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG",
-                                     "ProbeType", "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", 
-                                     "CpG_Island_Relation_UCSC", "Phantom", "DMR", "Enhancer", "HMM_Island",
-                                     "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
+                                     "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG", "ProbeType", 
+                                     "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
+                                     "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-           file = stderr()) # print error messages to stder
+          file = stderr()) # print error messages to stder
     }
     
   } else {
     cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file = stderr()) # print error messages to stder
+        file = stderr()) # print error messages to stder
   }
   
   cat("\n* Remove temporary files...\n")
@@ -593,7 +590,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
   } else if (opt$resulttype == "PERM") {
     write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch <= 0.05), ], # with filtering on Q-value 
-    # write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch != "NA"), ], # without filtering on Q-value
+                # write.table(RESULTS.ANNOTATE[which(RESULTS.ANNOTATE$BenjHoch != "NA"), ], # without filtering on Q-value
                 paste0(opt$outputdir, "/", 
                        ###Today,"_", # add in Today's date -- removed as it causes issues in downstream projects when its the 'next day'
                        file_path_sans_ext(basename(opt$resultfile), compression = TRUE), 
@@ -605,7 +602,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                 quote = FALSE , row.names = FALSE, col.names = TRUE, sep = ",", na = "NA", dec = ".")
   } else {
     cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
-         file = stderr()) # print error messages to stder
+        file = stderr()) # print error messages to stder
   }
   
 } else {
