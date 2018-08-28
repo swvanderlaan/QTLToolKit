@@ -1,23 +1,21 @@
 cat("===========================================================================================
-                             CREATE BED-FILES FOR (fast)QTLToolKit
-                                             for
-                   ILLUMINA DNA methylation (DNAm) ARRAYS (450K, 27K, EPIC)
-
-Version:      v2.4
-
-Last update:  2018-03-15
-Written by:   Sander W. van der Laan (s.w.vanderlaan-2@umcutrecht.nl);
-Jacco Schaap
-
-Description:  Script to create bed-files for (fast)QTLToolKit of DNA methylation array data based
-on Illumina 450K, 27K or EPIC BeadChips and processed using DNAmArray (https://github.com/molepi/DNAmArray).
-
-Requirements: R version 3.4.1 (2017-06-30) -- 'Single Candle', Linux CentOS7, Mac OS X El Capitan+
-
-===========================================================================================")
+                CREATE BED-FILES FOR (fast)QTLToolKit OF AEMS450K
+    
+    Version:      v2.5.3
+    
+    Last update:  2018-07-24
+    Written by:   Sander W. van der Laan (s.w.vanderlaan-2@umcutrecht.nl);
+    Jacco Schaap
+    
+    Description:  Script to create bed-files for (fast)QTLToolKit of Athero-Express Methylation 
+    Study 450K 1 (2013) & 2 (2016).
+    
+    Requirements: R version 3.4.1 (2017-06-30) -- 'Single Candle', Linux CentOS7, Mac OS X El Capitan+
+    
+    ===========================================================================================")
 cat("\n===========================================================================================")
 cat("CLEAR THE BOARD")
-rm(list = ls())
+# rm(list = ls())
 
 cat("\n===========================================================================================")
 cat("GENERAL R SETUP")
@@ -26,7 +24,7 @@ cat("GENERAL R SETUP")
 ### a function found by Sander W. van der Laan online from @Samir: 
 ### http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
 ### 
-cat("\n* Creating funxtion to install and load packages...")
+cat("\n* Creating funxtion to install and load packages...\n")
 install.packages.auto <- function(x) { 
   x <- as.character(substitute(x)) 
   if (isTRUE(x %in% .packages(all.available = TRUE))) { 
@@ -76,10 +74,13 @@ getwd()
 # Set locations
 ### Operating System Version
 
-### Mac Pro -- this is my desktop-version; edit this to your data location
+### Mac Pro
 ROOT_loc = "/Volumes/EliteProQx2Media"
 
-### MacBook -- version to work on my MacBook
+### MacBook Pro
+# ROOT_loc = "/Users/swvanderlaan"
+
+### MacBook mini
 # ROOT_loc = "/Users/swvanderlaan"
 
 ### SOME VARIABLES WE NEED DOWN THE LINE
@@ -88,105 +89,79 @@ PROJECTNAME = "BEDFILES"
 SUBPROJECTNAME1 = "AEMS450K1"
 SUBPROJECTNAME2 = "AEMS450K2"
 
-INP_loc = paste0(ROOT_loc, "/PLINK/_AE_Originals")
-INP_DNAMARRAY1_loc = paste0(INP_loc, "/AEMS450K1")
-INP_DNAMARRAY2_loc = paste0(INP_loc, "/AEMS450K2")
+INP_AE_loc = paste0(ROOT_loc, "/PLINK/_AE_Originals")
+INP_AEMS450K1_loc = paste0(INP_AE_loc, "/AEMS450K1")
+INP_AEMS450K2_loc = paste0(INP_AE_loc, "/AEMS450K2")
 
 cat("\nCreate a BED-files directory...")
-ifelse(!dir.exists(file.path(INP_DNAMARRAY1_loc, "/",PROJECTNAME)), 
-       dir.create(file.path(INP_DNAMARRAY1_loc, "/",PROJECTNAME)), 
+ifelse(!dir.exists(file.path(INP_AEMS450K1_loc, "/",PROJECTNAME)), 
+       dir.create(file.path(INP_AEMS450K1_loc, "/",PROJECTNAME)), 
        FALSE)
-BED_DNAMARRAY1_loc = paste0(INP_DNAMARRAY1_loc,"/",PROJECTNAME)
+BED_AEMS450K1_loc = paste0(INP_AEMS450K1_loc,"/",PROJECTNAME)
 
-ifelse(!dir.exists(file.path(INP_DNAMARRAY2_loc, "/",PROJECTNAME)), 
-       dir.create(file.path(INP_DNAMARRAY2_loc, "/",PROJECTNAME)), 
+ifelse(!dir.exists(file.path(INP_AEMS450K2_loc, "/",PROJECTNAME)), 
+       dir.create(file.path(INP_AEMS450K2_loc, "/",PROJECTNAME)), 
        FALSE)
-BED_DNAMARRAY2_loc = paste0(INP_DNAMARRAY2_loc,"/",PROJECTNAME)
+BED_AEMS450K2_loc = paste0(INP_AEMS450K2_loc,"/",PROJECTNAME)
 
 cat("\n===========================================================================================")
 cat("SAVE THE DATA")
 
-save.image(paste0(INP_loc,"/",Today,".aems450k.createBED.RData"))
+save.image(paste0(INP_AE_loc,"/",Today,".aems450k.createBED.RData"))
 
 cat("===========================================================================================")
 cat("\nLOAD ATHERO-EXPRESS METHYLATION STUDY DATASETS")
-setwd(INP_loc)
+setwd(INP_AE_loc)
 list.files()
 
-cat(paste0("\n\n* Load ",PROJECTDATASET," data..."))
+cat(paste0("\n\n* Load ",PROJECTDATASET," data...\n"))
+cat("\n  - loading B/Mvalues of blood samples...") # not available for AEMS450K2
+load(paste0(INP_AEMS450K1_loc,"/20180625.aems450k1.BvaluesQCIMPSE.blood.RData"))
+load(paste0(INP_AEMS450K1_loc,"/20180625.aems450k1.MvaluesQCIMPSE.blood.RData"))
 
-# NOTEL: edit these names to match your data
-cat("\n  - loading B/Mvalues of blood samples...") 
-load(paste0(INP_DNAMARRAY1_loc,"/20171229.aems450k1.BvaluesQCIMP.blood.RData"))
-load(paste0(INP_DNAMARRAY1_loc,"/20171229.aems450k1.MvaluesQCIMP.blood.RData"))
+cat("\n  - loading B/Mvalues of plaque samples...\n")
+load(paste0(INP_AEMS450K1_loc,"/20180625.aems450k1.BvaluesQCIMPSE.plaque.RData"))
+load(paste0(INP_AEMS450K1_loc,"/20180625.aems450k1.MvaluesQCIMPSE.plaque.RData"))
 
-cat("\n  - loading B/Mvalues of plaque samples...")
-load(paste0(INP_DNAMARRAY1_loc,"/20171229.aems450k1.BvaluesQCIMP.plaque.RData"))
-load(paste0(INP_DNAMARRAY1_loc,"/20171229.aems450k1.MvaluesQCIMP.plaque.RData"))
-
-load(paste0(INP_DNAMARRAY2_loc,"/20171229.aems450k2.BvaluesQCIMP.plaque.RData"))
-load(paste0(INP_DNAMARRAY2_loc,"/20171229.aems450k2.MvaluesQCIMP.plaque.RData"))
+load(paste0(INP_AEMS450K2_loc,"/20180625.aems450k2.BvaluesQCIMPSE.plaque.RData"))
+load(paste0(INP_AEMS450K2_loc,"/20180625.aems450k2.MvaluesQCIMPSE.plaque.RData"))
 
 cat("===========================================================================================")
-cat("\n[ CREATING BED-FILES FOR (fast)QTLToolKit OF DNAmARRAY DATA ]")
+cat("\n[ CREATING BED-FILES FOR (fast)QTLToolKit OF AEMS450K1 & 2 ]")
 # Reference: https://molepi.github.io/DNAmArray_workflow/06_EWAS.html
 
-cat("\n* create bed files - B(eta)-values...")
-# Perhaps this can be coded into a for-loop, in either case I was lazy, and made 
-# two options: 
-# - B(eta)-value based
-# - M-value based
-# for three datasets: 
-# - aems450k1.[B/M]valuesQCblood, 
-# - aems450k1.[B/M]valuesQCplaque, 
-# - aems450k2.[B/M]valuesQCplaque.
-# You should comment out what you need.
-
-
-# dataset 1, blood, B(eta)-value
-DATA450K = aems450k1.BvaluesQCblood
-BEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCblood.qtl.bed")
-FASTBEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCblood.fastqtl.bed")
-
-# dataset 1, plaque, B(eta)-value
-# DATA450K = aems450k1.BvaluesQCplaque
+cat("\n* create bed files - B-values...\n")
+# DATA450K = aems450k1.BvaluesQCIMPbloodSE
+# BEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCblood.qtl.bed")
+# FASTBEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCblood.fastqtl.bed")
+# DATA450K = aems450k1.BvaluesQCIMPplaqueSE
 # BEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCplaque.qtl.bed")
 # FASTBEDFILENAME = paste0(Today,".AEMS450K1.BvaluesQCplaque.fastqtl.bed")
 
-# dataset 2, plaque, B(eta)-value
-# DATA450K = aems450k2.BvaluesQCplaque
-# BEDFILENAME = paste0(Today,".AEMS450K2.BvaluesQCplaque.qtl.bed")
-# FASTBEDFILENAME = paste0(Today,".AEMS450K2.BvaluesQCplaque.fastqtl.bed")
+DATA450K = aems450k2.BvaluesQCIMPplaqueSE
+BEDFILENAME = paste0(Today,".AEMS450K2.BvaluesQCplaque.qtl.bed")
+FASTBEDFILENAME = paste0(Today,".AEMS450K2.BvaluesQCplaque.fastqtl.bed")
 
-
-cat("\n* create bed files - M-values...")
-
-# dataset 1, blood, M-value
-# DATA450K = aems450k1.MvaluesQCblood
+cat("\n* create bed files - M-values...\n")
+# DATA450K = aems450k1.MvaluesQCIMPbloodSE
 # BEDFILENAME = paste0(Today,".AEMS450K1.MvaluesQCblood.qtl.bed")
 # FASTBEDFILENAME = paste0(Today,".AEMS450K1.MvaluesQCblood.fastqtl.bed")
-
-# dataset 1, plaque, M-value
-# DATA450K = aems450k1.MvaluesQCplaque
+# DATA450K = aems450k1.MvaluesQCIMPplaqueSE
 # BEDFILENAME = paste0(Today,".AEMS450K1.MvaluesQCplaque.qtl.bed")
 # FASTBEDFILENAME = paste0(Today,".AEMS450K1.MvaluesQCplaque.fastqtl.bed")
 
-# dataset 2, plaque, M-value
-# DATA450K = aems450k2.MvaluesQCplaque
+# DATA450K = aems450k2.MvaluesQCIMPplaqueSE
 # BEDFILENAME = paste0(Today,".AEMS450K2.MvaluesQCplaque.qtl.bed")
 # FASTBEDFILENAME = paste0(Today,".AEMS450K2.MvaluesQCplaque.fastqtl.bed")
 
-# location of the datasets 
-BEDFILELOCATION = BED_DNAMARRAY1_loc
-# BEDFILELOCATION = BED_DNAMARRAY2_loc
-
+# BEDFILELOCATION = BED_AEMS450K1_loc
+BEDFILELOCATION = BED_AEMS450K2_loc
 dim(DATA450K)
 DATA450K
 assay(DATA450K)[1:5, 1:5]
 colData(DATA450K)[1:5, 1:5]
 
-cat("\n* removing non-genotyped samples...")
-
+cat("\n* removing non-genotyped samples...\n")
 ### Please note that it is okay to have more (or different) samples in the *genotype* data 
 ### as compared to the *phenotype* data. However, it is *NOT* okay to have more 
 ### (or different) samples in the *phenotype* data as compared to the *genotype* data!!!
@@ -194,25 +169,27 @@ cat("\n* removing non-genotyped samples...")
 ### samples that do *NOT* have genotype data!!!
 
 dim(DATA450K)
-genotyped.samples <- as.data.frame(subset(colData(DATA450K), colData(DATA450K)$AEGS_type != "AE (not common SNP data)",
+genotyped.samples <- as.data.frame(subset(colData(DATA450K), 
+                                          colData(DATA450K)$AEGS_type != "AE (not common SNP data)",
                                           select = (ID)))
 
 DATA450Ksub <- DATA450K[, (DATA450K$ID %in% genotyped.samples$ID)]
 dim(DATA450Ksub)
 
-cat("\n* get a list of samples...")
-samples <- data.frame(subset(colData(DATA450Ksub), select = c(2)))
+cat("\n* get a list of samples...\n")
+samples <- data.frame(subset(colData(DATA450Ksub), select = c(UPID.y)))
 samples[1:5, 1]
 
-cat("\n* sort and get the chromome data...")
+cat("\n* sort and get the chromome data...\n")
 DATA450Ksub <- sortSeqlevels(DATA450Ksub)
 DATA450Ksub <- sort(DATA450Ksub)
+
 chrbp <- data.frame(rowRanges(DATA450Ksub))
 chrbp$probe<-rownames(DATA450Ksub)
 chrbp <- subset(chrbp, select = c(1,2,3,16))
 chrbp[1:4,1:4]
 
-cat("\n* concatenate all the annotations and parse them (externally)...")
+cat("\n* concatenate all the annotations and parse them (externally)...\n")
 # Map location information to CpGs -- very nice to have
 # source("http://bioconductor.org/biocLite.R")
 # biocLite("IlluminaHumanMethylation450kanno.ilmn12.hg19")
@@ -259,12 +236,29 @@ anno.450k.combined[, "GeneName"] = as.character(lapply(anno.450k.combined[,"UCSC
 dim(anno.450k.combined)
 anno.450k.combined[1:50, 1:37]
 
+cat("\n* get a list of CpGs with strand and GeneNames...\n")
 anno.450k.combined.select <- subset(anno.450k.combined, select = c("CpG", "strand", "GeneName"))
+dim(anno.450k.combined.select)
+anno.450k.combined.select[1:5, 1:3]
+str(anno.450k.combined.select)
+cat("\n  > it is critical that there are *no* empty fields...\n")
+anno.450k.combined.select$GeneName[anno.450k.combined.select$GeneName == ""] <- "no_gene_mapped"
 
-
-cat("\n* get proper annotations...")
+cat("\n* get proper annotations...\n")
 chrbp$strand <- NULL
 chrbp.annot <- merge(chrbp, anno.450k.combined.select, by.x = "probe", by.y = "CpG", sort = FALSE)
+dim(chrbp.annot)
+chrbp.annot[1:5, 1:6]
+cat("\n* making sure the order of columns is correct...\n")
+# Ref: https://qtltools.github.io/qtltools/pages/input_files.html
+# #Chr	start	end	pid	gid	strand	UNR1	UNR2	UNR3	UNR4 
+# chr1	99999	100000	pheno1	pheno1	+	-0.50	0.82	-0.71	0.83
+# chr1	199999	201000	pheno2	pheno2	+	1.18	-2.84	1.34	-1.56
+# chr1	299999	300000	exon1	gene1	+	-1.13	1.18	-0.03	0.11
+# chr1	299999	300000	exon2	gene1	+	-1.18	1.32	-0.36	1.26
+refcols <- c("seqnames", "start", "end", "probe", "GeneName", "strand")
+chrbp.annot <- chrbp.annot[, c(refcols)]
+names(chrbp.annot)
 dim(chrbp.annot)
 chrbp.annot[1:5, 1:6]
 
@@ -272,26 +266,31 @@ cat("\n* Add leading 'zero' to chromosome.\n")
 # https://stackoverflow.com/questions/5812493/adding-leading-zeros-using-r
 # https://stackoverflow.com/questions/9704213/r-remove-part-of-string
 library(stringr)
+# strip 'chr'
 chrbp.annot$seqnames <- gsub("^chr*", '', chrbp.annot$seqnames)
 dim(chrbp.annot)
 chrbp.annot[1:5, 1:6]
 chrbp.annot[483725:483731, 1:6]
-chrbp.annot$pid <- chrbp.annot$probe
-chrbp.annot$gid <- chrbp.annot$GeneName
-chrbp.annot$GeneName <- NULL
-chrbp.annot$probe <- NULL
+
+# rename some columns
+names(chrbp.annot)[names(chrbp.annot) == "probe"] <- "pid"
+names(chrbp.annot)[names(chrbp.annot) == "GeneName"] <- "gid"
 names(chrbp.annot)[names(chrbp.annot) == "seqnames"] <- "#Chr"
 chrbp.annot[1:5, 1:6]
 chrbp.annot$`#Chr` <- str_pad(chrbp.annot$`#Chr`, width = 2, side = "left", pad = "0")
+chrbp.annot[1:5, 1:6]
+chrbp.annot[483725:483731, 1:6]
 
-cat("\n* get the methylation data...")
+cat("\n* get the methylation data...\n")
 DATA450KASSAY <- as.data.frame(assay(DATA450Ksub), keep.rownames = TRUE)
 DATA450KASSAY[1:4,1:4]
-DATA450KASSAYU <- setnames(DATA450KASSAY, old = c(colnames(DATA450KASSAY)), new = c(samples$SampleID))
+DATA450KASSAYU <- setnames(DATA450KASSAY, old = c(colnames(DATA450KASSAY)), new = c(samples$UPID.y))
 # colnames(DATA450KASSAYU)[1:5]
+# QTLtools format (6 column BED)
 DATA450KMERGED <- cbind.data.frame(chrbp.annot, DATA450KASSAYU)
 dim(DATA450KMERGED)
 DATA450KMERGED[1:5, 1:10]
+# fastQTLtools format (4 column BED)
 DATA450KMERGEDFAST = DATA450KMERGED
 DATA450KMERGEDFAST$gid <- NULL
 DATA450KMERGEDFAST$strand <- NULL
@@ -308,14 +307,15 @@ fwrite(DATA450KMERGEDFAST, paste0(BEDFILELOCATION, "/",FASTBEDFILENAME),
 
 rm(DATA450K, DATA450Ksub, DATA450KASSAY, DATA450KASSAYU, 
    samples, chrbp, chrbp.annot, anno.450k, genotyped.samples, 
-   DATA450KMERGED, BEDFILENAME)
+   DATA450KMERGED, DATA450KMERGEDFAST, BEDFILENAME,
+   anno.450k.combined, anno.450k.combined.select)
 
 cat("\n===========================================================================================")
 cat("SAVE THE DATA")
 
 # we don't need the loaded methylation data anymore...
-rm(aems450k1.BvaluesQCblood, aems450k1.BvaluesQCplaque, aems450k2.BvaluesQCplaque,
-   aems450k1.MvaluesQCblood, aems450k1.MvaluesQCplaque, aems450k2.MvaluesQCplaque)
+rm(aems450k1.BvaluesQCIMPbloodSE, aems450k1.BvaluesQCIMPplaqueSE, aems450k2.BvaluesQCIMPplaqueSE,
+   aems450k1.MvaluesQCIMPbloodSE, aems450k1.MvaluesQCIMPplaqueSE, aems450k2.MvaluesQCIMPplaqueSE)
 
-save.image(paste0(INP_loc,"/",Today,".aems450k.createBED.RData"))
+save.image(paste0(INP_AE_loc,"/",Today,".aems450k.createBED.RData"))
 

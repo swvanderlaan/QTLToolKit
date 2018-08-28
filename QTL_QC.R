@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     QTL RESULTS QUALITY CONTROL & PARSER v2
     \n
-    * Version: v2.3.5
-    * Last edit: 2018-08-21
+    * Version: v2.3.7
+    * Last edit: 2018-08-28
     * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
     \n
     * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -403,7 +403,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
     
   } else if(opt$resulttype == "PERM") {
-    print((RESULTS))
+    #print((RESULTS))
     # RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
     # RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
     RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
@@ -480,7 +480,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,6,27,28,29,30,31,32,33,36,35,38,37, # Variant information
                                                 21,19,7,8,23,24,25, # Gene information
                                                 10,15,9,11,12,16,17,18)] # association statistics
-      print(head(RESULTS.ANNOTATE))
+      #print(head(RESULTS.ANNOTATE))
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
@@ -490,7 +490,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
     cat("\n* Parsing annotated results for an Athero-Express mQTL analysis...\n")
     if (opt$resulttype == "NOM") {
       cat("\n--- nominal results ---\n")
-      str(RESULTS.toANNOTATE2)
+      #str(RESULTS.toANNOTATE2)
       RESULTS.ANNOTATE = RESULTS.toANNOTATE2[,c(1,2,48,49,50,51,52,53,54,57,56,59,58, # Variant information
                                                 3,4,24,25,19, # CpG information
                                                 34,35,36,38, # CpG associated information
@@ -530,36 +530,40 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
         file = stderr()) # print error messages to stder
   }
   
-  cat("\n* Correct Colnames...\n")
+  cat("\n* Correct Colnames and replace spaces in gene-names ...\n")
   if (opt$qtltype == "EQTL") { 
-    cat("\n...for results of a CTMM eQTL analysis in monocytes...\n")
+    cat("\n...for results of a CTMM eQTL analysis in monocytes ...\n")
     if (opt$resulttype == "NOM") {
-      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
+      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleB", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "GeneName", "EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
+      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
     } else if (opt$resulttype == "PERM") {
-      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
+      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleB", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "GeneName","EntrezID", "Distance_VARIANT_GENE", "Strand", "Chr_Gene", "GeneTxStart", "GeneTxEnd",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
+      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
     }
     
   } else if (opt$qtltype == "MQTL") {
-    cat("\n...for results of an Athero-Express mQTL analysis...\n")
+    cat("\n...for results of an Athero-Express mQTL analysis ...\n")
     if (opt$resulttype == "NOM") {
-      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
+      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleB", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG", "ProbeType", 
                                      "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
                                      "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
+      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
     } else if (opt$resulttype == "PERM") {
-      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleA", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
+      colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleB", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG", "ProbeType", 
                                      "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
                                      "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
+      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
