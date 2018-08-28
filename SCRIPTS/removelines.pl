@@ -1,23 +1,23 @@
 #!usr/bin/perl 
 #
-# Remove duplicate lines from a (gzipped) file.
+# Remove lines from a (gzipped) file based on a list in another file.
 #
-# Description: 	removes duplicate lines from a (gzipped) file. The lines do not have to be
-#               sorted.
+# Description: 	removes lines from a (gzipped) file based on a list provided in another
+#               file. 
 #
 # Written by:	Sander W. van der Laan; UMC Utrecht, Utrecht, the Netherlands; 
 #               s.w.vanderlaan-2@umcutrecht.nl.
-# Version:		2.0
-# Update date: 	2016-11-03
+# Version:		1.0
+# Update date: 	2016-01-28
 #
 # Usage:		removedupes.pl [INPUT] [GZIP/NORM] [OUTPUT]
 #
 # Starting removal
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-print "+                                       REMOVE DUPES                                     +\n";
-print "+                                           V2.0                                         +\n";
-print "+                                         03-11-2016                                     +\n";
-print "+                              Written by: Sander W. van der Laan                        +\n";
+print "+                              REMOVE LINES BASED ON OTHER FILE                          +\n";
+print "+                                           V1.0                                         +\n";
+print "+                                        28-08-2018                                      +\n";
+print "+                             Written by: Sander W. van der Laan                         +\n";
 print "+                                                                                        +\n";
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 print "\n";
@@ -26,41 +26,64 @@ my $time = localtime; # scalar, i.e. non-numeric, context
 print "The current date and time is: $time.\n";
 print "\n";
 
-use strict;
-use warnings;
+#use strict;
+#use warnings;
 
 # Three arguments are required: 
 # - the input file (IN)
 # - whether the input file is zipped (GZIP/NORM)
+# - the other file to compare to
 # - the output file (OUT)
 my $origfile = $ARGV[0]; # first argument
-my $zipped = $ARGV[1]; # second argument
+my $compfile = $ARGV[1]; # second argument
 my $outfile = $ARGV[2]; # third argument
+my $zipped = $ARGV[3]; # second argument
 my %hTMP;
 
 # IF/ELSE STATEMENTS
-if ($zipped eq "GZIP") {
-	open (IN, "gunzip -c $origfile |") or die "* ERROR: Couldn't open input file: $!";
+if ($zipped eq "GZIP1") {
+	open (IN1, "gunzip -c $origfile |") or die "* ERROR: Couldn't open input file: $!";
+	open (IN2, $compfile) or die "* ERROR: Couldn't open input file: $!";
+
+} elsif ($zipped eq "GZIP2") {
+	open (IN1, $origfile) or die "* ERROR: Couldn't open input file: $!";
+	open (IN2, "gunzip -c $compfile |") or die "* ERROR: Couldn't open input file: $!";
+
+} elsif ($zipped eq "GZIPB") {
+	open (IN1, "gunzip -c $origfile |") or die "* ERROR: Couldn't open input file: $!";
+	open (IN2, "gunzip -c $compfile |") or die "* ERROR: Couldn't open input file: $!";
 
 } elsif ($zipped eq "NORM") {
-	open (IN, $origfile) or die "* ERROR: Couldn't open input file: $!";
+	open (IN1, $origfile) or die "* ERROR: Couldn't open input file: $!";
+	open (IN2, $compfile) or die "* ERROR: Couldn't open input file: $!";
 
 } else {
     print "* ERROR: Please, indicate the type of input file: gzipped [GZIP] or uncompressed [NORM]!\n";
     print "         (Arguments are case-sensitive.)\n";
 
 }
-#my $fh, '>', 'report.txt'
+
 open (OUT, ">$outfile") or die "* ERROR: Couldn't open output file: $!"; 
- 
-while (my $sLine = <IN>) {
-  next if $sLine =~ m/^\s*$/;  #remove empty lines. Without this, still destroys empty lines except for the first one.
-  $sLine=~s/^\s+//;            #strip leading/trailing whitespace
-  $sLine=~s/\s+$//;
-  print OUT qq{$sLine\n} unless ($hTMP{$sLine}++);
+
+while (<IN1>) {
+        chomp;
+    	push (@array_one, $_);
+	}
+
+while (<IN2>) {
+        chomp;
+        push (@array_two, $_);
+        }
+
+my @C = grep { my $x = $_; not grep { $x =~ /\Q$_/i } @array_two } @array_one;
+
+foreach $C (@C) {
+print OUT "$C\n";
 }
+
+close IN1;
+close IN2;
 close OUT;
-close IN;
 
 print "Wow. That was a lot of work. I'm glad it's done. Let's have beer, buddy!\n";
 my $newtime = localtime; # scalar context
@@ -70,7 +93,7 @@ print "\n";
 print "\n";
 print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 print "+ The MIT License (MIT)                                                                  +\n";
-print "+ Copyright (c) 2016 Sander W. van der Laan                                              +\n";
+print "+ Copyright (c) 2018 Sander W. van der Laan                                              +\n";
 print "+                                                                                        +\n";
 print "+ Permission is hereby granted, free of charge, to any person obtaining a copy of this   +\n";
 print "+ software and associated documentation files (the \"Software\"), to deal in the           +\n";
