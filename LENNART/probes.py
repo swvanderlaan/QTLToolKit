@@ -48,7 +48,7 @@ def filter_genetic_data(args):
         parser.set_defaults(func=filter_genetic_data)
         return parser
     if not args.quiet:
-        print(cit)
+        print(cit, file=sys.stderr)
     reporter = Reporter()
     conn = sqlite3.connect(dbpath)
     c = conn.cursor()
@@ -98,7 +98,7 @@ def build_probe_hybdrid_list(args):
         parser.set_defaults(func=build_probe_hybdrid_list)
         return parser
     if not args.quiet:
-        print(cit)
+        print(cit, file=sys.stderr)
     reporter = Reporter()
     conn = sqlite3.connect(dbpath)
     c = conn.cursor()
