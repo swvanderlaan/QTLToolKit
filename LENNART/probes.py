@@ -113,10 +113,45 @@ def build_probe_hybdrid_list(args):
             print('{0:<2} {1} {2:>10} {3:>10}'.format(ch, probeid, begin, end), file=outfile)
     if args.outfile: outfile.close()
 
+def make_cojo_file(args):
+    HEADER = 'SNP A1 A2 freq b se p n'.split()
+    if isinstance(args, argparse.ArgumentParser):
+        parser = args
+        parser.add_argument(dest='gwas', metavar='GWAS', help='GWAS summary information file')
+        parser.add_argument('-o', '--out', dest='outfile', metavar='FILE',
+                help='where to store output. stdout by default.')
+        parser.set_defaults(func=make_cojo_file)
+        return parser
+    outfile = sys.stdout
+    if args.outfile: outfile = open(args.outfile, 'w')
+    def output(*vals):
+        assert len(vals) == len(HEADER)
+        print('{0:11} {1:2} {2:2} {3:10} {4:10} {5:10} {6:10} {7}'.format(*vals), file=outfile)
+    output(*HEADER)
+    src = gzip.open(args.gwas, 'r') if args.gwas.endswith('.gz') else open(args.gwas)
+    with src:
+        for idx, line in enumerate(src):
+            parts = line.decode('latin1').split()
+            if idx == 0:
+                header = parts
+                continue
+            row = dict(zip(header, parts))
+            output(row['SNP'],
+                   row['reference_allele'],
+                   row['other_allele'],
+                   row['ref_allele_frequency'],
+                   row['log_odds'],
+                   row['log_odds_se'],
+                   row['pvalue'],
+                   str(int(row['N_case']) + int(row['N_control'])))
+    if args.outfile: outfile.close()
+
+
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(title='subcommands')
 filter_genetic_data(subparsers.add_parser('filter', help='Find SNPs in HumanHTv12 probes'))
 build_probe_hybdrid_list(subparsers.add_parser('hybrid', help='Build SMR probe_hybrid.txt'))
+make_cojo_file(subparsers.add_parser('cojo', help='Build COJO file from cardiogram GWAS results'))
 
 if __name__ == '__main__':
     args = parser.parse_args()
