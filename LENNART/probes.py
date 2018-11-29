@@ -146,12 +146,36 @@ def make_cojo_file(args):
                    str(int(row['N_case']) + int(row['N_control'])))
     if args.outfile: outfile.close()
 
+def gwas_to_bed(args):
+    if isinstance(args, argparse.ArgumentParser):
+        parser = args
+        parser.add_argument(dest='gwas', metavar='GWAS', help='GWAS summary information file')
+        parser.add_argument('-o', '--out', dest='outfile', metavar='FILE',
+                help='where to store output. stdout by default.')
+        parser.set_defaults(func=gwas_to_bed)
+        return parser
+    src = gzip.open(args.gwas, 'r') if args.gwas.endswith('.gz') else open(args.gwas)
+    outfile = sys.stdout
+    if args.outfile: outfile = open(args.outfile, 'w')
+    with src:
+        for idx, line in enumerate(src):
+            parts = line.decode('latin1').split()
+            if idx == 0:
+                header = parts
+                continue
+            row = dict(zip(header, parts))
+            pos = row['chr_pos_(b36)']
+            assert pos.startswith('chr')
+            ch, bp = pos[3:].split(':')
+            bp = int(bp)
+            print(ch, bp, bp+1, file=outfile)
 
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(title='subcommands')
 filter_genetic_data(subparsers.add_parser('filter', help='Find SNPs in HumanHTv12 probes'))
 build_probe_hybdrid_list(subparsers.add_parser('hybrid', help='Build SMR probe_hybrid.txt'))
 make_cojo_file(subparsers.add_parser('cojo', help='Build COJO file from cardiogram GWAS results'))
+gwas_to_bed(subparsers.add_parser('gwas2bed', help='Build bed b36 file from cardiogram GWAS results'))
 
 if __name__ == '__main__':
     args = parser.parse_args()
