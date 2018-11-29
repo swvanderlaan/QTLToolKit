@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import gzip
 import collections
@@ -7,12 +9,10 @@ import itertools
 import sqlite3
 
 
-#; drop table {0};
-#drop index {0}_snp;
-
-#drop index {0}_loc;
 create_gwas_table = '''
-
+drop table {0};
+drop index {0}_snp;
+drop index {0}_loc;
 create table {0} (
     snp text,
     ch text,
@@ -29,15 +29,12 @@ create table {0} (
     N_control integer,
     model text
     );
-
 create unique index {0}_snp on {0} (snp);
-
 create unique index {0}_loc on {0} (snp);
 '''
-# ; drop table {0};
 
 create_gen_table  = '''
-
+drop table {0};
 create table {0} (
     rsid text,
     ch text,
@@ -60,9 +57,7 @@ create table {0} (
     Info real,
     CAF real
     );
-
 create index {0}_rsid on {0} (rsid);
-
 create index {0}_loc on {0} (loc);
 '''
 
@@ -119,7 +114,7 @@ def read_genetic(filename):
     # AA      AB            BB   AA_calls AB_calls BB_calls MAF         HWE
     # missing missing_calls Info CAF
     return read_rows(get_lines(filename),
-            header_check=lambda h: len(h) == 20 and h[0] == 'SNPID')
+            header_check=lambda h: len(h) in (19,2) and h[0] == 'SNPID')
 
 def read_qtlnom(filename):
     header = ['phid', 'phchr', 'phstart', 'phend', 'phstrand', 'n', 'dist',
@@ -129,9 +124,10 @@ def read_qtlnom(filename):
 database, filetype, table, filename = sys.argv[1:]
 conn = sqlite3.connect(database)
 c = conn.cursor()
-assert table.isalpha()
+assert table.isalnum()
 if filetype == 'gwas':
-    for stat in create_gwas_table.format(table).split('\n\n'):
+    for stat in create_gwas_table.format(table).split(';'):
+        print(stat)
         c.execute(stat)
     for row in read_gwas(filename):
         c.execute('insert into {0} values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -151,22 +147,29 @@ if filetype == 'gwas':
                 row['N_control'],
                 row['model']))
 elif filetype == 'gen':
-    for stat in create_gen_table.format(table).split('\n\n'):
+    for stat in create_gen_table.format(table).split(';'):
+        print(stat)
         c.execute(stat)
     for idx, row in enumerate(read_genetic(filename), 1):
         # if idx % 100000 == 0:
         #     conn.commit()
+        if idx == 1:
+            chrkey = 'Chr' if 'Chr' in row else 'chromosome'
+            bpkey = 'BP' if 'BP' in row else 'position'
+            infokey = 'Info' if 'Info' in row else 'information'
+            minkey = 'MinorAllele' if 'MinorAllele' in row else 'minor_allele'
+            majkey = 'MajorAllele' if 'MajorAllele' in row else 'major_allele'
         c.execute('''insert into {0} values
                 (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''.format(table), (
                 row['RSID'],
-                row['Chr'].lstrip('0'),
-                int(row['BP']),
-                row['Chr'].lstrip('0') + ':' + row['BP'],
+                row[chrkey].lstrip('0'),
+                int(row[bpkey]),
+                row[chrkey].lstrip('0') + ':' + row[bpkey],
                 row['A_allele'],
                 row['B_allele'],
-                row['MinorAllele'],
-                row['MajorAllele'],
+                row[minkey],
+                row[majkey],
                 float(row['AA']),
                 float(row['AB']),
                 float(row['BB']),
@@ -177,8 +180,8 @@ elif filetype == 'gen':
                 float(row['HWE']),
                 float(row['missing']),
                 float(row['missing_calls']),
-                float(row['Info']),
-                float(row['CAF'])))
+                float(row[infokey]),
+                float(row.get('CAF', 0))))
 conn.commit()
 conn.close()
 
