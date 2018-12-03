@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+import csv
 import os
 import sys
 import argparse
@@ -10,6 +11,7 @@ import time
 
 DATABASE = 'illuminaHumanv4.sqlite'
 dbpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), DATABASE)
+biopath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'biomart.csv')
 cit = '''Dunning M, Lynch A, Eldridge M (2015). illuminaHumanv4.db:
   Illumina HumanHT12v4 annotation data (chip illuminaHumanv4).
   R package version 1.26.0.'''
@@ -170,12 +172,58 @@ def gwas_to_bed(args):
             bp = int(bp)
             print(ch, bp, bp+1, file=outfile)
 
+def perfect_probes(args):
+    if isinstance(args, argparse.ArgumentParser):
+        parser = args
+        parser.add_argument('-o', '--out', dest='outfile', metavar='FILE',
+                help='Store probes here')
+        parser.add_argument('--db', dest='outfile', metavar='SQLITE', default=dbpath,
+                help='illuminaHumanv4 sqlite database path')
+        parser.set_defaults(func=perfect_probes)
+        return parser
+    with open(biopath, 'rb') as csvfile:
+        reader = csv.DictReader(csvfile)
+        biomart = {}
+        for row in reader:
+            key = row['Gene stable ID']
+            biomart[key] = row
+    conn = sqlite3.connect(dbpath)
+    c = conn.cursor()
+    c.execute('''select IlluminaID,
+                        GenomicLocation,
+                        EnsemblReannotated,
+                        EntrezReannotated
+                   from ExtraInfo
+                  where OverlappingSNP is null
+                    and not GenomicLocation is null
+                    and ProbeQuality like "Perfect%"''')
+    TSS = 'Transcription start site (TSS)'
+    outfile = sys.stdout
+    if args.outfile: outfile = open(args.outfile, 'w')
+    for probeid, locs, ensembl, entrez in c.fetchall():
+        good = True
+        for loc in locs.split(' ' if ' ' in locs else ','):
+            ch = loc.split(':')[0][3:]
+            if not ch.isdigit() and not ch in 'XY':
+                good = False
+                break
+        if good:
+            if ensembl in biomart:
+                row = biomart[ensembl]
+                tss = row[TSS]
+                probe = row['ILLUMINA HumanHT 12 V4 probe']
+            else:
+                continue
+            print(probeid, ensembl, entrez, tss, probe, file=outfile)
+
+
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(title='subcommands')
 filter_genetic_data(subparsers.add_parser('filter', help='Find SNPs in HumanHTv12 probes'))
 build_probe_hybdrid_list(subparsers.add_parser('hybrid', help='Build SMR probe_hybrid.txt'))
 make_cojo_file(subparsers.add_parser('cojo', help='Build COJO file from cardiogram GWAS results'))
 gwas_to_bed(subparsers.add_parser('gwas2bed', help='Build bed b36 file from cardiogram GWAS results'))
+perfect_probes(subparsers.add_parser('perfect', help='Lists perfect probes'))
 
 if __name__ == '__main__':
     args = parser.parse_args()
