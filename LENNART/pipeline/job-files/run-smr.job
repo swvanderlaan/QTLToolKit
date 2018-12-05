@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -ex
+
+source config.sh
+
+SMR=$CONFIG_SMR
+
+LINE=$(cat "${CONFIG_JOBDIR}/make-besd.param" | sed "${SGE_TASK_ID}p;d")
+echo ===
+VARIANT=$(echo "$LINE" | awk '$0=$1')
+GENETIC=$(echo "$LINE" | awk '$0=$2')
+BESD=$(echo "$LINE" | awk '$0=$4')
+BESD=$(readlink -f $BESD)
+echo TaskID: $SGE_TASK_ID / "$VARIANT" '/' $BESD
+echo ===
+
+main() {
+    # --thread-num 12 
+    $SMR \
+        --bfile $GENETIC \
+        --gwas-summary ./input/gwas.cojo \
+        --beqtl-summary $BESD \
+        --out ${CONFIG_JOBDIR}/smr_${VARIANT}.out \
+             | tee ${CONFIG_JOBDIR}/smr_${VARIANT}_output.txt
+}
+
+main

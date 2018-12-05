@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+#$ -N run_gsmr
+#$ -cwd
+#$ -e job/run_gsmr_stderr
+#$ -o job/run_gsmr_stdout
+#$ -l h_rt=01:00:00
+#$ -l h_vmem=50G
+
+exit 1
+
+set -ex
+
+GSMR=/hpc/local/CentOS7/dhl_ec/software/gcta_1.91.6beta/gcta64
+
+find /hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5 -maxdepth 1 \
+             | grep .bim \
+             | sed 's/\.[^.]*$//' > job/mbfile
+
+echo exp input/expression.cojo > job/gsmr_exposure.txt
+echo cad input/gwas.cojo > job/gsmr_outcome.txt
+
+$GSMR \
+    --mbfile job/mbfile \
+    --gsmr-file job/gsmr_exposure.txt job/gsmr_outcome.txt \
+    --gsmr-direction 0 \
+    --out job/run_gsmr.out \
+    --effect-plot
+
+

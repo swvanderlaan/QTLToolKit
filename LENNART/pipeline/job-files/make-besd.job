@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#$ -cwd
+
+set -exuo pipefail
+
+source config.sh
+
+PLINK=$CONFIG_PLINK
+SMR=$CONFIG_SMR
+
+LINE=$(cat "${CONFIG_JOBDIR}/make-besd.param" | sed "${SGE_TASK_ID}p;d")
+
+echo ===
+VARIANT=$(echo "$LINE" | awk '$0=$1')
+GENETIC=$(echo "$LINE" | awk '$0=$2')
+EQTL_FILE_GZ=$(echo "$LINE" | awk '$0=$3')
+BESD_OUTPUT=$(echo "$LINE" | awk '$0=$4')
+BESD_OUTPUT=$(readlink -f $BESD_OUTPUT)
+echo TaskID: $SGE_TASK_ID / "$VARIANT" '->' $BESD_OUTPUT
+echo ===
+
+main() {
+
+    BUILD_DIR="${TMPDIR:-/tmp}/build_${VARIANT}_${RANDOM}"
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR
+
+    zcat $EQTL_FILE_GZ > $BUILD_DIR/eqtl
+    awk '{print $8}' $BUILD_DIR/eqtl > extract_snps.txt
+    $PLINK --bfile $GENETIC --extract extract_snps.txt --make-just-bim
+    $SMR --eqtl-summary $BUILD_DIR/eqtl --qtltools-permu-format --make-besd --out $BESD_OUTPUT
+    $SMR --beqtl-summary $BESD_OUTPUT --update-esi plink.bim
+
+    cd ..
+    rm -r $BESD_OUTPUT.bak.esi $BUILD_DIR
+}
+
+main
+

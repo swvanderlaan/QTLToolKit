@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#$ -cwd
+
+set -exuo pipefail
+
+source config.sh
+
+SMR=$CONFIG_SMR
+
+main() {
+    awk 'NR==1||FNR>1{print$0}' $(
+          cat "${CONFIG_JOBDIR}/make-besd.param" |
+          awk -v jobdir="${CONFIG_JOBDIR}" '{print jobdir "/smr_" $1 ".out.smr"}' |
+          while read filename; do
+              [ -f "$filename" ] && echo "$filename"
+          done) > ${CONFIG_JOBDIR}/smr.out
+}
+
+main
