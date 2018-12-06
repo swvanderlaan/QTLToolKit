@@ -3,7 +3,7 @@
 
 set -exuo pipefail
 
-source config.sh
+source $1
 
 PLINK=$CONFIG_PLINK
 SMR=$CONFIG_SMR

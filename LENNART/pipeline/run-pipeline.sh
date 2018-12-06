@@ -4,6 +4,7 @@ set -xeu
 source config.sh
 
 mkdir -p ${CONFIG_JOBDIR}/besd
+cp config.sh $CONFIG_JOBDIR/config.sh
 
 cat $REGIONSFILE | awk \
     -v genetic="$GENETIC_ROOT" \
@@ -21,11 +22,12 @@ cat $REGIONSFILE | awk \
     }' > ${CONFIG_JOBDIR}/make-besd.param
 
 NLINES=$(wc -l job/make-besd.param | awk '$0=$1')
+J=-$CONFIG_JOBNAME
 
-qsub                        -N make-besd    -t 1-$NLINES -cwd job-files/make-besd.job
-qsub -hold_jid_ad make-besd -N run-smr      -t 1-$NLINES -cwd job-files/run-smr.job
-qsub -hold_jid    make-besd -N combine-besd              -cwd job-files/combine-besd.job
-qsub -hold_jid    run-smr   -N combine-smr               -cwd job-files/combine-smr.job
+qsub                          -N make-besd$J   -t 1-$NLINES -cwd job-files/make-besd.job    $CONFIG_JOBDIR/config.sh
+qsub -hold_jid_ad make-besd$J -N run-smr$J     -t 1-$NLINES -cwd job-files/run-smr.job      $CONFIG_JOBDIR/config.sh
+qsub -hold_jid    make-besd$J -N combine-besd$J             -cwd job-files/combine-besd.job $CONFIG_JOBDIR/config.sh
+qsub -hold_jid    run-smr$J   -N combine-smr$J              -cwd job-files/combine-smr.job  $CONFIG_JOBDIR/config.sh
 
 echo ' === OUTPUT FILES === '
 echo ${CONFIG_JOBDIR}/smr.out

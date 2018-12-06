@@ -3,17 +3,31 @@
 
 set -exuo pipefail
 
-source config.sh
+source $1
 
 SMR=$CONFIG_SMR
 
-main() {
-    awk 'NR==1||FNR>1{print$0}' $(
-          cat "${CONFIG_JOBDIR}/make-besd.param" |
-          awk -v jobdir="${CONFIG_JOBDIR}" '{print jobdir "/smr_" $1 ".out.smr"}' |
-          while read filename; do
-              [ -f "$filename" ] && echo "$filename"
-          done) > ${CONFIG_JOBDIR}/smr.out
-}
+export CONFIG_JOBDIR
 
-main
+python <(cat << EOF
+from __future__ import print_function
+import os
+jobdir = os.environ['CONFIG_JOBDIR']
+paramfile = os.path.join(jobdir, 'make-besd.param')
+firstfile = True
+with open(paramfile) as stream:
+    for line in stream:
+        parts = line.split()
+        variant = parts[0]
+        smr = os.path.join(jobdir, 'smr_' + variant + '.out.smr')
+        if os.path.exists(smr):
+            with open(smr) as f:
+                for idx, line in enumerate(f, 1):
+                    if idx == 1:
+                        if firstfile:
+                            print('gwas_loci\t' + line, end='')
+                            firstfile = False
+                    else:
+                        print(variant + '\t' + line, end='')
+EOF
+) > $CONFIG_JOBDIR/smr.out

@@ -2,7 +2,7 @@
 
 set -ex
 
-source config.sh
+source $1
 
 SMR=$CONFIG_SMR
 GWAS=$CONFIG_GWAS

@@ -10,8 +10,9 @@ CONFIG_SOFTWARE="/hpc/local/CentOS7/dhl_ec/software"
 CONFIG_PLINK=${CONFIG_SOFTWARE}/plink_v1.9
 CONFIG_SMR=${CONFIG_SOFTWARE}/smr_v0712/smr_Linux
 
-CONFIG_JOBDIR=job2
 CONFIG_GWAS=./input/realgwas.cojo
+CONFIG_JOBNAME=job4
+CONFIG_JOBDIR=$CONFIG_JOBNAME
 
 GENETIC_ROOT=/hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5
 GENETIC_PRE=ctmm_1kGp3GoNL5_RAW_chr
