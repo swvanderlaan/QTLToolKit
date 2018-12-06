@@ -1,7 +1,48 @@
-import gzip
+'''
+gen eff/oth | gwas eff/oth | eff freq gen/gwas | act
+
+# non ambivalent
+A G | A G |  _   _  | nothing
+A G | T C |  _   _  | nothing
+A G | G A |  _   _  | flip freq, flip beta
+A G | C T |  _   _  | flip freq, flip beta
+
+# ambivalent alleles
+## freqs close and low/high
+G C | G C | 0.1 0.1 | nothing
+G C | C G | 0.1 0.1 | nothing
+
+## freqs inverted and low/high
+G C | G C | 0.1 0.9 | flip freq, flip beta
+G C | C G | 0.1 0.9 | flip freq, flip beta
+
+## freqs close and mid
+G C | C G | 0.5 0.6 | throw away
+G C | G C | 0.5 0.6 | throw away
+'''
+
+from __future__ import print_function
+
+import os
+import argparse
 import collections
+import gzip
 import time
+
 from pyliftover import LiftOver
+
+GWAS = '/home/llandsmeer/Data/CTMM/cardiogram_gwas_results.txt.gz'
+STATS = '/home/llandsmeer/Data/CTMM/ctmm_1kGp3GoNL5_RAW_rsync.stats.gz'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
+        type=os.path.abspath, help='Output .cojo file')
+parser.add_argument('-r', '--report', dest='report', metavar='txt',
+        type=os.path.abspath, help='Report here')
+parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz', default=STATS,
+        type=os.path.abspath, help='Genetic data', required=False) # TODO
+parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.', default=GWAS,
+        type=os.path.abspath, help='illuminaHumanv4 sqlite database path', required=False) # TODO
 
 # Optimizations, with speeds measured on my laptop
 #  680.2klines/s first version
@@ -21,14 +62,27 @@ from pyliftover import LiftOver
 
 if not hasattr(time, 'monotonic'):
     time.monotonic = time.time
+if not hasattr(os.path, 'commonpath'):
+    os.path.commonpath = os.path.commonprefix
 
-GWASRow = collections.namedtuple('GWA', 'ref oth f b se p')
+GWASRow = collections.namedtuple('GWA', 'ref oth f b se p lineno')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
 ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM = 1, 2, 3, 4
-GWAS = '/home/llandsmeer/Data/CTMM/cardiogram_gwas_results.txt.gz'
-STATS = '/home/llandsmeer/Data/CTMM/ctmm_1kGp3GoNL5_RAW_rsync.stats.gz'
 
 liftover = LiftOver('hg18', 'hg19')
+
+class ReporterLine:
+    def __init__(self, line=''):
+        self.line = line
+        self.last_time = time.monotonic()
+        self.last_lineno = 0
+        print()
+    def update(self, lineno, end):
+        now = time.monotonic()
+        dt = now - self.last_time
+        dlineno = lineno - self.last_lineno
+        print('\033[1A\033[K', end='')
+        print(self.line, lineno, str(round(lineno/end*100, 1))+'%', str(round(dlineno/dt/1000, 1))+'klines/s')
 
 def inv(dna):
     if len(dna) == 1:
@@ -70,20 +124,8 @@ def select_action(gen_a, gen_b,
         else:
             return ACT_FLIP
 
-class ReporterLine:
-    def __init__(self, line=''):
-        self.line = line
-        self.last_time = time.monotonic()
-        self.last_lineno = 0
-        print()
-    def update(self, lineno, end):
-        now = time.monotonic()
-        dt = now - self.last_time
-        dlineno = lineno - self.last_lineno
-        print('\033[1A\033[K', end='')
-        print(self.line, lineno, str(round(lineno/end*100, 1))+'%', str(round(dlineno/dt/1000, 1))+'klines/s')
-
-def read_gwas(filename):
+def read_gwas(filename, report=None):
+    yes = no = 0
     reporter = ReporterLine('reading gwas data')
     for lineno, line in enumerate(gzip.open(filename, 'rt'), 1):
         if lineno == 1:
@@ -104,18 +146,24 @@ def read_gwas(filename):
                 if ch19.startswith('chr'): ch19 = ch19[3:]
                 ch19 = ch19.zfill(2)
                 yield (ch19, str(bp19)), GWASRow(parts[ref], parts[oth], float(parts[freq]),
-                                            float(parts[b]), parts[se], parts[p])
+                                            float(parts[b]), parts[se], parts[p], lineno)
+                yes += 1
             else:
-                pass
-                # print('conversion failed')
+                no += 1
+                if report:
+                    print('gwas hg18->hg19 conversion failed', file=report)
+                    print('   ', lineno, *parts, sep='\t', file=report)
+                    print(file=report)
         if lineno % 10000 == 0:
             reporter.update(lineno, 2420300)
+    print('successfully hg18->hg19 converted', yes, 'rows')
+    print('conversion failed for', no, 'rows')
 
-
-def update_read_stats(gwas, stats_filename):
+def update_read_stats(gwas, stats_filename, output=None, report=None):
     reporter = ReporterLine('reading genetic data')
-    # print('SNP A1 A2 freq b se p n')
-    # begin = time.time()
+    if output:
+        print('SNP A1 A2 freq b se p n', file=output)
+    counts = collections.defaultdict(int)
     for lineno, line in enumerate(gzip.open(stats_filename, 'rt'), 1):
         if not gwas:
             break
@@ -143,51 +191,75 @@ def update_read_stats(gwas, stats_filename):
                                 gwas_row.f)
             freq, beta = gwas_row.f, gwas_row.b
             if act is ACT_FLIP:
+                counts['flip'] += 1
                 freq = 1-freq
                 beta = -beta
             elif act is ACT_REM:
+                counts['remove'] += 1
                 del gwas[row_pos]
+                if report:
+                    print('removing gwas row due insufficient information on ambivalent allele', file=report)
+                    print(line, file=report, end='')
+                    print(gwas_row, file=report)
+                    print(file=report)
                 continue
             elif act is ACT_SKIP:
+                counts['skip'] += 1
+                if report:
+                    print('skipping gwas row due to non matching alleles', file=report)
+                    print(line, file=report, end='')
+                    print(gwas_row, file=report)
+                    print(file=report)
                 continue
+            else:
+                counts['ok'] += 1
             del gwas[row_pos]
-            # print(parts[rsid], parts[b], parts[a], freq, beta, gwas_row.se, gwas_row.p, 'NA')
-        # if lineno % 100 == 0 and if time.time() - begin > 10: break
+            if output:
+                print(parts[rsid], parts[b], parts[a], freq, beta, gwas_row.se, gwas_row.p, 'NA', file=output)
         if lineno % 10000 == 0:
             reporter.update(lineno, 88930413)
+    print('gwas allele conversions:')
+    for k, v in counts.items():
+        print(' ', k, v)
+        if report:
+            print(' ', k, v, file=report)
+    print('leftover gwas row count', len(gwas))
+    if report:
+        print(file=report)
+        print('LEFTOVER GWAS ROWS', file=report)
+        for (ch, pos), row in gwas.items():
+            print(ch, pos, row, file=report)
 
-gwas = {}
-for idx, (pos, row) in enumerate(read_gwas(GWAS)):
-    gwas[pos] = row
-    if idx > 10000:
-        break
-print(list(gwas.keys())[:19])
-update_read_stats(gwas, STATS)
+def main(args):
+    paths = [args.gen, args.gwas]
+    output = report = None
+    if args.outfile:
+        output = open(args.outfile, 'w')
+        paths.append(args.report)
+    if args.report:
+        report = open(args.report, 'w')
+        paths.append(args.report)
+    root = os.path.commonpath(paths)
+    print('root', root)
+    print('genetic data', os.path.relpath(args.gen, root))
+    print('gwas', os.path.relpath(args.gwas, root))
+    if args.outfile:
+        print('output', os.path.relpath(args.outfile, root))
+    else:
+        print('WARNING not writing results (-o)')
+    if args.report:
+        print('output', os.path.relpath(args.report, root))
+    else:
+        print('WARNING not writing report (-r)')
+    gwas = {}
+    for idx, (pos, row) in enumerate(read_gwas(args.gwas, report=report)):
+        gwas[pos] = row
+    update_read_stats(gwas, args.gen, output=output, report=report)
+    if args.outfile:
+        output.close()
+    if args.report:
+        report.close()
 
-# print('leftover', len(gwas))
-# for k, v in gwas.items():
-    # print(k)
-    # print(v)
-
-'''
-gen eff/oth | gwas eff/oth | eff freq gen/gwas | act
-
-# non ambivalent
-A G | A G |  _   _  | nothing
-A G | T C |  _   _  | nothing
-A G | G A |  _   _  | flip freq, flip beta
-A G | C T |  _   _  | flip freq, flip beta
-
-# ambivalent alleles
-## freqs close and low/high
-G C | G C | 0.1 0.1 | nothing
-G C | C G | 0.1 0.1 | nothing
-
-## freqs inverted and low/high
-G C | G C | 0.1 0.9 | flip freq, flip beta
-G C | C G | 0.1 0.9 | flip freq, flip beta
-
-## freqs close and mid
-G C | C G | 0.5 0.6 | throw away
-G C | G C | 0.5 0.6 | throw away
-'''
+if __name__ == '__main__':
+    args = parser.parse_args()
+    main(args)
