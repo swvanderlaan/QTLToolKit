@@ -88,7 +88,7 @@ class ReporterLine:
         dt = now - self.last_time
         dlineno = lineno - self.last_lineno
         dtell = tell - self.last_tell
-        part = (tell / self.size) * 100
+        part = 100. * tell / self.size
         kline_per_s = dlineno/dt/1000
         tell_per_s = dtell/dt/1000000
         print('\033[1A\033[K', end='')
