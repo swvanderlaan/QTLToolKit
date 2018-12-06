@@ -5,6 +5,7 @@ set -ex
 source config.sh
 
 SMR=$CONFIG_SMR
+GWAS=$CONFIG_GWAS
 
 LINE=$(cat "${CONFIG_JOBDIR}/make-besd.param" | sed "${SGE_TASK_ID}p;d")
 echo ===
@@ -19,7 +20,7 @@ main() {
     # --thread-num 12 
     $SMR \
         --bfile $GENETIC \
-        --gwas-summary ./input/gwas.cojo \
+        --gwas-summary $GWAS \
         --beqtl-summary $BESD \
         --out ${CONFIG_JOBDIR}/smr_${VARIANT}.out \
              | tee ${CONFIG_JOBDIR}/smr_${VARIANT}_output.txt
