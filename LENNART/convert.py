@@ -76,18 +76,31 @@ class ReporterLine:
         self.line = line
         self.last_time = time.monotonic()
         self.last_lineno = 0
+        self.last_tell = 0
+        self.size = None
         print()
-    def update(self, lineno, end):
+
+    def update(self, lineno, fileno):
         now = time.monotonic()
+        tell = os.lseek(fileno, 0, os.SEEK_CUR)
+        if self.size is None:
+            self.size = os.fstat(fileno).st_size
         dt = now - self.last_time
         dlineno = lineno - self.last_lineno
+        dtell = tell - self.last_tell
+        part = (tell / self.size) * 100
+        kline_per_s = dlineno/dt/1000
+        tell_per_s = dtell/dt/1000000
         print('\033[1A\033[K', end='')
-        print(self.line, lineno, str(round(lineno/end*100, 1))+'%', str(round(dlineno/dt/1000, 1))+'klines/s')
+        print(self.line, '{0} {1:.1f}kline/s {2:.1f}% {3:.1f}M/s'.format(lineno, kline_per_s, part, tell_per_s))
+        self.last_time, self.last_lineno, self.last_tell = now, lineno, tell
+
 
 def inv(dna):
     if len(dna) == 1:
         return INV[dna]
     return ''.join(INV[bp] for bp in dna)
+
 
 def select_action(gen_a, gen_b,
          gen_maj, gen_min,
@@ -127,35 +140,39 @@ def select_action(gen_a, gen_b,
 def read_gwas(filename, report=None):
     yes = no = 0
     reporter = ReporterLine('reading gwas data')
-    for lineno, line in enumerate(gzip.open(filename, 'rt'), 1):
-        if lineno == 1:
-            header = line.split()
-            pos = header.index('chr_pos_(b36)')
-            ref = header.index('reference_allele')
-            oth = header.index('other_allele')
-            freq = header.index('ref_allele_frequency')
-            b = header.index('log_odds')
-            se = header.index('log_odds_se')
-            p = header.index('pvalue')
-        else:
-            parts = line.split()
-            ch, bp = parts[pos].split(':', 1)
-            conv = liftover.convert_coordinate(ch, int(bp))
-            if conv:
-                ch19, bp19, s19, _ = conv[0]
-                if ch19.startswith('chr'): ch19 = ch19[3:]
-                ch19 = ch19.zfill(2)
-                yield (ch19, str(bp19)), GWASRow(parts[ref], parts[oth], float(parts[freq]),
-                                            float(parts[b]), parts[se], parts[p], lineno)
-                yes += 1
-            else:
-                no += 1
-                if report:
-                    print('gwas hg18->hg19 conversion failed', file=report)
-                    print('   ', lineno, *parts, sep='\t', file=report)
-                    print(file=report)
-        if lineno % 10000 == 0:
-            reporter.update(lineno, 2420300)
+    try:
+        with gzip.open(filename, 'rt') as f:
+            for lineno, line in enumerate(f, 1):
+                if lineno == 1:
+                    header = line.split()
+                    pos = header.index('chr_pos_(b36)')
+                    ref = header.index('reference_allele')
+                    oth = header.index('other_allele')
+                    freq = header.index('ref_allele_frequency')
+                    b = header.index('log_odds')
+                    se = header.index('log_odds_se')
+                    p = header.index('pvalue')
+                else:
+                    parts = line.split()
+                    ch, bp = parts[pos].split(':', 1)
+                    conv = liftover.convert_coordinate(ch, int(bp))
+                    if conv:
+                        ch19, bp19, s19, _ = conv[0]
+                        if ch19.startswith('chr'): ch19 = ch19[3:]
+                        ch19 = ch19.zfill(2)
+                        yield (ch19, str(bp19)), GWASRow(parts[ref], parts[oth], float(parts[freq]),
+                                                    float(parts[b]), parts[se], parts[p], lineno)
+                        yes += 1
+                    else:
+                        no += 1
+                        if report:
+                            print('gwas hg18->hg19 conversion failed', file=report)
+                            print('   ', lineno, *parts, sep='\t', file=report)
+                            print(file=report)
+                if lineno % 40000 == 0:
+                    reporter.update(lineno, f.fileno())
+    except KeyboardInterrupt:
+        print('aborted reading gwas data at line', lineno)
     print('successfully hg18->hg19 converted', yes, 'rows')
     print('conversion failed for', no, 'rows')
 
@@ -164,60 +181,64 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
     if output:
         print('SNP A1 A2 freq b se p n', file=output)
     counts = collections.defaultdict(int)
-    for lineno, line in enumerate(gzip.open(stats_filename, 'rt'), 1):
-        if not gwas:
-            break
-        if lineno == 1:
-            header = line.split()
-            rsid = header.index('RSID')
-            ch = header.index('Chr')
-            pos = header.index('BP')
-            a = header.index('A_allele')
-            b = header.index('B_allele')
-            mi = header.index('MinorAllele')
-            ma = header.index('MajorAllele')
-            maf = header.index('MAF')
-            minsplit = max(ch, pos) + 1
-            continue
-        parts = line.split(None, minsplit)
-        row_pos = parts[ch], parts[pos]
-        if row_pos in gwas:
-            gwas_row = gwas[row_pos]
-            parts = line.split()
-            act = select_action(parts[a], parts[b],
-                                parts[ma], parts[mi],
-                                float(parts[maf]),
-                                gwas_row.ref, gwas_row.oth,
-                                gwas_row.f)
-            freq, beta = gwas_row.f, gwas_row.b
-            if act is ACT_FLIP:
-                counts['flip'] += 1
-                freq = 1-freq
-                beta = -beta
-            elif act is ACT_REM:
-                counts['remove'] += 1
-                del gwas[row_pos]
-                if report:
-                    print('removing gwas row due insufficient information on ambivalent allele', file=report)
-                    print(line, file=report, end='')
-                    print(gwas_row, file=report)
-                    print(file=report)
-                continue
-            elif act is ACT_SKIP:
-                counts['skip'] += 1
-                if report:
-                    print('skipping gwas row due to non matching alleles', file=report)
-                    print(line, file=report, end='')
-                    print(gwas_row, file=report)
-                    print(file=report)
-                continue
-            else:
-                counts['ok'] += 1
-            del gwas[row_pos]
-            if output:
-                print(parts[rsid], parts[b], parts[a], freq, beta, gwas_row.se, gwas_row.p, 'NA', file=output)
-        if lineno % 10000 == 0:
-            reporter.update(lineno, 88930413)
+    try:
+        with gzip.open(stats_filename, 'rt') as f:
+            for lineno, line in enumerate(f, 1):
+                if not gwas:
+                    break
+                if lineno == 1:
+                    header = line.split()
+                    rsid = header.index('RSID')
+                    ch = header.index('Chr')
+                    pos = header.index('BP')
+                    a = header.index('A_allele')
+                    b = header.index('B_allele')
+                    mi = header.index('MinorAllele')
+                    ma = header.index('MajorAllele')
+                    maf = header.index('MAF')
+                    minsplit = max(ch, pos) + 1
+                    continue
+                parts = line.split(None, minsplit)
+                row_pos = parts[ch], parts[pos]
+                if row_pos in gwas:
+                    gwas_row = gwas[row_pos]
+                    parts = line.split()
+                    act = select_action(parts[a], parts[b],
+                                        parts[ma], parts[mi],
+                                        float(parts[maf]),
+                                        gwas_row.ref, gwas_row.oth,
+                                        gwas_row.f)
+                    freq, beta = gwas_row.f, gwas_row.b
+                    if act is ACT_FLIP:
+                        counts['flip'] += 1
+                        freq = 1-freq
+                        beta = -beta
+                    elif act is ACT_REM:
+                        counts['remove'] += 1
+                        del gwas[row_pos]
+                        if report:
+                            print('removing gwas row due insufficient information on ambivalent allele', file=report)
+                            print(line, file=report, end='')
+                            print(gwas_row, file=report)
+                            print(file=report)
+                        continue
+                    elif act is ACT_SKIP:
+                        counts['skip'] += 1
+                        if report:
+                            print('skipping gwas row due to non matching alleles', file=report)
+                            print(line, file=report, end='')
+                            print(gwas_row, file=report)
+                            print(file=report)
+                        continue
+                    else:
+                        counts['ok'] += 1
+                    del gwas[row_pos]
+                    if output:
+                        print(parts[rsid], parts[b], parts[a], freq, beta, gwas_row.se, gwas_row.p, 'NA', file=output)
+                if lineno % 100000 == 0:
+                    reporter.update(lineno, f.fileno())
+    except KeyboardInterrupt:
+        print('aborted reading genetic data at line', lineno)
     print('gwas allele conversions:')
     for k, v in counts.items():
         print(' ', k, v)
@@ -262,4 +283,7 @@ def main(args):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args)
+    try:
+        main(args)
+    except KeyboardInterrupt:
+        print('aborted')
