@@ -1,11 +1,26 @@
 import gzip
 import collections
 import time
+from pyliftover import LiftOver
+
+# Optimizations, with speeds measured on my laptop
+#  680.2klines/s first version
+#  802.7klines/s line.split(None, maxsplit)
+#                in the hot path, only split until enough fields have
+#                been read to read chr and bp
+#  871.8klines/s int(bp) -> bp
+#                storing basepair position as a string in the gwas dict
+#                prevents a call to int(bp) in reading the genetic data
+#  914.4klines/s gwas.get -> gwas[pos]
+#                first checking if a item is in a dictionary and then
+#                retrieving it is faster here than the combined operation
+#  969.4klines/s chr 1 -> 01
+#                in the gwas dictionary, chrs are stored in the .stats.gz
+#                format with leading 0 to prevent a call to str.lstrip
+# 1635.6klines/s max IO bound, no useful calculations
 
 if not hasattr(time, 'monotonic'):
     time.monotonic = time.time
-
-from pyliftover import LiftOver
 
 GWASRow = collections.namedtuple('GWA', 'ref oth f b se p')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
@@ -83,12 +98,12 @@ def read_gwas(filename):
         else:
             parts = line.split()
             ch, bp = parts[pos].split(':', 1)
-            bp = int(bp)
-            conv = liftover.convert_coordinate(ch, bp)
+            conv = liftover.convert_coordinate(ch, int(bp))
             if conv:
                 ch19, bp19, s19, _ = conv[0]
                 if ch19.startswith('chr'): ch19 = ch19[3:]
-                yield (ch19, bp19), GWASRow(parts[ref], parts[oth], float(parts[freq]),
+                ch19 = ch19.zfill(2)
+                yield (ch19, str(bp19)), GWASRow(parts[ref], parts[oth], float(parts[freq]),
                                             float(parts[b]), parts[se], parts[p])
             else:
                 pass
@@ -117,9 +132,9 @@ def update_read_stats(gwas, stats_filename):
             minsplit = max(ch, pos) + 1
             continue
         parts = line.split(None, minsplit)
-        row_pos = parts[ch].lstrip('0'), int(parts[pos])
-        gwas_row = gwas.get(row_pos)
-        if not gwas_row is None:
+        row_pos = parts[ch], parts[pos]
+        if row_pos in gwas:
+            gwas_row = gwas[row_pos]
             parts = line.split()
             act = select_action(parts[a], parts[b],
                                 parts[ma], parts[mi],
@@ -146,6 +161,7 @@ for idx, (pos, row) in enumerate(read_gwas(GWAS)):
     gwas[pos] = row
     if idx > 10000:
         break
+print(list(gwas.keys())[:19])
 update_read_stats(gwas, STATS)
 
 # print('leftover', len(gwas))
