@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #$ -cwd
+#$ -l h_vmem=1G
+#$ -l h_rt=00:10:00
 
 set -exuo pipefail
 
@@ -8,6 +10,7 @@ source $1
 SMR=$CONFIG_SMR
 
 export CONFIG_JOBDIR
+
 
 python <(cat << EOF
 from __future__ import print_function
@@ -31,3 +34,17 @@ with open(paramfile) as stream:
                         print(variant + '\t' + line, end='')
 EOF
 ) > $CONFIG_JOBDIR/smr.out
+
+python <(cat << EOF
+import sys
+header_raw = raw_input()
+header = header_raw.split()
+print(header_raw)
+for line in sys.stdin:
+    parts = line.split()
+    row = dict(zip(header, parts))
+    p = float(row['p_SMR'])
+    if p < 1e-3:
+        sys.stdout.write(line)
+EOF
+) > "$CONFIG_JOBDIR/smr_lt_1e-3.out" < "$CONFIG_JOBDIR/smr.out"

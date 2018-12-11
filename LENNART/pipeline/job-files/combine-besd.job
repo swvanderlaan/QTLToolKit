@@ -5,8 +5,9 @@ set -exuo pipefail
 
 source $1
 
-cat ${CONFIG_JOBDIR}/make-besd.param | awk '$0=$4' > ${BUILD_DIR}/make-besd.flist
 BUILD_DIR="${TMPDIR:-/tmp}/build_${RANDOM}"
+mkdir -p ${BUILD_DIR}
+cat ${CONFIG_JOBDIR}/make-besd.param | awk '$0=$4' > ${BUILD_DIR}/make-besd.flist
 
 SMR=$CONFIG_SMR
 

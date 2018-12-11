@@ -17,12 +17,15 @@ echo TaskID: $SGE_TASK_ID / "$VARIANT" '/' $BESD
 echo ===
 
 main() {
-    # --thread-num 12 
+    extra_ops_gw=""
+    if $GW; then
+        extra_ops_gw="--thread-num 12"
+    fi
     $SMR \
         --bfile $GENETIC \
         --gwas-summary $GWAS \
         --beqtl-summary $BESD \
-        --out ${CONFIG_JOBDIR}/smr_${VARIANT}.out \
+        --out ${CONFIG_JOBDIR}/smr_${VARIANT}.out $extra_ops_gw \
              | tee ${CONFIG_JOBDIR}/smr_${VARIANT}_output.txt
 }
 

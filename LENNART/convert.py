@@ -6,6 +6,7 @@ A G | A G |  _   _  | nothing
 A G | T C |  _   _  | nothing
 A G | G A |  _   _  | flip freq, flip beta
 A G | C T |  _   _  | flip freq, flip beta
+report when not is close!
 
 # ambivalent alleles
 ## freqs close and low/high
@@ -32,6 +33,7 @@ import time
 from pyliftover import LiftOver
 
 GWAS = '/home/llandsmeer/Data/CTMM/cardiogram_gwas_results.txt.gz'
+GWAS = '/home/llandsmeer/Data/cad.txt.gz'
 STATS = '/home/llandsmeer/Data/CTMM/ctmm_1kGp3GoNL5_RAW_rsync.stats.gz'
 
 parser = argparse.ArgumentParser()
@@ -67,7 +69,7 @@ if not hasattr(os.path, 'commonpath'):
 
 GWASRow = collections.namedtuple('GWA', 'ref oth f b se p lineno')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
-ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM = 1, 2, 3, 4
+ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ= 1, 2, 3, 4, 5
 
 liftover = LiftOver('hg18', 'hg19')
 
@@ -109,20 +111,26 @@ def select_action(gen_a, gen_b,
          gwas_ref_freq):
     # b is the effect allele
     gen_b_freq = gen_maf if gen_b == gen_min else 1 - gen_maf
-    freq_close = abs(gen_b_freq - gwas_ref_freq) < 0.45
-    freq_mid = abs(gen_b_freq - 0.5) < 0.10
+    freq_close = abs(gen_b_freq - gwas_ref_freq) < 0.2
+    freq_inv_close = abs((1-gen_b_freq) - gwas_ref_freq) < 0.2
+    freq_mid = abs(gen_b_freq - 0.5) < 0.1
     ambivalent = gen_a == inv(gen_b)
     if not ambivalent:
         if gen_b == gwas_ref and gen_a == gwas_oth:
-            return ACT_NOP
+            act = ACT_NOP
         elif gen_b == gwas_oth and gen_a == gwas_ref:
-            return ACT_FLIP
+            act = ACT_FLIP
         elif gen_b == inv(gwas_ref) and gen_a == inv(gwas_oth):
-            return ACT_NOP
+            act = ACT_NOP
         elif gen_b == inv(gwas_oth) and gen_a == inv(gwas_ref):
-            return ACT_FLIP
+            act = ACT_FLIP
         else:
             return ACT_SKIP
+        if act is ACT_NOP and not freq_close:
+            return ACT_REPORT_FREQ
+        if act is ACT_FLIP and not freq_inv_close:
+            return ACT_REPORT_FREQ
+        return act
     else:
         if gen_b == gwas_ref and gen_a == gwas_oth:
             equal = True
@@ -134,10 +142,30 @@ def select_action(gen_a, gen_b,
             return ACT_REM
         if freq_close:
             return ACT_NOP
-        else:
+        elif freq_inv_close:
             return ACT_FLIP
+        else:
+            return ACT_REPORT_FREQ
+
+# Markername	snptestid	chr	bp_hg19	effect_allele	noneffect_allele	effect_allele_freq	logOR	se_gc	p-value_gc	n_samples	exome	info_ukbb
+
+GWAS_H_POS_COMB_OPTIONS = ['chr_pos_(b36)']
+GWAS_H_CHR_OPTIONS = ['chr']
+GWAS_H_BP_OPTIONS = ['bp_hg19']
+GWAS_H_REF_OPTIONS = ['reference_allele', 'effect_allele']
+GWAS_H_OTH_OPTIONS = ['other_allele', 'noneffect_allele']
+GWAS_H_FREQ_OPTIONS = ['ref_allele_frequency', 'effect_allele_freq']
+GWAS_H_BETA_OPTIONS = ['log_odds', 'logOR']
+GWAS_H_SE_OPTIONS = ['log_odds_se', 'se_gc']
+GWAS_H_PVALUE_OPTIONS = ['pvalue', 'p-value_gc']
+
+def header_select(header, options):
+    for option in options:
+        if option in header:
+            return header.index(option)
 
 def read_gwas(filename, report=None):
+    liftover = None
     yes = no = 0
     reporter = ReporterLine('reading gwas data')
     try:
@@ -145,36 +173,54 @@ def read_gwas(filename, report=None):
             for lineno, line in enumerate(f, 1):
                 if lineno == 1:
                     header = line.split()
-                    pos = header.index('chr_pos_(b36)')
-                    ref = header.index('reference_allele')
-                    oth = header.index('other_allele')
-                    freq = header.index('ref_allele_frequency')
-                    b = header.index('log_odds')
-                    se = header.index('log_odds_se')
-                    p = header.index('pvalue')
+                    hpos = header_select(header, GWAS_H_POS_COMB_OPTIONS)
+                    if hpos is None:
+                        postype_combined = False
+                        hpos_ch = header_select(header, GWAS_H_CHR_OPTIONS)
+                        hpos_bp = header_select(header, GWAS_H_BP_OPTIONS)
+                        hpos_bp = header.index('bp_hg19')
+                    else:
+                        postype_combined = True
+                        liftover = LiftOver('hg18', 'hg19')
+                    href = header_select(header, GWAS_H_REF_OPTIONS)
+                    hoth = header_select(header, GWAS_H_OTH_OPTIONS)
+                    hfreq = header_select(header, GWAS_H_FREQ_OPTIONS)
+                    hb = header_select(header, GWAS_H_BETA_OPTIONS)
+                    hse = header_select(header, GWAS_H_SE_OPTIONS)
+                    hp = header_select(header, GWAS_H_PVALUE_OPTIONS)
                 else:
                     parts = line.split()
-                    ch, bp = parts[pos].split(':', 1)
-                    conv = liftover.convert_coordinate(ch, int(bp))
-                    if conv:
-                        ch19, bp19, s19, _ = conv[0]
-                        if ch19.startswith('chr'): ch19 = ch19[3:]
-                        ch19 = ch19.zfill(2)
-                        yield (ch19, str(bp19)), GWASRow(parts[ref], parts[oth], float(parts[freq]),
-                                                    float(parts[b]), parts[se], parts[p], lineno)
-                        yes += 1
+                    if postype_combined:
+                        ch, bp = parts[hpos].split(':', 1)
                     else:
-                        no += 1
-                        if report:
-                            print('gwas hg18->hg19 conversion failed', file=report)
-                            print('   ', lineno, *parts, sep='\t', file=report)
-                            print(file=report)
+                        ch = parts[hpos_ch]
+                        bp = parts[hpos_bp]
+                    row = GWASRow(parts[href], parts[hoth],
+                            float(parts[hfreq]), float(parts[hb]), parts[hse], parts[hp], lineno)
+                    if liftover:
+                        conv = liftover.convert_coordinate(ch, int(bp))
+                        if conv:
+                            ch19, bp19, s19, _ = conv[0]
+                            if ch19.startswith('chr'): ch19 = ch19[3:]
+                            ch19 = ch19.zfill(2)
+                            yield (ch19, str(bp19)), row
+                            yes += 1
+                        else:
+                            no += 1
+                            if report:
+                                print('gwas hg18->hg19 conversion failed', file=report)
+                                print('   ', lineno, *parts, sep='\t', file=report)
+                                print(file=report)
+                    else:
+                        ch = ch.zfill(2)
+                        yield (ch, bp), row
                 if lineno % 40000 == 0:
                     reporter.update(lineno, f.fileno())
     except KeyboardInterrupt:
         print('aborted reading gwas data at line', lineno)
-    print('successfully hg18->hg19 converted', yes, 'rows')
-    print('conversion failed for', no, 'rows')
+    if liftover:
+        print('successfully hg18->hg19 converted', yes, 'rows')
+        print('conversion failed for', no, 'rows')
 
 def update_read_stats(gwas, stats_filename, output=None, report=None):
     reporter = ReporterLine('reading genetic data')
@@ -226,6 +272,14 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                         counts['skip'] += 1
                         if report:
                             print('skipping gwas row due to non matching alleles', file=report)
+                            print(line, file=report, end='')
+                            print(gwas_row, file=report)
+                            print(file=report)
+                        continue
+                    elif act is ACT_REPORT_FREQ:
+                        counts['report_freq'] += 1
+                        if report:
+                            print('skipping gwas row due to non matching frequency', file=report)
                             print(line, file=report, end='')
                             print(gwas_row, file=report)
                             print(file=report)

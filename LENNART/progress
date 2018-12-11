@@ -133,7 +133,11 @@ while True:
                             wait = (size - pos) / rate
                             print('  ', 'wait:', human_time(wait))
         except Exception as ex:
-            print(ex)
+            s = str(ex)
+            if 'denied' in s:
+                pass
+            else:
+                print(ex)
     time.sleep(1)
 
 
