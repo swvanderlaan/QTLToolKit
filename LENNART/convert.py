@@ -75,12 +75,17 @@ parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
 parser.add_argument('-r', '--report', dest='report', metavar='txt',
         type=os.path.abspath, help='Report discard SNPs here')
 parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
-        type=os.path.abspath, help='Genetic data', required=True)
+        type=os.path.abspath, help='Genetic data')
 parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
         type=os.path.abspath, help='illuminaHumanv4 sqlite database path', required=True)
+parser.add_argument('--header-only', dest='header_only', action='store_true',
+        help='Exit after reading GWAS header. ' +
+             'Useful for testing whether a file is readable by this program.')
+
 filter_parser = parser.add_argument_group('filter snps')
 filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
-        help='ambivalent snps are ambiguous when effect frequency is between 0.5-MID and 0.5+MID. ' +
+        help='ambivalent snps are ambiguous when effect frequency ' +
+             'is between 0.5-MID and 0.5+MID. ' +
              'set to 0 to prevent discarding. default is 0.05.',
         default='0.1', type=float)
 filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
@@ -104,7 +109,8 @@ header_parser.add_argument('--gwas:n',metavar='COLUMN(S)',
              'are specified, their sum is stored.')
 
 header_parser = parser.add_argument_group('gwas default values')
-header_parser.add_argument('--gwas:default:freq', metavar='VALUE')
+header_parser.add_argument('--gwas:default:p', metavar='VALUE')
+header_parser.add_argument('--gwas:default:beta', metavar='VALUE')
 header_parser.add_argument('--gwas:default:std', metavar='VALUE')
 header_parser.add_argument('--gwas:default:chr', metavar='VALUE')
 header_parser.add_argument('--gwas:default:n',metavar='VALUE')
@@ -130,7 +136,7 @@ if not hasattr(time, 'monotonic'):
 if not hasattr(os.path, 'commonpath'):
     os.path.commonpath = os.path.commonprefix
 
-GWASRow = collections.namedtuple('GWASRow', 'ref oth f b se p lineno ch bp')
+GWASRow = collections.namedtuple('GWASRow', 'ref oth f b se p lineno ch bp n')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
 ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ= 1, 2, 3, 4, 5
 
@@ -218,19 +224,19 @@ def select_action(args,
             return gen_b_freq, ACT_REPORT_FREQ
 
 GWAS_H_POS_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS = ['chr']
-GWAS_H_BP_OPTIONS = ['bp_hg19']
-GWAS_H_REF_OPTIONS = ['reference_allele', 'effect_allele']
-GWAS_H_OTH_OPTIONS = ['other_allele', 'noneffect_allele']
-GWAS_H_FREQ_OPTIONS = ['ref_allele_frequency', 'effect_allele_freq']
-GWAS_H_BETA_OPTIONS = ['log_odds', 'logOR']
-GWAS_H_SE_OPTIONS = ['log_odds_se', 'se_gc']
-GWAS_H_PVALUE_OPTIONS = ['pvalue', 'p-value_gc']
-GWAS_H_NTOTAL_OPTIONS = ['n_samples']
+GWAS_H_CHR_OPTIONS =      ['chr']
+GWAS_H_BP_OPTIONS =       ['bp_hg19']
+GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele']
+GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele']
+GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq']
+GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR']
+GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc']
+GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc']
+GWAS_H_NTOTAL_OPTIONS =   ['n_samples']
 GWAS_H_NCONTROL_OPTIONS = ['N_control']
-GWAS_H_NCASE_OPTIONS = ['N_case']
-GWAS_HG18_HINTS = ['hg18', 'b36']
-GWAS_HG19_HINTS = ['hg19']
+GWAS_H_NCASE_OPTIONS =    ['N_case']
+GWAS_HG18_HINTS =         ['hg18', 'b36']
+GWAS_HG19_HINTS =         ['hg19']
 
 def log_error(report, name, gwas, gen=()):
     parts = list(gwas)
@@ -252,7 +258,7 @@ def read_gwas(args, filename, report=None):
             if option in header:
                 desc[name] = option
                 return header.index(option)
-        if fail:
+        if fail and not args.get('gwas:default:'+name):
             print('could not find a header in GWAS for', name)
             print('  specify with --' + option_name)
             print('suggestions:')
@@ -287,6 +293,21 @@ def read_gwas(args, filename, report=None):
                     if not args['gwas:n'] is None:
                         hn = [header.index(col) for col in args['gwas:n'].split(',')]
                         desc['n'] = '+'.join(args['gwas:n'].split(','))
+                    elif any(col in header for col in GWAS_H_NTOTAL_OPTIONS):
+                        ncol = next(col_ for col_ in GWAS_H_NTOTAL_OPTIONS if col_ in header)
+                        desc['n'] = ncol
+                        hn = [header.index(ncol)]
+                    elif (any(col in header for col in GWAS_H_NCASE_OPTIONS) and
+                          any(col in header for col in GWAS_H_NCONTROL_OPTIONS)):
+                        ncol_a = next(col_ for col_ in GWAS_H_NCASE_OPTIONS if col_ in header)
+                        ncol_b = next(col_ for col_ in GWAS_H_NCONTROL_OPTIONS if col_ in header)
+                        desc['n'] = ncol_a + '+' + ncol_b
+                        hn = [header.index(ncol_a), header.index(ncol_b)]
+                    elif not args['gwas:default:n']:
+                        print('could not find a header in GWAS for nsamples')
+                        exit(1)
+                    else:
+                        hn = None
                     if 'build' not in desc:
                         print('could not determine GWAS genome build. use flag --gwas:build <BUILD>')
                         exit(1)
@@ -296,6 +317,8 @@ def read_gwas(args, filename, report=None):
                     print('= detected headers =')
                     for k, v in desc.items():
                         print(k.ljust(10), v)
+                    if args['header_only']:
+                        exit(0)
                     print('= reading gwas =')
                     reporter = ReporterLine('reading gwas data')
                     continue
@@ -303,10 +326,18 @@ def read_gwas(args, filename, report=None):
                 if postype_combined:
                     ch, bp = parts[hpos].split(':', 1)
                 else:
-                    ch = parts[hpos_ch]
+                    ch = args['gwas:default:chr'] or parts[hpos_ch]
                     bp = parts[hpos_bp]
+                try:
+                    n = args['gwas:default:n'] or sum(int(parts[col]) for col in hn)
+                except ValueError:
+                    n = 'NA'
                 row = GWASRow(parts[href].upper(), parts[hoth].upper(),
-                        float(parts[hfreq]), float(parts[hb]), parts[hse], parts[hp], lineno, ch, bp)
+                        float(parts[hfreq]),
+                        float(args['gwas:default:beta'] or parts[hb]),
+                        args['gwas:default:std'] or parts[hse],
+                        args['gwas:default:p'] or parts[hp],
+                        lineno, ch, bp, n)
                 ch = ch.upper()
                 if ch.startswith('CHR'):
                     ch = ch[3:]
@@ -341,7 +372,7 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
         print('SNP A1 A2 freq b se p n', file=output)
     counts = collections.defaultdict(int)
     freq_comp = np.zeros((40000, 2))
-    converted = 0
+    converted = discarded = 0
     stopped = False
     try:
         with gzip.open(stats_filename, 'rt') as f:
@@ -381,18 +412,18 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                     elif act is ACT_REM:
                         counts['report:ambiguous_ambivalent'] += 1
                         del gwas[row_pos]
-                        if report:
-                            log_error(report, 'ambiguous_ambivalent', gwas=gwas_row, gen=parts)
+                        if report: log_error(report, 'ambiguous_ambivalent', gwas=gwas_row, gen=parts)
+                        discarded += 1
                         continue
                     elif act is ACT_SKIP:
                         counts['report:allele_mismatch'] += 1
-                        if report:
-                            log_error(report, 'allele_mismatch', gwas=gwas_row, gen=parts)
+                        if report: log_error(report, 'allele_mismatch', gwas=gwas_row, gen=parts)
+                        discarded += 1
                         continue
                     elif act is ACT_REPORT_FREQ:
                         counts['report:frequency_mismatch'] += 1
-                        if report:
-                            log_error(report, 'frequency_mismatch', gwas=gwas_row, gen=parts)
+                        if report: log_error(report, 'frequency_mismatch', gwas=gwas_row, gen=parts)
+                        discarded += 1
                         continue
                     else:
                         counts['ok'] += 1
@@ -401,9 +432,9 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                     freq_comp[converted % freq_comp.shape[0]] = freq, gen_freq
                     if output:
                         print(parts[rsid], parts[b], parts[a], freq, beta,
-                              gwas_row.se, gwas_row.p, 'NA', file=output)
+                              gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
-                    message = '#'+str(converted)
+                    message = '#{0}+{1}'.format(converted,discarded)
                     if converted > freq_comp.shape[0]:
                         ss_tot = ((freq_comp[:,1]-freq_comp[:,1].mean())**2).sum()
                         ss_res = ((freq_comp[:,1]-freq_comp[:,0])**2).sum()
@@ -428,29 +459,36 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
             log_error(report, 'leftover', gwas=gwas_row)
 
 def main(args):
-    paths = [args.gen, args.gwas]
+    paths = [args.gwas]
     output = report = None
+    if args.gen:
+        paths.append(args.gen)
     if args.outfile:
         output = open(args.outfile, 'w')
-        paths.append(args.report)
+        paths.append(args.outfile)
     if args.report:
         report = open(args.report, 'w')
         paths.append(args.report)
-    root = os.path.commonpath(paths)
-    print('root', root)
-    print(' / genetic data:', os.path.relpath(args.gen, root))
-    print(' / gwas:        ', os.path.relpath(args.gwas, root))
-    if args.outfile:
-        print(' / output:      ', os.path.relpath(args.outfile, root))
-    else:
-        print('*WARNING* not writing result file (-o) *WARNING*')
-    if args.report:
-        print(' / report:          ', os.path.relpath(args.report, root))
-        with gzip.open(args.gen, 'rt') as f:
-            gen_header = f.readline().split()
-        log_error(report, 'type', GWASRow._fields, gen_header)
-    else:
-        print('*WARNING* not writing report file (-r) *WARNING*')
+    if args.gen is None and not args.header_only:
+        parser.error('either argument -g/--gen or --header-only is required')
+    if not args.header_only:
+        print(paths)
+        root = os.path.commonpath(paths)
+        print('root', root)
+        if args.gen:
+            print(' / genetic data:', os.path.relpath(args.gen, root))
+        print(' / gwas:        ', os.path.relpath(args.gwas, root))
+        if args.outfile:
+            print(' / output:      ', os.path.relpath(args.outfile, root))
+        else:
+            print('*WARNING* not writing result file (-o) *WARNING*')
+        if args.report:
+            print(' / report:          ', os.path.relpath(args.report, root))
+            with gzip.open(args.gen, 'rt') as f:
+                gen_header = f.readline().split()
+            log_error(report, 'type', GWASRow._fields, gen_header)
+        else:
+            print('*WARNING* not writing report file (-r) *WARNING*')
     gwas = {}
     for idx, (pos, row) in enumerate(read_gwas(vars(args), args.gwas, report=report)):
         gwas[pos] = row
