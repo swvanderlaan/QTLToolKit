@@ -66,18 +66,28 @@ import collections
 import gzip
 import time
 
-import numpy as np
-from pyliftover import LiftOver
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
+try:
+    from pyliftover import LiftOver
+except ImportError:
+    def LiftOver(*a):
+        print('error: genome build conversion relies on pyliftover')
+        print('run pip install pyliftover')
+        exit(1)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
         type=os.path.abspath, help='Output .cojo file')
 parser.add_argument('-r', '--report', dest='report', metavar='txt',
-        type=os.path.abspath, help='Report discard SNPs here')
+        type=os.path.abspath, help='Report discarded SNPs here')
 parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
         type=os.path.abspath, help='Genetic data')
 parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
-        type=os.path.abspath, help='illuminaHumanv4 sqlite database path', required=True)
+        type=os.path.abspath, help='GWAS location', required=True)
 parser.add_argument('--header-only', dest='header_only', action='store_true',
         help='Exit after reading GWAS header. ' +
              'Useful for testing whether a file is readable by this program.')
@@ -363,7 +373,7 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
     if output:
         print('SNP A1 A2 freq b se p n', file=output)
     counts = collections.defaultdict(int)
-    freq_comp = np.zeros((40000, 2))
+    freq_comp = np.zeros((40000, 2)) if np else None
     converted = discarded = 0
     stopped = False
     try:
@@ -421,13 +431,14 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                         counts['ok'] += 1
                     del gwas[row_pos]
                     converted += 1
-                    freq_comp[converted % freq_comp.shape[0]] = freq, gen_freq
+                    if np:
+                        freq_comp[converted % freq_comp.shape[0]] = freq, gen_freq
                     if output:
                         print(parts[rsid], parts[b], parts[a], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
-                    if converted > freq_comp.shape[0]:
+                    if np and converted > freq_comp.shape[0]:
                         ss_tot = ((freq_comp[:,1]-freq_comp[:,1].mean())**2).sum()
                         ss_res = ((freq_comp[:,1]-freq_comp[:,0])**2).sum()
                         r2 = 1 - ss_res/ss_tot
