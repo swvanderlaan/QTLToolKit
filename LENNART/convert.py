@@ -1,28 +1,62 @@
 #!/usr/bin/env python
-
-'''
-gen eff/oth | gwas eff/oth | eff freq gen/gwas | act
-
-# non ambivalent
-A G | A G |  _   _  | nothing
-A G | T C |  _   _  | nothing
-A G | G A |  _   _  | flip freq, flip beta
-A G | C T |  _   _  | flip freq, flip beta
-report when not is close!
-
-# ambivalent alleles
-## freqs close and low/high
-G C | G C | 0.1 0.1 | nothing
-G C | C G | 0.1 0.1 | nothing
-
-## freqs inverted and low/high
-G C | G C | 0.1 0.9 | flip freq, flip beta
-G C | C G | 0.1 0.9 | flip freq, flip beta
-
-## freqs close and mid
-G C | C G | 0.5 0.6 | throw away
-G C | G C | 0.5 0.6 | throw away
-'''
+#
+# GWAS Conversion Script
+#
+# Copyright 2018 Lennart P.L. Landsmeer <lennart@landsmeer.email>,
+#                Sander W. van der Laan <s.w.vanderlaan-2@umcutrecht.nl>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# POSITION CONVERSION
+# 1     -> 01
+# chr3  -> 03
+# CHRx  -> 0X
+# ChrM  -> MT
+# BP positions are converted between builds
+#
+# SNP CONVERSION
+#     - reports when frequencies are not close
+#
+#   ### decision table ###
+#
+#   # columns
+#   gen | gwas| freq    | action
+#   e o | e o | gen gwas|
+#
+#   # non ambivalent
+#   A G | A G |  _   _  | nothing
+#   A G | T C |  _   _  | nothing
+#   A G | G A |  _   _  | flip freq, flip beta
+#   A G | C T |  _   _  | flip freq, flip beta
+#
+#   # ambivalent alleles
+#   ## freqs close and low/high
+#   G C | G C | 0.1 0.1 | nothing
+#   G C | C G | 0.1 0.1 | nothing
+#
+#   ## freqs inverted and low/high
+#   G C | G C | 0.1 0.9 | flip freq, flip beta
+#   G C | C G | 0.1 0.9 | flip freq, flip beta
+#
+#   ## freqs close and mid
+#   G C | C G | 0.5 0.6 | throw away
+#   G C | G C | 0.5 0.6 | throw away
 
 from __future__ import print_function
 
@@ -35,47 +69,45 @@ import time
 import numpy as np
 from pyliftover import LiftOver
 
-GWAS = '/home/llandsmeer/Data/CTMM/cardiogram_gwas_results.txt.gz'
-GWAS = '/home/llandsmeer/Data/cad.txt.gz'
-STATS = '/home/llandsmeer/Data/CTMM/ctmm_1kGp3GoNL5_RAW_rsync.stats.gz'
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
         type=os.path.abspath, help='Output .cojo file')
 parser.add_argument('-r', '--report', dest='report', metavar='txt',
-        type=os.path.abspath, help='Report here')
-parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz', default=STATS,
-        type=os.path.abspath, help='Genetic data', required=False) # TODO
-parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.', default=GWAS,
-        type=os.path.abspath, help='illuminaHumanv4 sqlite database path', required=False) # TODO
+        type=os.path.abspath, help='Report discard SNPs here')
+parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
+        type=os.path.abspath, help='Genetic data', required=True)
+parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
+        type=os.path.abspath, help='illuminaHumanv4 sqlite database path', required=True)
 filter_parser = parser.add_argument_group('filter snps')
 filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
         help='ambivalent snps are ambiguous when effect frequency is between 0.5-MID and 0.5+MID. ' +
              'set to 0 to prevent discarding. default is 0.05.',
         default='0.1', type=float)
 filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
-        help='frequencies are considered close when their difference is less than CLOSE ' +
+        help='frequencies are considered close when their difference is less than CLOSE. ' +
              'default is 0.1',
         default='0.1', type=float)
+
 header_parser = parser.add_argument_group('gwas header')
-header_parser.add_argument('--gwas:effect', dest='effect_allele', metavar='COLUMN',
-        help='Effect allele column name')
-header_parser.add_argument('--gwas:other', dest='other_allele', metavar='COLUMN',
-        help='Non-effect allele column name')
-header_parser.add_argument('--gwas:freq', dest='effect_allele_frequency', metavar='COLUMN',
-        help='Effect allele frequency column name')
-header_parser.add_argument('--gwas:beta', dest='beta', metavar='COLUMN',
-        help='Log-odds column name')
-header_parser.add_argument('--gwas:std', dest='beta_std', metavar='COLUMN',
-        help='Log-odds standard deviation column name')
-header_parser.add_argument('--gwas:p', dest='p-value', metavar='COLUMN',
-        help='P-value column name')
-header_parser.add_argument('--gwas:pos', dest='p-value', metavar='COLUMN',
-        help='chr:pos type column name')
-header_parser.add_argument('--gwas:chr', dest='p-value', metavar='COLUMN',
-        help='chromosome column name')
-header_parser.add_argument('--gwas:bp', dest='p-value', metavar='COLUMN',
-        help='chromosomal position column name')
+header_parser.add_argument('--gwas:effect', metavar='COLUMN', help='Effect allele column name')
+header_parser.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect allele column name')
+header_parser.add_argument('--gwas:freq', metavar='COLUMN', help='Effect allele frequency column name')
+header_parser.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name')
+header_parser.add_argument('--gwas:std', metavar='COLUMN', help='Log-odds standard deviation column name')
+header_parser.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name')
+header_parser.add_argument('--gwas:pos', metavar='COLUMN', help='position column name when encoded as chr:pos')
+header_parser.add_argument('--gwas:chr', metavar='COLUMN', help='chromosome column name')
+header_parser.add_argument('--gwas:bp',metavar='COLUMN', help='chromosomal position column name')
+header_parser.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19 etc..')
+header_parser.add_argument('--gwas:n',metavar='COLUMN(S)',
+        help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
+             'are specified, their sum is stored.')
+
+header_parser = parser.add_argument_group('gwas default values')
+header_parser.add_argument('--gwas:default:freq', metavar='VALUE')
+header_parser.add_argument('--gwas:default:std', metavar='VALUE')
+header_parser.add_argument('--gwas:default:chr', metavar='VALUE')
+header_parser.add_argument('--gwas:default:n',metavar='VALUE')
 
 # Optimizations, with speeds measured on my laptop
 #  680.2klines/s first version
@@ -141,7 +173,6 @@ def inv(dna):
         return INV[dna]
     return ''.join(INV[bp] for bp in dna)
 
-
 def select_action(args,
          gen_a, gen_b,
          gen_maj, gen_min,
@@ -195,6 +226,9 @@ GWAS_H_FREQ_OPTIONS = ['ref_allele_frequency', 'effect_allele_freq']
 GWAS_H_BETA_OPTIONS = ['log_odds', 'logOR']
 GWAS_H_SE_OPTIONS = ['log_odds_se', 'se_gc']
 GWAS_H_PVALUE_OPTIONS = ['pvalue', 'p-value_gc']
+GWAS_H_NTOTAL_OPTIONS = ['n_samples']
+GWAS_H_NCONTROL_OPTIONS = ['N_control']
+GWAS_H_NCASE_OPTIONS = ['N_case']
 GWAS_HG18_HINTS = ['hg18', 'b36']
 GWAS_HG19_HINTS = ['hg19']
 
@@ -204,12 +238,14 @@ def log_error(report, name, gwas, gen=()):
         parts.extend(gen)
     print(name, *parts, file=report, sep='\t')
 
-
-def read_gwas(filename, report=None):
+def read_gwas(args, filename, report=None):
     liftover = None
     yes = no = 0
     desc = {}
     def select(name, options, fail=True):
+        option_name = 'gwas:' + name
+        if not args[option_name] is None:
+            desc[name] = args[option_name]
         if name in desc:
             return header.index(desc[name])
         for option in options:
@@ -218,13 +254,18 @@ def read_gwas(filename, report=None):
                 return header.index(option)
         if fail:
             print('could not find a header in GWAS for', name)
-            print('specify with --gwas:'+name)
+            print('  specify with --' + option_name)
+            print('suggestions:')
+            for part in header:
+                print(' * --' + option_name, part)
             exit(1)
     try:
         with gzip.open(filename, 'rt') as f:
             for lineno, line in enumerate(f, 1):
                 if lineno == 1:
-                    if any(hint in line for hint in GWAS_HG19_HINTS):
+                    if not args['gwas:build'] is None:
+                        desc['build'] = args['gwas:build']
+                    elif any(hint in line for hint in GWAS_HG19_HINTS):
                         desc['build'] = 'hg19'
                     elif any(hint in line for hint in GWAS_HG18_HINTS):
                         desc['build'] = 'hg18'
@@ -243,8 +284,11 @@ def read_gwas(filename, report=None):
                     hb = select('beta', GWAS_H_BETA_OPTIONS)
                     hse = select('std', GWAS_H_SE_OPTIONS)
                     hp = select('p', GWAS_H_PVALUE_OPTIONS)
+                    if not args['gwas:n'] is None:
+                        hn = [header.index(col) for col in args['gwas:n'].split(',')]
+                        desc['n'] = '+'.join(args['gwas:n'].split(','))
                     if 'build' not in desc:
-                        print('could not determine GWAS genome build. use flag --build <BUILD>')
+                        print('could not determine GWAS genome build. use flag --gwas:build <BUILD>')
                         exit(1)
                     if desc['build'] != 'hg19':
                         liftover = LiftOver(desc['build'], 'hg19')
@@ -394,21 +438,21 @@ def main(args):
         paths.append(args.report)
     root = os.path.commonpath(paths)
     print('root', root)
-    print('genetic data', os.path.relpath(args.gen, root))
-    print('gwas', os.path.relpath(args.gwas, root))
+    print(' / genetic data:', os.path.relpath(args.gen, root))
+    print(' / gwas:        ', os.path.relpath(args.gwas, root))
     if args.outfile:
-        print('output', os.path.relpath(args.outfile, root))
+        print(' / output:      ', os.path.relpath(args.outfile, root))
     else:
-        print('*WARNING* not writing results (-o)')
+        print('*WARNING* not writing result file (-o) *WARNING*')
     if args.report:
-        print('output', os.path.relpath(args.report, root))
+        print(' / report:          ', os.path.relpath(args.report, root))
         with gzip.open(args.gen, 'rt') as f:
             gen_header = f.readline().split()
         log_error(report, 'type', GWASRow._fields, gen_header)
     else:
-        print('*WARNING* not writing report (-r)')
+        print('*WARNING* not writing report file (-r) *WARNING*')
     gwas = {}
-    for idx, (pos, row) in enumerate(read_gwas(args.gwas, report=report)):
+    for idx, (pos, row) in enumerate(read_gwas(vars(args), args.gwas, report=report)):
         gwas[pos] = row
     update_read_stats(gwas, args.gen, output=output, report=report)
     if args.outfile:
