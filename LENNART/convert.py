@@ -86,8 +86,8 @@ filter_parser = parser.add_argument_group('filter snps')
 filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
         help='ambivalent snps are ambiguous when effect frequency ' +
              'is between 0.5-MID and 0.5+MID. ' +
-             'set to 0 to prevent discarding. default is 0.05.',
-        default='0.1', type=float)
+             'set to 0 to prevent discarding. default is 0.06.',
+        default='0.06', type=float)
 filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
         help='frequencies are considered close when their difference is less than CLOSE. ' +
              'default is 0.1',
@@ -114,22 +114,6 @@ header_parser.add_argument('--gwas:default:beta', metavar='VALUE')
 header_parser.add_argument('--gwas:default:std', metavar='VALUE')
 header_parser.add_argument('--gwas:default:chr', metavar='VALUE')
 header_parser.add_argument('--gwas:default:n',metavar='VALUE')
-
-# Optimizations, with speeds measured on my laptop
-#  680.2klines/s first version
-#  802.7klines/s line.split(None, maxsplit)
-#                in the hot path, only split until enough fields have
-#                been read to read chr and bp
-#  871.8klines/s int(bp) -> bp
-#                storing basepair position as a string in the gwas dict
-#                prevents a call to int(bp) in reading the genetic data
-#  914.4klines/s gwas.get -> gwas[pos]
-#                first checking if a item is in a dictionary and then
-#                retrieving it is faster here than the combined operation
-#  969.4klines/s chr 1 -> 01
-#                in the gwas dictionary, chrs are stored in the .stats.gz
-#                format with leading 0 to prevent a call to str.lstrip
-# 1635.6klines/s max IO bound, no useful calculations
 
 if not hasattr(time, 'monotonic'):
     time.monotonic = time.time
@@ -248,6 +232,9 @@ def read_gwas(args, filename, report=None):
     liftover = None
     yes = no = 0
     desc = {}
+    default_p, default_std = args['gwas:default:p'], args['gwas:default:std']
+    default_n, default_chr = args['gwas:default:n'], args['gwas:default:chr']
+    default_beta = args['gwas:default:beta']
     def select(name, options, fail=True):
         option_name = 'gwas:' + name
         if not args[option_name] is None:
@@ -282,7 +269,6 @@ def read_gwas(args, filename, report=None):
                         hpos_ch = select('chr', GWAS_H_CHR_OPTIONS)
                         hpos_bp = select('bp', GWAS_H_BP_OPTIONS)
                     else:
-                        hpos, desc['pos'] = hpos_tuple
                         postype_combined = True
                     href = select('effect', GWAS_H_REF_OPTIONS)
                     hoth = select('other', GWAS_H_OTH_OPTIONS)
@@ -315,28 +301,34 @@ def read_gwas(args, filename, report=None):
                         liftover = LiftOver(desc['build'], 'hg19')
                         print('converting', desc['build'], '->', 'hg19')
                     print('= detected headers =')
+                    for k, v in args.items():
+                        if k.startswith('gwas:default') and v:
+                            desc[k[13:]] = 'DEFAULT ' + v
                     for k, v in desc.items():
                         print(k.ljust(10), v)
                     if args['header_only']:
                         exit(0)
-                    print('= reading gwas =')
+                    print('= converting =')
                     reporter = ReporterLine('reading gwas data')
                     continue
                 parts = line.split()
                 if postype_combined:
                     ch, bp = parts[hpos].split(':', 1)
+                    if default_chr:
+                        print('default chromosome specified but reading chr:bp column')
+                        exit(1)
                 else:
-                    ch = args['gwas:default:chr'] or parts[hpos_ch]
+                    ch = default_chr or parts[hpos_ch]
                     bp = parts[hpos_bp]
                 try:
-                    n = args['gwas:default:n'] or sum(int(parts[col]) for col in hn)
+                    n = default_n or sum(int(parts[col]) for col in hn)
                 except ValueError:
                     n = 'NA'
                 row = GWASRow(parts[href].upper(), parts[hoth].upper(),
                         float(parts[hfreq]),
-                        float(args['gwas:default:beta'] or parts[hb]),
-                        args['gwas:default:std'] or parts[hse],
-                        args['gwas:default:p'] or parts[hp],
+                        float(default_beta or parts[hb]),
+                        default_std or parts[hse],
+                        default_p or parts[hp],
                         lineno, ch, bp, n)
                 ch = ch.upper()
                 if ch.startswith('CHR'):
@@ -472,7 +464,6 @@ def main(args):
     if args.gen is None and not args.header_only:
         parser.error('either argument -g/--gen or --header-only is required')
     if not args.header_only:
-        print(paths)
         root = os.path.commonpath(paths)
         print('root', root)
         if args.gen:
