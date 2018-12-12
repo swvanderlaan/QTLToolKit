@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 #
-print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-print('                         QTLTools CONVERT GWAS FOR SMR')
-print('')
-print('')
-print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
-print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-print('* Last update        : 2018-12-11')
-print('* Name               : gwas2cojo')
-print('* Version            : v1.0.0')
-print('')
-print('* Description        : To assess pleiotropic effects using Summarized-data ')
-print('                       Mendelian Randomization (SMR) of molecular QTLs on (selected) ')
-print('                       traits, summary statistics from genome-wide association studies')
-print('                       (GWAS) are converted to the GWAS-COJO format.')
-print('')
-print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 #
 # POSITION CONVERSION
 # 1     -> 01
@@ -34,18 +18,18 @@ print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #   e o | e o | gen gwas|
 #
 #   # non ambivalent
-#   A G | A G |  _   _  | nothing
-#   A G | T C |  _   _  | nothing
-#   A G | G A |  _   _  | flip freq, flip beta
-#   A G | C T |  _   _  | flip freq, flip beta
+#   A G | A G |  _   _  | nothing + FREQ need to be ballpark same range
+#   A G | T C |  _   _  | CHANGE ALLELES (T>A and C>G) + FREQ need to be ballpark same range
+#   A G | G A |  _   _  | FREQ need to be ballpark same range, flip freq, flip beta
+#   A G | C T |  _   _  | FREQ need to be ballpark same range, CHANGE ALLELES (C>G, T>A), flip freq, flip beta
 #
-#   # ambivalent alleles
+#   # ambivalent alleles (A/T and G/C)
 #   ## freqs close and low/high
-#   G C | G C | 0.1 0.1 | nothing
-#   G C | C G | 0.1 0.1 | nothing
+#   G C | G C | 0.1 0.1 | nothing + FREQ need to be ballpark same range
+#   G C | C G | 0.1 0.1 | CHANGE ALLELES (C>G and G>C) + FREQ need to be ballpark same range
 #
 #   ## freqs inverted and low/high
-#   G C | G C | 0.1 0.9 | flip freq, flip beta
+#   G C | G C | 0.1 0.9 | CHANGE ALLELES (C>G and G>C), flip freq, flip beta
 #   G C | C G | 0.1 0.9 | flip freq, flip beta
 #
 #   ## freqs close and mid
@@ -53,6 +37,23 @@ print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #   G C | G C | 0.5 0.6 | throw away
 
 from __future__ import print_function
+
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print('                                    QTLTools CONVERT GWAS FOR SMR')
+print('')
+print('')
+print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
+print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
+print('* Last update        : 2018-12-12')
+print('* Name               : gwas2cojo')
+print('* Version            : v1.0.0')
+print('')
+print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
+print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
+print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
+print('')
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
 
 import os
 import argparse
@@ -213,14 +214,14 @@ def select_action(args,
 
 GWAS_H_POS_COMB_OPTIONS = ['chr_pos_(b36)']
 GWAS_H_CHR_OPTIONS =      ['chr']
-GWAS_H_BP_OPTIONS =       ['bp_hg19']
+GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
 GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele']
 GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele']
 GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq']
-GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR']
-GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc']
-GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc']
-GWAS_H_NTOTAL_OPTIONS =   ['n_samples']
+GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
+GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
+GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
+GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
 GWAS_H_NCONTROL_OPTIONS = ['N_control']
 GWAS_H_NCASE_OPTIONS =    ['N_case']
 GWAS_HG18_HINTS =         ['hg18', 'b36']
@@ -376,7 +377,7 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                 if not gwas:
                     break
                 if lineno == 1:
-                    header = line.split()
+                    header = line.split() 
                     rsid = header.index('RSID')
                     ch = header.index('Chr')
                     pos = header.index('BP')
@@ -501,24 +502,24 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('aborted')
 
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-print('+ The MIT License (MIT)                                                                                 +'
-print('+ Copyright (c) 1979-2018 Lennart P.L. Landsmeer & Sander W. van der Laan                               +'
-print('+                                                                                                       +'
-print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +'
-print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +'
-print('+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +'
-print('+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +'
-print('+ subject to the following conditions:                                                                  +'
-print('+                                                                                                       +'
-print('+ The above copyright notice and this permission notice shall be included in all copies or substantial  +'
-print('+ portions of the Software.                                                                             +'
-print('+                                                                                                       +'
-print('+ THE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +'
-print('+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +'
-print('+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +'
-print('+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +'
-print('+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +'
-print('+                                                                                                       +'
-print('+ Reference: http://opensource.org.                                                                     +'
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print('+ The MIT License (MIT)                                                                                 +')
+print('+ Copyright (c) 1979-2018 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+print('+                                                                                                       +')
+print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
+print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
+print('+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +')
+print('+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +')
+print('+ subject to the following conditions:                                                                  +')
+print('+                                                                                                       +')
+print('+ The above copyright notice and this permission notice shall be included in all copies or substantial  +')
+print('+ portions of the Software.                                                                             +')
+print('+                                                                                                       +')
+print('+ THE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +')
+print('+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +')
+print('+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +')
+print('+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +')
+print('+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +')
+print('+                                                                                                       +')
+print('+ Reference: http://opensource.org.                                                                     +')
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
