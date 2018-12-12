@@ -91,8 +91,8 @@ filter_parser = parser.add_argument_group('filter snps')
 filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
         help='ambivalent snps are ambiguous when effect frequency ' +
              'is between 0.5-MID and 0.5+MID. ' +
-             'set to 0 to prevent discarding. default is 0.06.',
-        default='0.06', type=float)
+             'set to 0 to prevent discarding. default is 0.05.',
+        default='0.05', type=float)
 filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
         help='frequencies are considered close when their difference is less than CLOSE. ' +
              'default is 0.1',
@@ -213,11 +213,11 @@ def select_action(args,
             return gen_b_freq, ACT_REPORT_FREQ
 
 GWAS_H_POS_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =      ['chr']
+GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
 GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
-GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele']
-GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele']
-GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq']
+GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
+GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
+GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
 GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
 GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
 GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
