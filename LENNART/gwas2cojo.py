@@ -186,48 +186,45 @@ def inv(dna):
 
 
 def select_action(args,
-         gen_a, gen_b,
-         gen_maj, gen_min,
-         gen_maf,
+         gen_eff, gen_oth,
+         gen_eaf,
          gwas_ref, gwas_oth,
          gwas_ref_freq):
-    # b is the effect allele
-    gen_b_freq = gen_maf if gen_b == gen_min else 1 - gen_maf
-    freq_close = abs(gen_b_freq - gwas_ref_freq) < args.fclose
-    freq_inv_close = abs((1-gen_b_freq) - gwas_ref_freq) < args.fclose
-    freq_mid = abs(gen_b_freq - 0.5) < args.fmid
-    ambivalent = gen_a == inv(gen_b)
+    freq_close = abs(gen_eaf - gwas_ref_freq) < args.fclose
+    freq_inv_close = abs((1-gen_eaf) - gwas_ref_freq) < args.fclose
+    freq_mid = abs(gen_eaf - 0.5) < args.fmid
+    ambivalent = gen_eff == inv(gen_oth)
     if not ambivalent:
-        if gen_b == gwas_ref and gen_a == gwas_oth:
+        if gen_eff == gwas_ref and gen_oth == gwas_oth:
             act = ACT_NOP
-        elif gen_b == gwas_oth and gen_a == gwas_ref:
+        elif gen_eff == gwas_oth and gen_oth == gwas_ref:
             act = ACT_FLIP
-        elif gen_b == inv(gwas_ref) and gen_a == inv(gwas_oth):
+        elif gen_eff == inv(gwas_ref) and gen_oth == inv(gwas_oth):
             act = ACT_NOP
-        elif gen_b == inv(gwas_oth) and gen_a == inv(gwas_ref):
+        elif gen_eff == inv(gwas_oth) and gen_oth == inv(gwas_ref):
             act = ACT_FLIP
         else:
-            return gen_b_freq, ACT_SKIP
+            return ACT_SKIP
         if act is ACT_NOP and not freq_close:
-            return gen_b_freq, ACT_REPORT_FREQ
+            return ACT_REPORT_FREQ
         if act is ACT_FLIP and not freq_inv_close:
-            return gen_b_freq, ACT_REPORT_FREQ
-        return gen_b_freq, act
+            return ACT_REPORT_FREQ
+        return act
     else:
-        if gen_b == gwas_ref and gen_a == gwas_oth:
-            equal = True
-        elif gen_a == gwas_ref and gen_b == gwas_oth:
-            equal = False
+        if gen_eff == gwas_ref and gen_oth == gwas_oth:
+            pass # equal = True, if wanted equal could be used for statistics
+        elif gen_oth == gwas_ref and gen_eff == gwas_oth:
+            pass # equal = False
         else:
-            return gen_b_freq, ACT_SKIP
+            return ACT_SKIP
         if freq_mid:
-            return gen_b_freq, ACT_REM
+            return ACT_REM
         if freq_close:
-            return gen_b_freq, ACT_NOP
+            return ACT_NOP
         elif freq_inv_close:
-            return gen_b_freq, ACT_FLIP
+            return ACT_FLIP
         else:
-            return gen_b_freq, ACT_REPORT_FREQ
+            return ACT_REPORT_FREQ
 
 
 def log_error(report, name, gwas, gen=()):
@@ -407,26 +404,21 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                     header = line.split()
                     hrsid = header.index('RSID')
                     hch = header.index('Chr')
-                    hpos = header.index('BP')
-                    ha = header.index('A_allele')
-                    hb = header.index('B_allele')
-                    hminor = header.index('MinorAllele')
-                    hmajor = header.index('MajorAllele')
-                    hmaf = header.index('MAF')
-                    minsplit = max(hch, hpos) + 1
+                    hbp = header.index('BP')
+                    heff = header.index('B_allele')
+                    hoth = header.index('A_allele')
+                    heaf = header.index('CAF')
+                    minsplit = max(hch, hbp) + 1
                     continue
                 parts = line.split(None, minsplit)
                 ch = conv_chr_letter(parts[hch], full=True)
-                row_pos = ch, parts[hpos]
+                row_pos = ch, parts[hbp]
                 if row_pos in gwas:
                     gwas_row = gwas[row_pos]
                     parts = line.split()
-                    eff = 1 - hmaf
-                    gen_freq, act = select_action(
-                            args,
-                            parts[ha], parts[hb],
-                            parts[hmajor], parts[hminor],
-                            float(parts[hmaf]),
+                    eaf = float(parts[heaf])
+                    act = select_action(
+                            args, parts[heff], parts[hoth], eaf,
                             gwas_row.ref, gwas_row.oth,
                             gwas_row.f)
                     freq, beta = gwas_row.f, gwas_row.b
@@ -455,9 +447,9 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                     del gwas[row_pos]
                     converted += 1
                     if np:
-                        freq_comp[converted % freq_comp.shape[0]] = freq, gen_freq
+                        freq_comp[converted % freq_comp.shape[0]] = freq, eaf
                     if output:
-                        print(parts[hrsid], parts[hb], parts[ha], freq, beta,
+                        print(parts[hrsid], parts[heff], parts[hoth], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
