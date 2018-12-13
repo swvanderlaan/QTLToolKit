@@ -18,15 +18,15 @@
 #   e o | e o | gen gwas|
 #
 #   # non ambivalent
-#   A G | A G |  _   _  | nothing + FREQ need to be ballpark same range
-#   A G | T C |  _   _  | CHANGE ALLELES (T>A and C>G) + FREQ need to be ballpark same range
-#   A G | G A |  _   _  | FREQ need to be ballpark same range, flip freq, flip beta
-#   A G | C T |  _   _  | FREQ need to be ballpark same range, CHANGE ALLELES (C>G, T>A), flip freq, flip beta
+#   A G | A G |  _   _  | nothing + FREQ need to be ballpark same range +/- 0.15
+#   A G | T C |  _   _  | CHANGE ALLELES (T>A and C>G) + FREQ need to be ballpark same range +/- 0.15
+#   A G | G A |  _   _  | FREQ need to be ballpark same range +/- 0.15, flip freq, flip beta
+#   A G | C T |  _   _  | FREQ need to be ballpark same range +/- 0.15, CHANGE ALLELES (C>G, T>A), flip freq, flip beta
 #
 #   # ambivalent alleles (A/T and G/C)
 #   ## freqs close and low/high
-#   G C | G C | 0.1 0.1 | nothing + FREQ need to be ballpark same range
-#   G C | C G | 0.1 0.1 | CHANGE ALLELES (C>G and G>C) + FREQ need to be ballpark same range
+#   G C | G C | 0.1 0.1 | nothing + FREQ need to be ballpark same range +/- 0.15
+#   G C | C G | 0.1 0.1 | CHANGE ALLELES (C>G and G>C) + FREQ need to be ballpark same range +/- 0.15
 #
 #   ## freqs inverted and low/high
 #   G C | G C | 0.1 0.9 | CHANGE ALLELES (C>G and G>C), flip freq, flip beta
@@ -68,19 +68,19 @@ if not hasattr(os.path, 'commonpath'):
 
 # case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
-GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
-GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
-GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
-GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
-GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
-GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
-GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
-GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
-GWAS_H_NCONTROL_OPTIONS = ['N_control']
-GWAS_H_NCASE_OPTIONS =    ['N_case']
-GWAS_HG18_HINTS =         ['hg18', 'b36']
-GWAS_HG19_HINTS =         ['hg19']
+GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'CHR', 'Chr']
+GWAS_H_BP_OPTIONS =              ['bp_hg19', 'bp', 'pos', 'position', 'BP', 'POS', 'Pos']
+GWAS_H_REF_OPTIONS =             ['reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
+GWAS_H_OTH_OPTIONS =             ['other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
+GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF']
+GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta']
+GWAS_H_SE_OPTIONS =              ['log_odds_se', 'se_gc', 'se', 'stderr', 'SE_FIXED', 'SE']
+GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
+GWAS_H_NTOTAL_OPTIONS =          ['n_samples', 'TotalSampleSize', 'n_eff', 'N_EFF', 'N', 'neff', 'Neff']
+GWAS_H_NCONTROL_OPTIONS =        ['N_control']
+GWAS_H_NCASE_OPTIONS =           ['N_case']
+GWAS_HG18_HINTS =                ['hg18', 'b36']
+GWAS_HG19_HINTS =                ['hg19']
 
 
 def build_parser():
