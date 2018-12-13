@@ -38,23 +38,6 @@
 
 from __future__ import print_function
 
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-print('                                    QTLTools CONVERT GWAS FOR SMR')
-print('')
-print('')
-print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
-print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-print('* Last update        : 2018-12-12')
-print('* Name               : gwas2cojo')
-print('* Version            : v1.0.0')
-print('')
-print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
-print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
-print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
-print('')
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-
-
 import os
 import argparse
 import collections
@@ -66,6 +49,7 @@ try:
 except ImportError:
     np = None
 
+
 try:
     from pyliftover import LiftOver
 except ImportError:
@@ -74,60 +58,79 @@ except ImportError:
         print('run pip install pyliftover')
         exit(1)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
-        type=os.path.abspath, help='Output .cojo file')
-parser.add_argument('-r', '--report', dest='report', metavar='txt',
-        type=os.path.abspath, help='Report discarded SNPs here')
-parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
-        type=os.path.abspath, help='Genetic data')
-parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
-        type=os.path.abspath, help='GWAS location', required=True)
-parser.add_argument('--header-only', dest='header_only', action='store_true',
-        help='Exit after reading GWAS header. ' +
-             'Useful for testing whether a file is readable by this program.')
-
-filter_parser = parser.add_argument_group('filter snps')
-filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
-        help='ambivalent snps are ambiguous when effect frequency ' +
-             'is between 0.5-MID and 0.5+MID. ' +
-             'set to 0 to prevent discarding. default is 0.05.',
-        default='0.05', type=float)
-filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
-        help='frequencies are considered close when their difference is less than CLOSE. ' +
-             'default is 0.1',
-        default='0.1', type=float)
-
-header_parser = parser.add_argument_group('gwas header')
-header_parser.add_argument('--gwas:effect', metavar='COLUMN', help='Effect allele column name')
-header_parser.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect allele column name')
-header_parser.add_argument('--gwas:freq', metavar='COLUMN', help='Effect allele frequency column name')
-header_parser.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name')
-header_parser.add_argument('--gwas:std', metavar='COLUMN', help='Log-odds standard deviation column name')
-header_parser.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name')
-header_parser.add_argument('--gwas:pos', metavar='COLUMN', help='position column name when encoded as chr:pos')
-header_parser.add_argument('--gwas:chr', metavar='COLUMN', help='chromosome column name')
-header_parser.add_argument('--gwas:bp',metavar='COLUMN', help='chromosomal position column name')
-header_parser.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19 etc..')
-header_parser.add_argument('--gwas:n',metavar='COLUMN(S)',
-        help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
-             'are specified, their sum is stored.')
-
-header_parser = parser.add_argument_group('gwas default values')
-header_parser.add_argument('--gwas:default:p', metavar='VALUE')
-header_parser.add_argument('--gwas:default:beta', metavar='VALUE')
-header_parser.add_argument('--gwas:default:std', metavar='VALUE')
-header_parser.add_argument('--gwas:default:chr', metavar='VALUE')
-header_parser.add_argument('--gwas:default:n',metavar='VALUE')
 
 if not hasattr(time, 'monotonic'):
     time.monotonic = time.time
 if not hasattr(os.path, 'commonpath'):
     os.path.commonpath = os.path.commonprefix
 
+
+GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
+GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
+GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
+GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
+GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
+GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
+GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
+GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
+GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
+GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
+GWAS_H_NCONTROL_OPTIONS = ['N_control']
+GWAS_H_NCASE_OPTIONS =    ['N_case']
+GWAS_HG18_HINTS =         ['hg18', 'b36']
+GWAS_HG19_HINTS =         ['hg19']
+
+
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
+            type=os.path.abspath, help='Output .cojo file')
+    parser.add_argument('-r', '--report', dest='report', metavar='txt',
+            type=os.path.abspath, help='Report discarded SNPs here')
+    parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
+            type=os.path.abspath, help='Genetic data')
+    parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
+            type=os.path.abspath, help='GWAS location', required=True)
+    parser.add_argument('--header-only', dest='header_only', action='store_true',
+            help='Exit after reading GWAS header. ' +
+                 'Useful for testing whether a file is readable by this program.')
+    filter_parser = parser.add_argument_group('filter snps')
+    filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
+            help='ambivalent snps are ambiguous when effect frequency ' +
+                 'is between 0.5-MID and 0.5+MID. ' +
+                 'set to 0 to prevent discarding. default is 0.05.',
+            default='0.05', type=float)
+    filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
+            help='frequencies are considered close when their difference is less than CLOSE. ' +
+                 'default is 0.1',
+            default='0.1', type=float)
+    header_parser = parser.add_argument_group('gwas header')
+    header_parser.add_argument('--gwas:effect', metavar='COLUMN', help='Effect allele column name')
+    header_parser.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect allele column name')
+    header_parser.add_argument('--gwas:freq', metavar='COLUMN', help='Effect allele frequency column name')
+    header_parser.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name')
+    header_parser.add_argument('--gwas:std', metavar='COLUMN', help='Log-odds standard deviation column name')
+    header_parser.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name')
+    header_parser.add_argument('--gwas:chr-bp', metavar='COLUMN', help='position column name when encoded as chr:pos')
+    header_parser.add_argument('--gwas:chr', metavar='COLUMN', help='chromosome column name')
+    header_parser.add_argument('--gwas:bp',metavar='COLUMN', help='chromosomal position column name')
+    header_parser.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19 etc..')
+    header_parser.add_argument('--gwas:n',metavar='COLUMN(S)',
+            help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
+                 'are specified, their sum is stored.')
+    header_parser = parser.add_argument_group('gwas default values')
+    header_parser.add_argument('--gwas:default:p', metavar='VALUE')
+    header_parser.add_argument('--gwas:default:beta', metavar='VALUE')
+    header_parser.add_argument('--gwas:default:std', metavar='VALUE')
+    header_parser.add_argument('--gwas:default:chr', metavar='VALUE')
+    header_parser.add_argument('--gwas:default:n',metavar='VALUE')
+    return parser
+
+
 GWASRow = collections.namedtuple('GWASRow', 'ref oth f b se p lineno ch bp n')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
 ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ= 1, 2, 3, 4, 5
+
 
 def conv_chr_letter(ch):
     # assuming ch = ch.lstrip('0').upper()
@@ -137,6 +140,7 @@ def conv_chr_letter(ch):
     elif ch == '26': return 'MT'
     elif ch == 'M': return 'MT'
     return ch
+
 
 class ReporterLine:
     def __init__(self, line=''):
@@ -163,10 +167,12 @@ class ReporterLine:
                 lineno, kline_per_s, part, tell_per_s, message=message))
         self.last_time, self.last_lineno, self.last_tell = now, lineno, tell
 
+
 def inv(dna):
     if len(dna) == 1:
         return INV[dna]
     return ''.join(INV[bp] for bp in dna)
+
 
 def select_action(args,
          gen_a, gen_b,
@@ -212,26 +218,20 @@ def select_action(args,
         else:
             return gen_b_freq, ACT_REPORT_FREQ
 
-GWAS_H_POS_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
-GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
-GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
-GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
-GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
-GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
-GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
-GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
-GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
-GWAS_H_NCONTROL_OPTIONS = ['N_control']
-GWAS_H_NCASE_OPTIONS =    ['N_case']
-GWAS_HG18_HINTS =         ['hg18', 'b36']
-GWAS_HG19_HINTS =         ['hg19']
 
 def log_error(report, name, gwas, gen=()):
     parts = list(gwas)
     if gen:
         parts.extend(gen)
     print(name, *parts, file=report, sep='\t')
+
+
+def fopen(filename):
+    if filename.endswith('.gz'):
+        return gzip.open(filename, 'rt')
+    else:
+        return open(filename)
+
 
 def read_gwas(args, filename, report=None):
     liftover = None
@@ -258,7 +258,7 @@ def read_gwas(args, filename, report=None):
                 print(' * --' + option_name, part)
             exit(1)
     try:
-        with gzip.open(filename, 'rt') as f:
+        with fopen(filename, 'rt') as f:
             for lineno, line in enumerate(f, 1):
                 if lineno == 1:
                     if not args['gwas:build'] is None:
@@ -268,7 +268,7 @@ def read_gwas(args, filename, report=None):
                     elif any(hint in line for hint in GWAS_HG18_HINTS):
                         desc['build'] = 'hg18'
                     header = line.split()
-                    hpos = select('pos', GWAS_H_POS_COMB_OPTIONS, fail=False)
+                    hpos = select('chr-bp', GWAS_H_CHR_AND_BP_COMB_OPTIONS, fail=False)
                     if hpos is None:
                         postype_combined = False
                         hpos_ch = select('chr', GWAS_H_CHR_OPTIONS)
@@ -363,6 +363,7 @@ def read_gwas(args, filename, report=None):
         print('successfully hg18->hg19 converted', yes, 'rows')
         print('conversion failed for', no, 'rows (reported as gwas_conv_failed)')
 
+
 def update_read_stats(gwas, stats_filename, output=None, report=None):
     reporter = ReporterLine('genetic:')
     if output:
@@ -372,12 +373,12 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
     converted = discarded = 0
     stopped = False
     try:
-        with gzip.open(stats_filename, 'rt') as f:
+        with fopen(stats_filename, 'rt') as f:
             for lineno, line in enumerate(f, 1):
                 if not gwas:
                     break
                 if lineno == 1:
-                    header = line.split() 
+                    header = line.split()
                     rsid = header.index('RSID')
                     ch = header.index('Chr')
                     pos = header.index('BP')
@@ -456,6 +457,50 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                 print(ch, pos, row, file=report)
             log_error(report, 'leftover', gwas=gwas_row)
 
+
+def gwas_header_auto(gwas_filename):
+    with fopen(filename, 'rt') as f:
+        for lineno, line in enumerate(f, 1):
+            parts = line.split()
+            if lineno == 1:
+                header = parts
+                cols = [[] for _col in range(len(headers))]
+                continue
+            for col_idx, part in enumerate(parts):
+                cols[col_idx].append(part)
+            if lineno > 100:
+                break
+    def test_chr(col):
+        return (all(x.lower().startswith('chr') and ':' not in x for x in col)
+            or  all(x.lower() in 'x y xy m mt' or x.isdigit() and 0 < int(x) <= 24))
+    def test_pos(col):
+        return (all(x.count(':') == 1 and x.split(':')[1].isdigit() for x in col))
+    def test_bp(col):
+        return (all(x.isdigit() and int(x) > 0 for x in col)
+            and max(int(x) for x in col) > 100000)
+    def find(f):
+        mask = list(map(f, cols))
+        if sum(mask) == 1:
+            return mask.index(True)
+
+
+
+
+GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
+GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
+GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
+GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
+GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
+GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
+GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
+GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
+GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
+GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
+GWAS_H_NCONTROL_OPTIONS = ['N_control']
+GWAS_H_NCASE_OPTIONS =    ['N_case']
+GWAS_HG18_HINTS =         ['hg18', 'b36']
+GWAS_HG19_HINTS =         ['hg19']
+
 def main(args):
     paths = [args.gwas]
     output = report = None
@@ -481,7 +526,7 @@ def main(args):
             print('*WARNING* not writing result file (-o) *WARNING*')
         if args.report:
             print(' / report:          ', os.path.relpath(args.report, root))
-            with gzip.open(args.gen, 'rt') as f:
+            with fopen(args.gen, 'rt') as f:
                 gen_header = f.readline().split()
             log_error(report, 'type', GWASRow._fields, gen_header)
         else:
@@ -495,31 +540,56 @@ def main(args):
     if args.report:
         report.close()
 
+
+def prolog():
+    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print('                                    QTLTools CONVERT GWAS FOR SMR')
+    print('')
+    print('')
+    print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
+    print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
+    print('* Last update        : 2018-12-12')
+    print('* Name               : gwas2cojo')
+    print('* Version            : v1.0.0')
+    print('')
+    print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
+    print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
+    print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
+    print('')
+    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
+
+def epilog():
+    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print('+ The MIT License (MIT)                                                                                 +')
+    print('+ Copyright (c) 1979-2018 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+    print('+                                                                                                       +')
+    print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
+    print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
+    print('+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +')
+    print('+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +')
+    print('+ subject to the following conditions:                                                                  +')
+    print('+                                                                                                       +')
+    print('+ The above copyright notice and this permission notice shall be included in all copies or substantial  +')
+    print('+ portions of the Software.                                                                             +')
+    print('+                                                                                                       +')
+    print('+ THE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +')
+    print('+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +')
+    print('+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +')
+    print('+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +')
+    print('+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +')
+    print('+                                                                                                       +')
+    print('+ Reference: http://opensource.org.                                                                     +')
+    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
+
 if __name__ == '__main__':
+    prolog()
+    parser = build_parser()
     args = parser.parse_args()
     try:
         main(args)
     except KeyboardInterrupt:
         print('aborted')
+    epilog()
 
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-print('+ The MIT License (MIT)                                                                                 +')
-print('+ Copyright (c) 1979-2018 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
-print('+                                                                                                       +')
-print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
-print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
-print('+ including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, +')
-print('+ and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, +')
-print('+ subject to the following conditions:                                                                  +')
-print('+                                                                                                       +')
-print('+ The above copyright notice and this permission notice shall be included in all copies or substantial  +')
-print('+ portions of the Software.                                                                             +')
-print('+                                                                                                       +')
-print('+ THE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT     +')
-print('+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                +')
-print('+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES  +')
-print('+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN   +')
-print('+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                            +')
-print('+                                                                                                       +')
-print('+ Reference: http://opensource.org.                                                                     +')
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
