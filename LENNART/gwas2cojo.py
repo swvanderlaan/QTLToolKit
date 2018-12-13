@@ -39,6 +39,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import argparse
 import collections
 import gzip
@@ -48,7 +49,6 @@ try:
     import numpy as np
 except ImportError:
     np = None
-
 
 try:
     from pyliftover import LiftOver
@@ -65,6 +65,7 @@ if not hasattr(os.path, 'commonpath'):
     os.path.commonpath = os.path.commonprefix
 
 
+# case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
 GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
 GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
@@ -132,13 +133,19 @@ INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
 ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ= 1, 2, 3, 4, 5
 
 
-def conv_chr_letter(ch):
-    # assuming ch = ch.lstrip('0').upper()
+def conv_chr_letter(ch, full=False):
+    if full:
+        ch = ch.upper()
+        if ch.startswith('CHR'):
+            ch = ch[3:]
+        ch = ch.zfill(2)
+    # else: asumme ch = ch.upper() and not chr_
     if ch == '23': return 'X'
     elif ch == '24': return 'Y'
     elif ch == '25': return 'XY'
     elif ch == '26': return 'MT'
     elif ch == 'M': return 'MT'
+    elif ch == '0M': return 'MT'
     return ch
 
 
@@ -153,16 +160,19 @@ class ReporterLine:
 
     def update(self, lineno, fileno, message=''):
         now = time.monotonic()
+        dt = now - self.last_time
+        if not sys.stdout.isatty() and dt < 5:
+            return
         tell = os.lseek(fileno, 0, os.SEEK_CUR)
         if self.size is None:
             self.size = os.fstat(fileno).st_size
-        dt = now - self.last_time
         dlineno = lineno - self.last_lineno
         dtell = tell - self.last_tell
         part = 100. * tell / self.size
         kline_per_s = dlineno/dt/1000
         tell_per_s = dtell/dt/1000000
-        print('\033[1A\033[K', end='')
+        if sys.stdout.isatty():
+            print('\033[1A\033[K', end='')
         print(self.line, '{0} {1:.1f}kline/s {2:.1f}% {3:.1f}M/s {message}'.format(
                 lineno, kline_per_s, part, tell_per_s, message=message))
         self.last_time, self.last_lineno, self.last_tell = now, lineno, tell
@@ -247,9 +257,10 @@ def read_gwas(args, filename, report=None):
         if name in desc:
             return header.index(desc[name])
         for option in options:
-            if option in header:
+            header_upper = list(map(str.upper, header))
+            if option.upper() in header_upper:
                 desc[name] = option
-                return header.index(option)
+                return header_upper.index(option.upper())
         if fail and not args.get('gwas:default:'+name):
             print('could not find a header in GWAS for', name)
             print('  specify with --' + option_name)
@@ -258,7 +269,7 @@ def read_gwas(args, filename, report=None):
                 print(' * --' + option_name, part)
             exit(1)
     try:
-        with fopen(filename, 'rt') as f:
+        with fopen(filename) as f:
             for lineno, line in enumerate(f, 1):
                 if lineno == 1:
                     if not args['gwas:build'] is None:
@@ -268,7 +279,7 @@ def read_gwas(args, filename, report=None):
                     elif any(hint in line for hint in GWAS_HG18_HINTS):
                         desc['build'] = 'hg18'
                     header = line.split()
-                    hpos = select('chr-bp', GWAS_H_CHR_AND_BP_COMB_OPTIONS, fail=False)
+                    hpos = select('chr_bp', GWAS_H_CHR_AND_BP_COMB_OPTIONS, fail=False)
                     if hpos is None:
                         postype_combined = False
                         hpos_ch = select('chr', GWAS_H_CHR_OPTIONS)
@@ -351,7 +362,7 @@ def read_gwas(args, filename, report=None):
                     else:
                         no += 1
                         if report:
-                            log_error(report, 'gwas_conv_failed', gwas=row)
+                            log_error(report, 'gwas_build_conv_failed', gwas=row)
                         continue
                 ch = ch.zfill(2)
                 yield (ch, bp), row
@@ -361,7 +372,7 @@ def read_gwas(args, filename, report=None):
         print('aborted reading gwas data at line', lineno)
     if liftover:
         print('successfully hg18->hg19 converted', yes, 'rows')
-        print('conversion failed for', no, 'rows (reported as gwas_conv_failed)')
+        print('conversion failed for', no, 'rows (reported as gwas_build_conv_failed)')
 
 
 def update_read_stats(gwas, stats_filename, output=None, report=None):
@@ -373,33 +384,34 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
     converted = discarded = 0
     stopped = False
     try:
-        with fopen(stats_filename, 'rt') as f:
+        with fopen(stats_filename) as f:
             for lineno, line in enumerate(f, 1):
                 if not gwas:
                     break
                 if lineno == 1:
                     header = line.split()
-                    rsid = header.index('RSID')
-                    ch = header.index('Chr')
-                    pos = header.index('BP')
-                    a = header.index('A_allele')
-                    b = header.index('B_allele')
-                    mi = header.index('MinorAllele')
-                    ma = header.index('MajorAllele')
-                    maf = header.index('MAF')
-                    minsplit = max(ch, pos) + 1
+                    hrsid = header.index('RSID')
+                    hch = header.index('Chr')
+                    hpos = header.index('BP')
+                    ha = header.index('A_allele')
+                    hb = header.index('B_allele')
+                    hminor = header.index('MinorAllele')
+                    hmajor = header.index('MajorAllele')
+                    hmaf = header.index('MAF')
+                    minsplit = max(hch, hpos) + 1
                     continue
                 parts = line.split(None, minsplit)
-                row_pos = parts[ch], parts[pos]
+                ch = conv_chr_letter(parts[hch], full=True)
+                row_pos = ch, parts[hpos]
                 if row_pos in gwas:
                     gwas_row = gwas[row_pos]
                     parts = line.split()
-                    eff = 1 - maf
+                    eff = 1 - hmaf
                     gen_freq, act = select_action(
                             args,
-                            parts[a], parts[b],
-                            parts[ma], parts[mi],
-                            float(parts[maf]),
+                            parts[ha], parts[hb],
+                            parts[hmajor], parts[hminor],
+                            float(parts[hmaf]),
                             gwas_row.ref, gwas_row.oth,
                             gwas_row.f)
                     freq, beta = gwas_row.f, gwas_row.b
@@ -430,7 +442,7 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
                     if np:
                         freq_comp[converted % freq_comp.shape[0]] = freq, gen_freq
                     if output:
-                        print(parts[rsid], parts[b], parts[a], freq, beta,
+                        print(parts[hrsid], parts[hb], parts[ha], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
@@ -451,11 +463,8 @@ def update_read_stats(gwas, stats_filename, output=None, report=None):
         if stopped and len(gwas) > 1000:
             print('not writing leftover rows due to early stop')
         else:
-            print(file=report)
-            print('LEFTOVER GWAS ROWS', file=report)
-            for (ch, pos), row in gwas.items():
-                print(ch, pos, row, file=report)
-            log_error(report, 'leftover', gwas=gwas_row)
+            for gwas_row in gwas.values():
+                log_error(report, 'leftover', gwas=gwas_row)
 
 
 def gwas_header_auto(gwas_filename):
@@ -484,23 +493,6 @@ def gwas_header_auto(gwas_filename):
             return mask.index(True)
 
 
-
-
-GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =      ['chr', 'chromosome']
-GWAS_H_BP_OPTIONS =       ['bp_hg19', 'bp', 'pos', 'position']
-GWAS_H_REF_OPTIONS =      ['reference_allele', 'effect_allele', 'riskallele']
-GWAS_H_OTH_OPTIONS =      ['other_allele', 'noneffect_allele', 'nonriskallele']
-GWAS_H_FREQ_OPTIONS =     ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf']
-GWAS_H_BETA_OPTIONS =     ['log_odds', 'logOR', 'beta', 'effect']
-GWAS_H_SE_OPTIONS =       ['log_odds_se', 'se_gc', 'se', 'stderr']
-GWAS_H_PVALUE_OPTIONS =   ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p']
-GWAS_H_NTOTAL_OPTIONS =   ['n_samples', 'TotalSampleSize']
-GWAS_H_NCONTROL_OPTIONS = ['N_control']
-GWAS_H_NCASE_OPTIONS =    ['N_case']
-GWAS_HG18_HINTS =         ['hg18', 'b36']
-GWAS_HG19_HINTS =         ['hg19']
-
 def main(args):
     paths = [args.gwas]
     output = report = None
@@ -525,8 +517,8 @@ def main(args):
         else:
             print('*WARNING* not writing result file (-o) *WARNING*')
         if args.report:
-            print(' / report:          ', os.path.relpath(args.report, root))
-            with fopen(args.gen, 'rt') as f:
+            print(' / report:      ', os.path.relpath(args.report, root))
+            with fopen(args.gen) as f:
                 gen_header = f.readline().split()
             log_error(report, 'type', GWASRow._fields, gen_header)
         else:
