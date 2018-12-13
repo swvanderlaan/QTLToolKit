@@ -50,6 +50,7 @@ try:
 except ImportError:
     np = None
 
+
 try:
     from pyliftover import LiftOver
 except ImportError:
@@ -245,7 +246,7 @@ def fopen(filename):
 
 def read_gwas(args, filename, report=None):
     liftover = None
-    yes = no = 0
+    float_conv_failed = yes = no = 0
     desc = {}
     default_p, default_std = args['gwas:default:p'], args['gwas:default:std']
     default_n, default_chr = args['gwas:default:n'], args['gwas:default:chr']
@@ -340,9 +341,21 @@ def read_gwas(args, filename, report=None):
                     n = default_n or sum(int(parts[col]) for col in hn)
                 except ValueError:
                     n = 'NA'
+                gwas_freq = parts[hfreq]
+                gwas_beta = default_beta or parts[hb]
+                try:
+                    gwas_freq, gwas_beta = float(gwas_freq), float(gwas_beta)
+                except ValueError:
+                    row = GWASRow(parts[href].upper(), parts[hoth].upper(),
+                            gwas_freq, gwas_beta,
+                            default_std or parts[hse],
+                            default_p or parts[hp],
+                            lineno, ch, bp, n)
+                    if report: log_error(report, 'gwas_float_conv_failed', gwas=row)
+                    float_conv_failed += 1
+                    continue
                 row = GWASRow(parts[href].upper(), parts[hoth].upper(),
-                        float(parts[hfreq]),
-                        float(default_beta or parts[hb]),
+                        gwas_freq, gwas_beta,
                         default_std or parts[hse],
                         default_p or parts[hp],
                         lineno, ch, bp, n)
@@ -372,7 +385,9 @@ def read_gwas(args, filename, report=None):
         print('aborted reading gwas data at line', lineno)
     if liftover:
         print('successfully hg18->hg19 converted', yes, 'rows')
-        print('conversion failed for', no, 'rows (reported as gwas_build_conv_failed)')
+        print('build conversion failed for', no, 'rows (reported as gwas_build_conv_failed)')
+    if float_conv_failed:
+        print('numeric conversion failed for', float_conv_failed, 'rows (reported as gwas_float_conv_failed)')
 
 
 def update_read_stats(gwas, stats_filename, output=None, report=None):
