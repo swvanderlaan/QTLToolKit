@@ -436,9 +436,9 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
             for lineno, line in enumerate(f, 1):
                 if lineno == 1:
                     header = line.split()
-                    hrsid = select('ident', ['rsid', 'snp'])
+                    hrsid = select('ident', ['rsid', 'snp', 'variantid'])
                     hch = select('chr', ['chr', 'chromosome'])
-                    hbp = select('bp', ['bp', 'position'])
+                    hbp = select('bp', ['bp', 'position', 'pos'])
                     heff = select('effect', [])
                     hoth = select('other', [])
                     heaf = select('eaf', [], can_fail=True)
@@ -615,9 +615,9 @@ def prolog():
     print('')
     print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-    print('* Last update        : 2018-12-12')
+    print('* Last update        : 2018-12-13')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.0.0')
+    print('* Version            : v1.1.0')
     print('')
     print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
     print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
