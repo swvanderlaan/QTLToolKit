@@ -759,8 +759,12 @@ else
 
 
 if ${JOBARRAY}; then
+  # ${PYTHON} QTLJobArrayBuilder.py "${RESULTS}/jobarray" | \
+  #     awk 'BEGIN {a=0} /qsub/ {a+=1} /^[^#]/ {if (a==4) print$0}' \
+  #     > "${RESULTS}/jobarray/qsub.sh"
     ${PYTHON} QTLJobArrayBuilder.py "${RESULTS}/jobarray" > "${RESULTS}/jobarray/qsub.sh"
     # for job arrays, actually submit jobs
+    cat "${RESULTS}/jobarray/qsub.sh"
     bash "${RESULTS}/jobarray/qsub.sh"
 fi
 
