@@ -69,7 +69,12 @@ def main(taskdir):
     arrayjobs = set()
 
     for name in order:
+        if name.startswith('GENEX'):
+            hold = name
         tasks = by_name[name]
+        if name.startswith('GENQC') and 'hold_jid' not in tasks[0]:
+            for _task in tasks:
+                _task['hold_jid'] = hold
         if len(tasks) == 1:
             cmd = tasks[0].pop('cmd')
             print('# JOB', name)
