@@ -83,13 +83,14 @@ def main(taskdir):
             qsub_file = os.path.join(taskdir, name + '.jobfile')
             arrayjobs.add((name, len(tasks)))
             with open(qsub_file, 'w') as f:
-                for task in tasks:
+                for idx, task in enumerate(tasks, 1):
                     cmd = task.pop('cmd')
-                    print('cd ' + task.pop('wd') + ';',
+                    print('[ "${SGE_TASK_ID}" -eq', idx, '] &&',
+                            '(cd ' + task.pop('wd') + ';',
                             task.S, cmd,
                             '1>' + task.pop('o'),
                             '2>' + task.pop('e'),
-                            file=f)
+                            ')', file=f)
             print('#', 'ARRAYJOB', name)
             task = dict(task)
             if (task.get('hold_jid'), len(tasks)) in arrayjobs:
