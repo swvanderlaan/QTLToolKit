@@ -11,3 +11,4 @@
 .DS_Store
 RESOURCES/*.encode.alltissues.bed.gz
 *.encode.alltissues.narrowPeak.bed.gz
+.DS_Store
