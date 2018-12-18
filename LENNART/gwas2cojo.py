@@ -93,6 +93,7 @@ def build_parser():
             type=os.path.abspath, help='Genetic data')
     parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
             type=os.path.abspath, help='GWAS location', required=True)
+
     parser.add_argument('--header-only', dest='header_only', action='store_true',
             help='Exit after reading GWAS header. ' +
                  'Useful for testing whether a file is readable by this program.')
@@ -106,6 +107,8 @@ def build_parser():
             help='frequencies are considered close when their difference is less than CLOSE. ' +
                  'default is 0.1',
             default='0.1', type=float)
+    filter_parser.add_argument('--ignore-indels', action='store_true',
+            help='Should insertions and deletions be ignored? Only SNPs are retained.')
     gwas_header = parser.add_argument_group('gwas header')
     gwas_header.add_argument('--gwas:effect', metavar='COLUMN', help='Effect allele column name')
     gwas_header.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect allele column name')
@@ -142,8 +145,8 @@ def build_parser():
 
 
 GWASRow = collections.namedtuple('GWASRow', 'ref oth f b se p lineno ch bp n')
-INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', }
-ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ= 1, 2, 3, 4, 5
+INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C' }
+ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ, ACT_INDEL_SKIP = 1, 2, 3, 4, 5, 6
 
 
 def conv_chr_letter(ch, full=False):
@@ -206,7 +209,31 @@ def select_action(args,
     freq_inv_close = abs((1-gen_eaf) - gwas_ref_freq) < args.fclose
     freq_mid = abs(gen_eaf - 0.5) < args.fmid
     ambivalent = gen_eff == inv(gen_oth)
-    if not ambivalent:
+    if gen_eff in 'IDR' or gen_oth in 'IDR':
+        if len(gwas_ref) < len(gwas_oth):
+            gwas_ref, gwas_oth = 'DI'
+        elif len(gwas_ref) > len(gwas_oth):
+            gwas_ref, gwas_oth = 'ID'
+        elif gwas_ref not in 'IDR' or gwas_oth not in 'IDR':
+            return ACT_INDEL_SKIP
+    indel = gwas_ref in 'IDR' or gwas_oth in 'IDR'
+    if args.ignore_indels and (indel or len(gwas_ref) != 1 or len(gwas_oth) != 1):
+        return ACT_INDEL_SKIP
+    if indel:
+        if gwas_ref not in 'IDR' or gwas_oth not in 'IDR':
+            return ACT_INDEL_SKIP
+        elif gwas_ref == 'I' or gwas_oth == 'D':
+            if (gen_ref == 'I' or gen_oth == 'D') or len(gen_ref) > len(gen_oth):
+                return ACT_NOP
+            elif (gen_ref == 'D' or gen_oth == 'I') or len(gen_ref) < len(gen_oth):
+                return ACT_FLIP
+        elif gwas_ref == 'D' or gwas_oth == 'I':
+            if (gen_ref == 'I' or gen_oth == 'D') or len(gen_ref) > len(gen_oth):
+                return ACT_FLIP
+            elif (gen_ref == 'D' or gen_oth == 'I') or len(gen_ref) < len(gen_oth):
+                return ACT_NOP
+        return ACT_INDEL_SKIP
+    elif not ambivalent:
         if gen_eff == gwas_ref and gen_oth == gwas_oth:
             act = ACT_NOP
         elif gen_eff == gwas_oth and gen_oth == gwas_ref:
@@ -499,6 +526,11 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     elif act is ACT_SKIP:
                         counts['report:allele_mismatch'] += 1
                         if report: log_error(report, 'allele_mismatch', gwas=gwas_row, gen=parts)
+                        discarded += 1
+                        continue
+                    elif act is ACT_INDEL_SKIP:
+                        counts['report:indel_ignored'] += 1
+                        if report: log_error(report, 'indel_ignored', gwas=gwas_row, gen=parts)
                         discarded += 1
                         continue
                     elif act is ACT_REPORT_FREQ:
