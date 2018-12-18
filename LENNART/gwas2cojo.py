@@ -351,7 +351,7 @@ def read_gwas(args, filename, report=None):
                     ch = default_chr or parts[hpos_ch]
                     bp = parts[hpos_bp]
                 try:
-                    n = default_n or sum(int(parts[col]) for col in hn)
+                    n = default_n or sum(int(float(parts[col])+0.5) for col in hn)
                 except ValueError:
                     n = 'NA'
                 gwas_freq = parts[hfreq]
