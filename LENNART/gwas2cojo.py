@@ -86,61 +86,60 @@ GWAS_HG19_HINTS =                ['hg19']
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
-            type=os.path.abspath, help='Output .cojo file')
+            type=os.path.abspath, help='Output .cojo file.')
     parser.add_argument('-r', '--report', dest='report', metavar='txt',
-            type=os.path.abspath, help='Report discarded SNPs here')
+            type=os.path.abspath, help='Report discarded variantss here.')
     parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
-            type=os.path.abspath, help='Genetic data')
+            type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) in PLINK binary format (i.e. bed/bim/fam).')
     parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
-            type=os.path.abspath, help='GWAS location', required=True)
-
+            type=os.path.abspath, help='GWAS summary statistics location.', required=True)
     parser.add_argument('--header-only', dest='header_only', action='store_true',
             help='Exit after reading GWAS header. ' +
                  'Useful for testing whether a file is readable by this program.')
     filter_parser = parser.add_argument_group('filter snps')
     filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
-            help='ambivalent snps are ambiguous when effect frequency ' +
+            help='Ambivalent variants are ambiguous when effect frequency ' +
                  'is between 0.5-MID and 0.5+MID. ' +
-                 'set to 0 to prevent discarding. default is 0.05.',
+                 'Set to 0 to prevent discarding. Default is 0.05.',
             default='0.05', type=float)
     filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
-            help='frequencies are considered close when their difference is less than CLOSE. ' +
-                 'default is 0.1',
+            help='Fequencies are considered close when their difference is less than CLOSE. ' +
+                 'Default is 0.1',
             default='0.1', type=float)
     filter_parser.add_argument('--ignore-indels', action='store_true',
             help='Should insertions and deletions be ignored? Only SNPs are retained.')
     gwas_header = parser.add_argument_group('gwas header')
-    gwas_header.add_argument('--gwas:effect', metavar='COLUMN', help='Effect allele column name')
-    gwas_header.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect allele column name')
-    gwas_header.add_argument('--gwas:freq', metavar='COLUMN', help='Effect allele frequency column name')
-    gwas_header.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name')
-    gwas_header.add_argument('--gwas:std', metavar='COLUMN', help='Log-odds standard deviation column name')
-    gwas_header.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name')
-    gwas_header.add_argument('--gwas:chr-bp', metavar='COLUMN', help='position column name when encoded as chr:pos')
-    gwas_header.add_argument('--gwas:chr', metavar='COLUMN', help='chromosome column name')
-    gwas_header.add_argument('--gwas:bp',metavar='COLUMN', help='chromosomal position column name')
-    gwas_header.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19 etc..')
+    gwas_header.add_argument('--gwas:effect', metavar='COLUMN', help='Effect/Risk/Coded/Minor allele column name.')
+    gwas_header.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect/Other/Major allele column name.')
+    gwas_header.add_argument('--gwas:freq', metavar='COLUMN', help='Effect/Risk/Coded/Minor allele frequency column name.')
+    gwas_header.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name [beta/effect], relative to effect/risk/coded/minor allele.')
+    gwas_header.add_argument('--gwas:se', metavar='COLUMN', help='Log-odds standard error column name.')
+    gwas_header.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name.')
+    gwas_header.add_argument('--gwas:chr-bp', metavar='COLUMN', help='Position column name when encoded as chr:pos.')
+    gwas_header.add_argument('--gwas:chr', metavar='COLUMN', help='Chromosome column name.')
+    gwas_header.add_argument('--gwas:bp',metavar='COLUMN', help='Chromosomal position column name.')
+    gwas_header.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19, etc.')
     gwas_header.add_argument('--gwas:n',metavar='COLUMN(S)',
             help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
                  'are specified, their sum is stored.')
     gwas_default = parser.add_argument_group('gwas default values')
     gwas_default.add_argument('--gwas:default:p', metavar='VALUE')
     gwas_default.add_argument('--gwas:default:beta', metavar='VALUE')
-    gwas_default.add_argument('--gwas:default:std', metavar='VALUE')
+    gwas_default.add_argument('--gwas:default:se', metavar='VALUE')
     gwas_default.add_argument('--gwas:default:chr', metavar='VALUE')
     gwas_default.add_argument('--gwas:default:n',metavar='VALUE')
     gen_header = parser.add_argument_group('genetic data header')
-    gen_header.add_argument('--gen:ident', metavar='COLUMN', help='column name of variant identifier (eg rsid)')
-    gen_header.add_argument('--gen:chr', metavar='COLUMN', help='column name of chromosome')
-    gen_header.add_argument('--gen:bp', metavar='COLUMN', help='column name of bp position')
-    gen_header.add_argument('--gen:effect', metavar='COLUMN', help='column name of effect allele')
-    gen_header.add_argument('--gen:other', metavar='COLUMN', help='column name of non-effect allele')
-    gen_header.add_argument('--gen:eaf', metavar='COLUMN', help='column name of effect allele frequency')
-    gen_header.add_argument('--gen:oaf', metavar='COLUMN', help='column name of non-effect allele frequency')
-    gen_header.add_argument('--gen:maf', metavar='COLUMN', help='column name of minor allele frequency')
-    gen_header.add_argument('--gen:minor', metavar='COLUMN', help='column name of minor allele. when used in combination with maf, ' +
-            'it is used to find the effect allele frequency')
-    gen_header.add_argument('--gen:build', metavar='COLUMN', help='genetic data build. defaults to hg19', default='hg19')
+    gen_header.add_argument('--gen:ident', metavar='COLUMN', help='Column name of variant identifier (e.g. rsid).')
+    gen_header.add_argument('--gen:chr', metavar='COLUMN', help='Column name of chromosome.')
+    gen_header.add_argument('--gen:bp', metavar='COLUMN', help='Column name of bp position.')
+    gen_header.add_argument('--gen:effect', metavar='COLUMN', help='Column name of effect allele.')
+    gen_header.add_argument('--gen:other', metavar='COLUMN', help='Column name of non-effect allele.')
+    gen_header.add_argument('--gen:eaf', metavar='COLUMN', help='Column name of effect allele frequency.')
+    gen_header.add_argument('--gen:oaf', metavar='COLUMN', help='Column name of non-effect allele frequency.')
+    gen_header.add_argument('--gen:maf', metavar='COLUMN', help='Column name of minor allele frequency.')
+    gen_header.add_argument('--gen:minor', metavar='COLUMN', help='Column name of minor allele. when used in combination with maf, ' +
+            'it is used to find the effect allele frequency.')
+    gen_header.add_argument('--gen:build', metavar='COLUMN', help='Genetic reference data build. Defaults to hg19', default='hg19')
     return parser
 
 
@@ -284,7 +283,7 @@ def read_gwas(args, filename, report=None):
     liftover = None
     float_conv_failed = yes = no = 0
     desc = {}
-    default_p, default_std = args['gwas:default:p'], args['gwas:default:std']
+    default_p, default_std = args['gwas:default:p'], args['gwas:default:se']
     default_n, default_chr = args['gwas:default:n'], args['gwas:default:chr']
     default_beta = args['gwas:default:beta']
     def select(name, options, fail=True):
@@ -295,7 +294,7 @@ def read_gwas(args, filename, report=None):
             try:
                 return header.index(desc[name])
             except IndexError:
-                print('specified header (--gwas:'+name, args[option_name] + ') not found')
+                print('Specified header (--gwas:'+name, args[option_name] + ') not found.')
                 exit(1)
         for option in options:
             header_upper = list(map(str.upper, header))
@@ -303,7 +302,7 @@ def read_gwas(args, filename, report=None):
                 desc[name] = option
                 return header_upper.index(option.upper())
         if fail and not args.get('gwas:default:'+name):
-            print('could not find a header in GWAS for', name)
+            print('Could not find a header in GWAS for', name)
             print('  specify with --' + option_name)
             print('suggestions:')
             for part in header:
@@ -331,7 +330,7 @@ def read_gwas(args, filename, report=None):
                     hoth = select('other', GWAS_H_OTH_OPTIONS)
                     hfreq = select('freq', GWAS_H_FREQ_OPTIONS)
                     hb = select('beta', GWAS_H_BETA_OPTIONS)
-                    hse = select('std', GWAS_H_SE_OPTIONS)
+                    hse = select('se', GWAS_H_SE_OPTIONS)
                     hp = select('p', GWAS_H_PVALUE_OPTIONS)
                     if not args['gwas:n'] is None:
                         hn = [header.index(col) for col in args['gwas:n'].split(',')]
@@ -347,17 +346,17 @@ def read_gwas(args, filename, report=None):
                         desc['n'] = ncol_a + '+' + ncol_b
                         hn = [header.index(ncol_a), header.index(ncol_b)]
                     elif not args['gwas:default:n']:
-                        print('could not find a header in GWAS for nsamples')
+                        print('Could not find a header in GWAS for the number of samples, or the number of cases and controls.')
                         exit(1)
                     else:
                         hn = None
                     if 'build' not in desc:
-                        print('could not determine GWAS genome build. use flag --gwas:build <BUILD>')
+                        print('Could not determine GWAS genome build; use flag --gwas:build <BUILD>.')
                         exit(1)
                     if desc['build'] != args['gen:build']:
                         liftover = LiftOver(desc['build'], args['gen:build'])
                         print('converting', desc['build'], '->', args['gen:build'])
-                    print('= detected headers =')
+                    print('= Detected headers =')
                     for k, v in args.items():
                         if k.startswith('gwas:default') and v:
                             desc[k[13:]] = 'DEFAULT ' + v
@@ -365,14 +364,14 @@ def read_gwas(args, filename, report=None):
                         print(k.ljust(10), v)
                     if args['header_only']:
                         exit(0)
-                    print('= converting =')
-                    reporter = ReporterLine('reading gwas data')
+                    print('= Converting =')
+                    reporter = ReporterLine('Reading gwas data.')
                     continue
                 parts = line.split()
                 if postype_combined:
                     ch, bp = parts[hpos].split(':', 1)
                     if default_chr:
-                        print('default chromosome specified but reading chr:bp column')
+                        print('Default chromosome specified but reading chr:bp column.')
                         exit(1)
                 else:
                     ch = default_chr or parts[hpos_ch]
@@ -422,12 +421,12 @@ def read_gwas(args, filename, report=None):
                 if lineno % 40000 == 0:
                     reporter.update(lineno, f.fileno())
     except KeyboardInterrupt:
-        print('aborted reading gwas data at line', lineno)
+        print('Aborted reading gwas data at line', lineno)
     if liftover:
-        print('successfully', desc['build'], '->', args['gen:build'], 'converted', yes, 'rows')
-        print('build conversion failed for', no, 'rows (reported as gwas_build_conv_failed)')
+        print('Successfully', desc['build'], '->', args['gen:build'], 'converted', yes, 'rows')
+        print('Build conversion failed for', no, 'rows (reported as gwas_build_conv_failed).')
     if float_conv_failed:
-        print('numeric conversion failed for', float_conv_failed, 'rows (reported as gwas_float_conv_failed)')
+        print('Numeric conversion failed for', float_conv_failed, 'rows (reported as gwas_float_conv_failed).')
 
 
 def update_read_stats(args, gwas, stats_filename, output=None, report=None):
@@ -445,14 +444,14 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
             try:
                 return header.index(option_val)
             except IndexError:
-                print('specified header (--gen:'+name, option_val + ') not found')
+                print('Specified header (--gen:'+name, option_val + ') not found.')
                 exit(1)
         upper = [col.upper() for col in header]
         matches = [option.upper() for option in options if option.upper() in upper]
         if len(matches) == 1:
             return upper.index(matches[0])
         if not can_fail:
-            print('could not find a header in genetic data for', name)
+            print('Could not find a header in genetic data for', name)
             print('  specify with --' + option_name)
             print('suggestions:')
             for part in header:
@@ -473,18 +472,18 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     hmaf = select('maf', [], can_fail=True)
                     hminor = select('minor', [], can_fail=True)
                     if heaf is None and hoaf is None and hmaf is None and hminor is None:
-                        print('could not find a header in genetic data for eaf, oaf or maf+minor')
-                        print('  specify with --gen:eaf, --gen:oaf, or --gen:maf and --gen:minor')
-                        print('suggestions:')
+                        print('Could not find a header in genetic data for eaf, oaf or maf+minor')
+                        print('  specify with --gen:eaf, --gen:oaf, or --gen:maf and --gen:minor.')
+                        print('Suggestions:')
                         for part in header:
                             print(' * --gen:eaf', part)
                         exit(1)
                     elif sum([heaf is not None, hoaf is not None, hmaf is not None]) != 1:
-                        print('only one of --gen:eaf, --gen:maf and --gen:oaf can be specified')
+                        print('Only one of --gen:eaf, --gen:maf and --gen:oaf can be specified.')
                         exit(1)
                     if hmaf is None != hminor is None:
-                        print('--gen:hmaf and --gen:minor can only be used together')
-                        print('to find effect allele frequency')
+                        print('Arguments --gen:hmaf and --gen:minor can only be used together')
+                        print('to find effect allele frequency.')
                         exit(1)
                     minsplit = max(hch, hbp) + 1
                     yield # really hacky, but allow for parsing header before processing
@@ -556,7 +555,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                         message += ' freq-r2={0:.4f}'.format(r2)
                     reporter.update(lineno, f.fileno(), message)
     except KeyboardInterrupt:
-        print('aborted reading genetic data at line', lineno)
+        print('Aborted reading genetic data at line', lineno)
         stopped = True
     print('gwas allele conversions:')
     for k, v in counts.items():
@@ -564,7 +563,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     print('leftover gwas row count', len(gwas))
     if report:
         if stopped and len(gwas) > 1000:
-            print('not writing leftover rows due to early stop')
+            print('Not writing leftover rows due to early stop.')
         else:
             for gwas_row in gwas.values():
                 log_error(report, 'leftover', gwas=gwas_row)
@@ -609,7 +608,7 @@ def main(args):
         report = open(args.report, 'w')
         paths.append(args.report)
     if args.gen is None and not args.header_only:
-        parser.error('either argument -g/--gen or --header-only is required')
+        parser.error('Either argument -g/--gen or --header-only is required.')
     if not args.header_only:
         root = os.path.commonpath(paths)
         print('root', root)
