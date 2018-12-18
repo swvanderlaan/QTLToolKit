@@ -137,7 +137,7 @@ def build_parser():
     gen_header.add_argument('--gen:eaf', metavar='COLUMN', help='Column name of effect allele frequency.')
     gen_header.add_argument('--gen:oaf', metavar='COLUMN', help='Column name of non-effect allele frequency.')
     gen_header.add_argument('--gen:maf', metavar='COLUMN', help='Column name of minor allele frequency.')
-    gen_header.add_argument('--gen:minor', metavar='COLUMN', help='Column name of minor allele. when used in combination with maf, ' +
+    gen_header.add_argument('--gen:minor', metavar='COLUMN', help='Column name of minor allele. When used in combination with maf, ' +
             'it is used to find the effect allele frequency.')
     gen_header.add_argument('--gen:build', metavar='COLUMN', help='Genetic reference data build. Defaults to hg19', default='hg19')
     return parser
