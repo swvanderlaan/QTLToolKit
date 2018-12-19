@@ -222,14 +222,14 @@ def select_action(args,
         if gwas_ref not in 'IDR' or gwas_oth not in 'IDR':
             return ACT_INDEL_SKIP
         elif gwas_ref == 'I' or gwas_oth == 'D':
-            if (gen_ref == 'I' or gen_oth == 'D') or len(gen_ref) > len(gen_oth):
+            if (gen_eff == 'I' or gen_oth == 'D') or len(gen_eff) > len(gen_oth):
                 return ACT_NOP
-            elif (gen_ref == 'D' or gen_oth == 'I') or len(gen_ref) < len(gen_oth):
+            elif (gen_eff == 'D' or gen_oth == 'I') or len(gen_eff) < len(gen_oth):
                 return ACT_FLIP
         elif gwas_ref == 'D' or gwas_oth == 'I':
-            if (gen_ref == 'I' or gen_oth == 'D') or len(gen_ref) > len(gen_oth):
+            if (gen_eff == 'I' or gen_oth == 'D') or len(gen_eff) > len(gen_oth):
                 return ACT_FLIP
-            elif (gen_ref == 'D' or gen_oth == 'I') or len(gen_ref) < len(gen_oth):
+            elif (gen_eff == 'D' or gen_oth == 'I') or len(gen_eff) < len(gen_oth):
                 return ACT_NOP
         return ACT_INDEL_SKIP
     elif not ambivalent:
@@ -648,7 +648,7 @@ def prolog():
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
     print('* Last update        : 2018-12-18')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.2.0')
+    print('* Version            : v1.2.1')
     print('')
     print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
     print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
