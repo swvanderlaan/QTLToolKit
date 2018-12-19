@@ -656,7 +656,7 @@ def prolog():
     print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
     print('')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-	print("Start: {}".format(datetime.datetime.now()))
+    print('Start: {}'.format(datetime.datetime.now()))
 
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
@@ -680,10 +680,10 @@ def epilog():
     print('+                                                                                                       +')
     print('+ Reference: http://opensource.org.                                                                     +')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-	print("End: {}".format(datetime.datetime.now()))
+    print('End: {}'.format(datetime.datetime.now()))
 
 if __name__ == '__main__':
-	startime=time.time()
+    startime=time.time()
     prolog()
     parser = build_parser()
     args = parser.parse_args()
