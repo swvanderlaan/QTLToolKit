@@ -44,6 +44,7 @@ import argparse
 import collections
 import gzip
 import time
+import datetime
 
 try:
     import numpy as np
@@ -648,14 +649,14 @@ def prolog():
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
     print('* Last update        : 2018-12-18')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.2.1')
+    print('* Version            : v1.2.2')
     print('')
     print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
     print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
     print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
     print('')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-
+	print("Start: {}".format(datetime.datetime.now()))
 
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
@@ -679,9 +680,10 @@ def epilog():
     print('+                                                                                                       +')
     print('+ Reference: http://opensource.org.                                                                     +')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-
+	print("End: {}".format(datetime.datetime.now()))
 
 if __name__ == '__main__':
+	startime=time.time()
     prolog()
     parser = build_parser()
     args = parser.parse_args()
@@ -689,4 +691,6 @@ if __name__ == '__main__':
         main(args)
     except KeyboardInterrupt:
         print('aborted')
+    elapsedtime=time.time()-startime
+    print("Passed time: {}".format(elapsedtime))
     epilog()
