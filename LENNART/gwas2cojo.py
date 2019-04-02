@@ -69,17 +69,17 @@ if not hasattr(os.path, 'commonpath'):
 
 # case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'CHR', 'Chr']
-GWAS_H_BP_OPTIONS =              ['bp_hg19', 'bp', 'pos', 'position', 'BP', 'POS', 'Pos']
+GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr']
+GWAS_H_BP_OPTIONS =              ['bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos']
 GWAS_H_REF_OPTIONS =             ['reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
 GWAS_H_OTH_OPTIONS =             ['other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
 GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF']
 GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta']
 GWAS_H_SE_OPTIONS =              ['log_odds_se', 'se_gc', 'se', 'stderr', 'SE_FIXED', 'SE']
-GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
+GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
 GWAS_H_NTOTAL_OPTIONS =          ['n_samples', 'TotalSampleSize', 'n_eff', 'N_EFF', 'N', 'neff', 'Neff']
-GWAS_H_NCONTROL_OPTIONS =        ['N_control']
-GWAS_H_NCASE_OPTIONS =           ['N_case']
+GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls']
+GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases']
 GWAS_HG18_HINTS =                ['hg18', 'b36']
 GWAS_HG19_HINTS =                ['hg19']
 
