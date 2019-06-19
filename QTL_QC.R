@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     QTL RESULTS QUALITY CONTROL & PARSER v2
     \n
-    * Version: v2.3.7
-    * Last edit: 2018-08-28
+    * Version: v2.3.8
+    * Last edit: 2019-06-19
     * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
     \n
     * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -40,24 +40,22 @@ cat("\n* Loading function to install packages...\n\n")
 ### FUNCTION TO INSTALL PACKAGES
 install.packages.auto <- function(x) { 
   x <- as.character(substitute(x)) 
-  if (isTRUE(x %in% .packages(all.available = TRUE))) { 
+  if(isTRUE(x %in% .packages(all.available = TRUE))) { 
     eval(parse(text = sprintf("require(\"%s\")", x)))
   } else { 
     # Update installed packages - this may mean a full upgrade of R, which in turn
     # may not be warrented. 
-    #update.packages(ask = FALSE) 
-    eval(parse(text = sprintf("install.packages(\"%s\", 
-                              dependencies = TRUE, 
-                              repos = \"https://cloud.r-project.org/\")", x)))
+    #update.install.packages.auto(ask = FALSE) 
+    eval(parse(text = sprintf("install.packages(\"%s\", dependencies = TRUE, repos = \"https://cloud.r-project.org/\")", x)))
   }
-  if (isTRUE(x %in% .packages(all.available = TRUE))) { 
+  if(isTRUE(x %in% .packages(all.available = TRUE))) { 
     eval(parse(text = sprintf("require(\"%s\")", x)))
   } else {
-    source("http://bioconductor.org/biocLite.R")
-    # Update installed packages - this may mean a full upgrade of R, which in turn
-    # may not be warrented.
-    #biocLite(character(), ask = FALSE) 
-    eval(parse(text = sprintf("biocLite(\"%s\")", x)))
+    if (!requireNamespace("BiocManager"))
+      install.packages("BiocManager")
+    BiocManager::install() # this would entail updating installed packages, which in turned may not be warrented
+
+    eval(parse(text = sprintf("BiocManager::install(\"%s\")", x)))
     eval(parse(text = sprintf("require(\"%s\")", x)))
   }
 }
@@ -110,14 +108,15 @@ option_list = list(
 opt = parse_args(OptionParser(option_list = option_list))
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
-### opt$projectdir="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/"
-### opt$resultfile="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/aems450k1_QC_qtlperm_cg00002028_excl_EXCL_FEMALES.txt.gz"
-### opt$resulttype="PERM"
-### opt$qtltype="MQTL"
-### opt$outputdir="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/"
-### opt$annotfile="/Users/svanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
-### opt$genstats="/Users/svanderlaan/PLINK/analyses/epigenetics/AEMS450KMETA/metasex/mQTL/aems450k1_malesonly/EXCL_FEMALES_qtl/cg00002028_aems450k1_malesonly/aegs_1kGp3GoNL5_QC_cg00002028_excl_EXCL_FEMALES.stats"
-### opt$analysetype="CIS"
+opt$projectdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/"
+opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlperm_region_1_excl_DEFAULT.txt.gz"
+# opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlnorm_region_1_excl_DEFAULT.txt.gz"
+opt$resulttype="PERM"
+opt$qtltype="MQTL"
+opt$outputdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/"
+opt$annotfile="/Users/swvanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
+opt$genstats="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_1kGp3GoNL5_QC_region_1_excl_DEFAULT.stats"
+opt$analysetype="CIS"
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 
 if (opt$verbose) {
@@ -405,8 +404,8 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   } else if(opt$resulttype == "PERM") {
     #print((RESULTS))
     # RESULTS$Q = qvalue(RESULTS$Approx_Perm_P)$qvalues # original code
-    # RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
-    RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
+    RESULTS$Q = ifelse(RESULTS$Approx_Perm_P > 0, qvalue(RESULTS$Approx_Perm_P)$qvalues, "NA")
+    # RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
     
   } else {
     cat ("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n",
@@ -556,14 +555,14 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
                                      "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
                                      "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P", "Bonferroni","BenjHoch","Q")
-      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
+      RESULTS.ANNOTATE$GeneName_UCSC <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName_UCSC)
     } else if (opt$resulttype == "PERM") {
       colnames(RESULTS.ANNOTATE) = c("ProbeID", "VARIANT", "Chr", "BP", "OtherAlleleB", "CodedAlleleA", "MAF", "MAC", "CAF", "HWE", "Info", "Imputation", "N", 
                                      "Distance_VARIANT_CpG", "Strand", "Chr_CpG", "BP_CpG", "ProbeType", 
                                      "GeneName_UCSC", "AccessionID_UCSC", "GeneGroup_UCSC", "CpG_Island_Relation_UCSC", 
                                      "Phantom", "DMR", "Enhancer", "HMM_Island", "RegulatoryFeatureName", "RegulatoryFeatureGroup", "DHS",
                                      "Beta", "SE", "Nominal_P","Perm_P","ApproxPerm_P", "Bonferroni","BenjHoch","Q")
-      RESULTS.ANNOTATE$GeneName <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName)
+      RESULTS.ANNOTATE$GeneName_UCSC <- gsub(" ", "_", RESULTS.ANNOTATE$GeneName_UCSC)
     } else {
       cat("\n\n*** ERROR *** Something is rotten in the City of Gotham; most likely a typo. Double back, please.\n\n", 
           file = stderr()) # print error messages to stder
@@ -623,7 +622,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
 
 #--------------------------------------------------------------------------
 ### CLOSING MESSAGE
-cat(paste("All done parsing QTLtools data on",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),".\n"))
+cat(paste("All done parsing QTLtools data on [",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"].\n"))
 cat(paste("\nToday's: ",Today, "\n"))
 cat("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
