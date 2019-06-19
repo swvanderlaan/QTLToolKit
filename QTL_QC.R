@@ -108,15 +108,16 @@ option_list = list(
 opt = parse_args(OptionParser(option_list = option_list))
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
-opt$projectdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/"
-opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlperm_region_1_excl_DEFAULT.txt.gz"
+# opt$projectdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/"
+# opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlperm_region_1_excl_DEFAULT.txt.gz"
 # opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlnorm_region_1_excl_DEFAULT.txt.gz"
-opt$resulttype="PERM"
-opt$qtltype="MQTL"
-opt$outputdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/"
-opt$annotfile="/Users/swvanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
-opt$genstats="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_1kGp3GoNL5_QC_region_1_excl_DEFAULT.stats"
-opt$analysetype="CIS"
+# opt$resulttype="PERM"
+# opt$resulttype="NORM"
+# opt$qtltype="MQTL"
+# opt$outputdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/"
+# opt$annotfile="/Users/swvanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
+# opt$genstats="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_1kGp3GoNL5_QC_region_1_excl_DEFAULT.stats"
+# opt$analysetype="CIS"
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 
 if (opt$verbose) {
