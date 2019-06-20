@@ -83,9 +83,9 @@ uithof_color = c("#FBB820","#F59D10","#E55738","#DB003F","#E35493","#D5267B",
 ### OPTION LISTING
 option_list = list(
   make_option(c("-p", "--projectdir"), action = "store", default = NA, type = 'character',
-              help = "Path to the project directory."),
+              help = "Path to the project directory, e.g. adir/somedir."),
   make_option(c("-r", "--resultfile"), action = "store", default = NA, type = 'character',
-              help = "Location of the results file, including resultsfilename."),
+              help = "Location of the results file, including results filename, e.g. adir/somedir/qtl_nom.txt.gz."),
   make_option(c("-t", "--resulttype"), action = "store", default = NA, type = 'character',
               help = "The result type, either [NOM/PERM] for nominal or permutation results, respectively."),
   make_option(c("-q", "--qtltype"), action = "store", default = NA, type = 'character',
@@ -93,9 +93,9 @@ option_list = list(
   make_option(c("-z", "--analysetype"), action = "store", default = NA, type = 'character',
               help = "Cis- or trans-QTL analyse, either [CIS/TRANS]."), 
   make_option(c("-o", "--outputdir"), action = "store", default = NA, type = 'character',
-              help = "Path to the output directory."),
+              help = "Path to the output directory, e.g. adir/somedir."),
   make_option(c("-a", "--annotfile"), action = "store", default = NA, type = 'character',
-              help = "Path to the annotation file."),
+              help = "Path to the annotation file, e.g. refdir/annotationfile.txt.gz."),
   make_option(c("-j", "--genstats"), action = "store", default = NA, type = 'character',
               help = "Path to the summary statistics of the genotypes."),
   make_option(c("-v", "--verbose"), action = "store_true", default = TRUE,
@@ -611,17 +611,17 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   
 } else {
   cat("*** ERROR *** You didn't specify all variables:\n
-      - --p/projectdir : path to project directory\n
-      - --r/resultfile  : location of the results file, including resultsfilename\n
-      - --t/resulttype : the results type (NOM for nominal; PERM for permutation)\n
-      - --q/qtltype    : the QTL analysis type (EQTL for expression QTL; MQTL for methylation QTL)\n
-      - --z/analysetype    : the analysis type, cis- or trans-QTL analyse ([CIS/TRANS])\n
-      - --o/outputdir  : path to output directory\n
-      - --a/annotfile  : path to annotation file of genes\n
-      - --j/genstats   : path to summary statistics of variants\n\n", 
+      - --p/projectdir : path to project directory, e.g. adir/somedir.\n
+      - --r/resultfile  : location of the results file, including results filename, e.g. adir/somedir/qtl_nom.txt.gz.\n
+      - --t/resulttype : the results type (NOM for nominal; PERM for permutation).\n
+      - --q/qtltype    : the QTL analysis type (EQTL for expression QTL; MQTL for methylation QTL).\n
+      - --z/analysetype    : the analysis type, cis- or trans-QTL analyse ([CIS/TRANS]).\n
+      - --o/outputdir  : path to output directory, e.g. adir/somedir.\n
+      - --a/annotfile  : path to annotation file of genes, e.g. refdir/annotationfile.txt.gz.\n
+      - --j/genstats   : path to summary statistics of variants.\n\n", 
       file = stderr()) # print error messages to stderr
 }
-
+              
 #--------------------------------------------------------------------------
 ### CLOSING MESSAGE
 cat(paste("All done parsing QTLtools data on [",file_path_sans_ext(basename(opt$resultfile), compression = TRUE),"].\n"))
