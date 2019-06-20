@@ -2,30 +2,24 @@
 
 # Alternative shebang for local Mac OS X: "#!/usr/local/bin/Rscript --vanilla"
 # Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript --vanilla
-cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    QTL RESULTS QUALITY CONTROL & PARSER v2
-    \n
-    * Version: v2.3.9
-    * Last edit: 2019-06-20
-    * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
-    \n
-    * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
-    Athero-Express (mQTL) data. The script should be usuable on both any Linux distribution with 
-    R 3+ installed, Mac OS X and Windows.
-    
-    NOTE 2018-06-15: I've edited the eQTL-part (nom/perm for cis) to match with the new 'strand' column. What 
-    remains to be done:
-    - double check the trans-part
-    as the column numbers have changed by the addition of the 'strand' column in the output.
-    
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
 
+VERSION="v2.3.9"
+LASTEDITDATE="2019-06-20"
+SCRIPTNAME="Molecular QTL results Quality Contrl & Parser"
+AUTHOR="Sander W. van der Laan | s.w.vanderlaan@gmail.com | @swvanderlaan | swvanderlaan.github.io"
+THISYEAR = format(as.Date(as.POSIXlt(Sys.time())), "%Y")
+
+cat(paste0("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+",SCRIPTNAME,"
+",VERSION," - ",LASTEDITDATE,"
+
+(C)1979-",THISYEAR," | ",AUTHOR,".
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"))
 # usage: ./QTL_QC.R -p projectdir -r resultfile -o outputdir -t resulttype -q qtltype -a annotfile -j genstatsfile [OPTIONAL: -v verbose (DEFAULT) -q quiet]
 #        ./QTL_QC.R --projectdir projectdir --resultsfile resultfile --outputdir outputdir --resulttype resulttype --qtltype qtltype --annotfile annotfile --genstats genestatfile [OPTIONAL: --verbose verbose (DEFAULT) -quiet quiet]
 
 cat("\n* Clearing the environment...\n\n")
 ### CLEAR THE BOARD
-rm(list = ls())
 
 cat("\n* Loading function to install packages...\n\n")
 ### Prerequisite: 'optparse'-library
@@ -81,6 +75,27 @@ uithof_color = c("#FBB820","#F59D10","#E55738","#DB003F","#E35493","#D5267B",
 
 #--------------------------------------------------------------------------
 ### OPTION LISTING
+help_text = paste0("
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+",SCRIPTNAME,"
+",VERSION," - ",LASTEDITDATE," 
+
+Description: 
+Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or Athero-Express (mQTL) data. 
+The script should be usuable on both any Linux distribution with R 3.5+ installed, Mac OS X and Windows.
+    
+NOTE 2018-06-15:
+I've edited the eQTL-part (nom/perm for cis) to match with the new 'strand' column. 
+What remains to be done:
+- double check the trans-part as the column numbers have changed by the addition of the 'strand' column in the output.
+
+Example command: 
+Rscript QTL_QC.R --projectdir adir/somedir --resultsfile adir/somedir/qtl_nom.txt.gz --resulttype NOM --qtltype EQTL --outputdir adir/somedir --annotfile refdir/annotationfile.txt.gz --genstats adir/somedir/data_QC.stats
+
+
+(C)1979-",THISYEAR," | ",AUTHOR,".
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+")
 option_list = list(
   make_option(c("-p", "--projectdir"), action = "store", default = NA, type = 'character',
               help = "Path to the project directory, e.g. adir/somedir."),
@@ -97,15 +112,17 @@ option_list = list(
   make_option(c("-a", "--annotfile"), action = "store", default = NA, type = 'character',
               help = "Path to the annotation file, e.g. refdir/annotationfile.txt.gz."),
   make_option(c("-j", "--genstats"), action = "store", default = NA, type = 'character',
-              help = "Path to the summary statistics of the genotypes."),
+              help = "Path to the summary statistics of the genotypes, e.g. adir/somedir/data_QC.stats."),
   make_option(c("-v", "--verbose"), action = "store_true", default = TRUE,
               help = "Should the program print extra stuff out? [default %default]"),
   make_option(c("-s", "--silent"), action = "store_false", dest = "verbose",
               help = "Make the program not be verbose.")
+  #make_option(c("-h", "--help"), action="store_true", default=FALSE, 
+  #             help="Show this help message and exit. \nAn example command would look like this: Rscript QTL_QC.R --projectdir adir/somedir --resultsfile adir/somedir/qtl_nom.txt.gz --resulttype NOM --qtltype EQTL --outputdir adir/somedir --annotfile refdir/annotationfile.txt.gz --genstats adir/somedir/data_QC.stats.")
   #make_option(c("-c", "--cvar"), action="store", default="this is c",
   #            help="a variable named c, with a default [default %default]")  
 )
-opt = parse_args(OptionParser(option_list = option_list))
+opt = parse_args(OptionParser(usage = help_text, option_list = option_list))
 
 ### OPTIONLIST | FOR LOCAL DEBUGGING
 # opt$projectdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/"
@@ -618,7 +635,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       - --z/analysetype    : the analysis type, cis- or trans-QTL analyse ([CIS/TRANS]).\n
       - --o/outputdir  : path to output directory, e.g. adir/somedir.\n
       - --a/annotfile  : path to annotation file of genes, e.g. refdir/annotationfile.txt.gz.\n
-      - --j/genstats   : path to summary statistics of variants.\n\n", 
+      - --j/genstats   : path to summary statistics of variants, e.g. adir/somedir/data_QC.stats.\n\n", 
       file = stderr()) # print error messages to stderr
 }
               
