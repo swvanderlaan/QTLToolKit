@@ -5,8 +5,8 @@
 cat("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     QTL RESULTS QUALITY CONTROL & PARSER v2
     \n
-    * Version: v2.3.8
-    * Last edit: 2019-06-19
+    * Version: v2.3.9
+    * Last edit: 2019-06-20
     * Created by: Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
     \n
     * Description:  Results parsing and quality control from QTLTools results using your data, CTMM (eQTL) or 
@@ -112,7 +112,7 @@ opt = parse_args(OptionParser(option_list = option_list))
 # opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlperm_region_1_excl_DEFAULT.txt.gz"
 # opt$resultfile="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/aegs_QC_qtlnorm_region_1_excl_DEFAULT.txt.gz"
 # opt$resulttype="PERM"
-# opt$resulttype="NORM"
+# opt$resulttype="NOM"
 # opt$qtltype="MQTL"
 # opt$outputdir="/Users/swvanderlaan/PLINK/analyses/epigenetics/shearstress/shearstress_version_final/DEFAULT_qtl/region_1_shearstress_version_final/"
 # opt$annotfile="/Users/swvanderlaan/PLINK/_AE_Originals/IlluminaMethylation450K.annotation.txt.gz"
@@ -399,8 +399,8 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### Requires a bioconductor package: "qvalue"
   if(opt$resulttype == "NOM") {
     # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
-    # RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
-    RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
+    RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
+    # RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
     
   } else if(opt$resulttype == "PERM") {
     #print((RESULTS))
@@ -473,7 +473,7 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
       #      1 ProbeID 2 NVariants 3 MLE_Beta_shape1 4 MLE_Beta_shape2 5 Dummy 
       #      6 VARIANT 7 Distance_VARIANT_ProbeID 8 Strand 9 Nominal_P 
       #      10 Beta 11 Perm_P 12 Approx_Perm_P 13 Z 14 SD 15 SEM 16 Bonferroni 17 BenjHoch 18 Q 
-      #      19 EntrezID 20 ArrayID 21 GeneName 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
+      #      19 EntrezID 20 ArrayID 21 GeneName/GeneName_UCSC 22 GeneInfo 23 Chr 24 GeneTxStart 25 GeneTxEnd 
       #      26 VARIANT 27 Chr 28 BP 29 OtherAlleleA 30 CodedAlleleA 
       #      31 MAF 32 MAC 33 CAF 34 AvgMAxPostCall 35 Info 36 HWE 37 N 38 Imputation
       
