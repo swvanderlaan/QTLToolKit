@@ -85,7 +85,7 @@ option_list = list(
   make_option(c("-p", "--projectdir"), action = "store", default = NA, type = 'character',
               help = "Path to the project directory."),
   make_option(c("-r", "--resultfile"), action = "store", default = NA, type = 'character',
-              help = "Path to the results directory, relative to the project directory."),
+              help = "Location of the results file, including resultsfilename."),
   make_option(c("-t", "--resulttype"), action = "store", default = NA, type = 'character',
               help = "The result type, either [NOM/PERM] for nominal or permutation results, respectively."),
   make_option(c("-q", "--qtltype"), action = "store", default = NA, type = 'character',
@@ -612,10 +612,11 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
 } else {
   cat("*** ERROR *** You didn't specify all variables:\n
       - --p/projectdir : path to project directory\n
-      - --r/resultdir  : path to results directory\n
-      - --o/outputdir  : path to output directory\n
+      - --r/resultfile  : location of the results file, including resultsfilename\n
       - --t/resulttype : the results type (NOM for nominal; PERM for permutation)\n
       - --q/qtltype    : the QTL analysis type (EQTL for expression QTL; MQTL for methylation QTL)\n
+      - --z/analysetype    : the analysis type, cis- or trans-QTL analyse ([CIS/TRANS])\n
+      - --o/outputdir  : path to output directory\n
       - --a/annotfile  : path to annotation file of genes\n
       - --j/genstats   : path to summary statistics of variants\n\n", 
       file = stderr()) # print error messages to stderr
