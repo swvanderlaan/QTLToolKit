@@ -12,3 +12,4 @@
 RESOURCES/*.encode.alltissues.bed.gz
 *.encode.alltissues.narrowPeak.bed.gz
 .DS_Store
+.nfs000*
