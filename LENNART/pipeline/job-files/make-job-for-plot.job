@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#$ -l h_vmem=1G
+#$ -l h_rt=00:01:00
+
+set -ex
+
+source $1
+
+SMR_SIZE=$(wc -l ${CONFIG_JOBDIR}/smr_lt_1e-3.out | awk '$0=$1')
+NLINES=$((SMR_SIZE-1))
+
+if [ "$NLINES" -gt 100 ]; then
+    echo "WARNING!!! LIMITING PLOTS TO TOP 100"
+    NLINES=100
+fi
+
+if [ "$NLINES" -eq 0 ]; then
+    echo "no significant results found to plot"
+    exit
+fi
+
+mkdir -p $HOME/R_libs
+mkdir -p ${CONFIG_JOBDIR}/pdf
+
+qsub -cwd -t 1-$NLINES job-files/make-plot.job $1

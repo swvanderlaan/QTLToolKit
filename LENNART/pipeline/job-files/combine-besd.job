@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#$ -cwd
+
+set -exuo pipefail
+
+source $1
+
+BUILD_DIR="${TMPDIR:-/tmp}/build_${RANDOM}"
+mkdir -p ${BUILD_DIR}
+cat ${CONFIG_JOBDIR}/make-besd.param | awk '$0=$4' > ${BUILD_DIR}/make-besd.flist
+
+SMR=$CONFIG_SMR
+
+main() {
+    $SMR --besd-flist ${BUILD_DIR}/make-besd.flist \
+         --make-besd-dense \
+         --out ${CONFIG_JOBDIR}/besd/combined
+}
+
+main

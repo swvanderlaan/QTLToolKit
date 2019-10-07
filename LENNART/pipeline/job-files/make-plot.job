@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -ex
+
+source $1
+
+SMR=$CONFIG_SMR
+GWAS=$CONFIG_GWAS
+R=$CONFIG_R
+
+line="$(cat ${CONFIG_JOBDIR}/smr_lt_1e-3.out | sed "$((SGE_TASK_ID+1))p;d")"
+variant=$(echo "$line" | cut -f 1)
+probe=$(echo "$line" | cut -f 2)
+gene=$(echo "$line" | cut -f 4)
+
+while read row_variant row_genetic row_qtl row_besd
+do
+    if [ "$row_variant" = "$variant" ]; then
+        gen="$row_genetic"
+        qtl="$row_qtl"
+        besd="$row_besd"
+    fi
+done < ${CONFIG_JOBDIR}/make-besd.param
+
+echo probe $probe
+echo variant $variant
+echo using gen $gen
+echo using qtl $qtl
+echo using besd $besd
+
+$SMR \
+ --bfile $gen \
+ --gwas-summary $GWAS \
+ --beqtl-summary $besd \
+ --out ${CONFIG_JOBDIR}/${variant}.${gene} \
+ --plot --probe $probe --probe-wind 5000 \
+ --gene-list input/glist-hg19 \
+ | tee ${CONFIG_JOBDIR}/plot/${variant}_${probe}.smr.out
+
+export PLOT_FN="${CONFIG_JOBDIR}/plot/${variant}.${gene}.${probe}.txt"
+export PLOT_OUT="${CONFIG_JOBDIR}/pdf/${variant}.${gene}.${probe}.pdf"
+
+$R --no-save <(cat << EOF
+pdf(Sys.getenv("PLOT_OUT"))
+source('input/plot_SMR.r')
+smr.data = ReadSMRData(Sys.getenv("PLOT_FN"))
+SMRLocusPlot(data=smr.data, smr_thresh=8.4e-6, heidi_thresh=0.05, plotWindow=1000, max_anno_probe=16)
+dev.off()
+EOF
+)

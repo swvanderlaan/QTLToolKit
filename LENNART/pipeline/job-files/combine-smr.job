@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#$ -cwd
+#$ -l h_vmem=1G
+#$ -l h_rt=00:10:00
+
+set -exuo pipefail
+
+source $1
+
+SMR=$CONFIG_SMR
+
+export CONFIG_JOBDIR
+
+
+python <(cat << EOF
+from __future__ import print_function
+import os
+jobdir = os.environ['CONFIG_JOBDIR']
+paramfile = os.path.join(jobdir, 'make-besd.param')
+firstfile = True
+with open(paramfile) as stream:
+    for line in stream:
+        parts = line.split()
+        variant = parts[0]
+        smr = os.path.join(jobdir, 'smr_' + variant + '.out.smr')
+        if os.path.exists(smr):
+            with open(smr) as f:
+                for idx, line in enumerate(f, 1):
+                    if idx == 1:
+                        if firstfile:
+                            print('gwas_loci\t' + line, end='')
+                            firstfile = False
+                    else:
+                        print(variant + '\t' + line, end='')
+EOF
+) > $CONFIG_JOBDIR/smr.out
+
+python <(cat << EOF
+import sys
+header_raw = raw_input()
+header = header_raw.split()
+print(header_raw)
+for line in sys.stdin:
+    parts = line.split()
+    row = dict(zip(header, parts))
+    p = float(row['p_SMR'])
+    if p < 1e-3:
+        sys.stdout.write(line)
+EOF
+) > "$CONFIG_JOBDIR/smr_lt_1e-3.out" < "$CONFIG_JOBDIR/smr.out"
