@@ -103,8 +103,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2019-06-18                                                                            +"
-echobold "+ * Version     : 2.7.1                                                                                 +"
+echobold "+ * Last update : 2019-09-10                                                                            +"
+echobold "+ * Version     : 2.7.2                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using  your methylation or expression data.      +"
@@ -756,7 +756,7 @@ if ${JOBARRAY}; then
    #${PYTHON} QTLJobArrayBuilder.py "${RESULTS}/jobarray" | \
        #awk 'BEGIN {a=0} /qsub/ {a+=1} /^[^#]/ {if (a>3) print$0}' \
        #> "${RESULTS}/jobarray/qsub.sh"
-    ${PYTHON} QTLJobArrayBuilder.py "${RESULTS}/jobarray" > "${RESULTS}/jobarray/qsub.sh"
+    ${PYTHON} ${QTLTOOLKIT}/QTLJobArrayBuilder.py "${RESULTS}/jobarray" > "${RESULTS}/jobarray/qsub.sh"
     # for job arrays, actually submit jobs
     # cat "${RESULTS}/jobarray/qsub.sh"
     bash "${RESULTS}/jobarray/qsub.sh"
