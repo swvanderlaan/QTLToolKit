@@ -263,21 +263,22 @@ else
 	fi
 	CLUMPDIR=${RESULTS}/clumps
 
-    JOBARRAY=${JOBARRAY:-true}
-    if ${JOBARRAY} ; then
-        mkdir -p "${RESULTS}/jobarray"
-        [ -f "${RESULTS}/jobarray/qsub" ] && rm "${RESULTS}/jobarray/qsub"
-        function qsub {
-            echo "$@" >> "${RESULTS}/jobarray/qsub"
-        }
-        VARIANT_JOBNAME="ARRAY"
-    fi
+	JOBARRAY=${JOBARRAY:-true}
+	if ${JOBARRAY} ; then
+	echo "The job-array directory doesn't exist; Mr. Bourne will make it for you."
+	mkdir -pv "${RESULTS}/jobarray"
+		[ -f "${RESULTS}/jobarray/qsub" ] && rm "${RESULTS}/jobarray/qsub"
+		function qsub {
+			echo "$@" >> "${RESULTS}/jobarray/qsub"
+		}
+		VARIANT_JOBNAME="ARRAY"
+	fi
 	
 	### OVERVIEW OF REGIONS
 	echo ""
 	echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 	echo "The list of regions to investigate:"
-		echo "* Variant	Locus	Chr	BP	StartRange	EndRange	WindowSize	Type	Phenotype"
+		echo "* Variant/CpG	Locus	Chr	BP	StartRange	EndRange	WindowSize	Type	Phenotype"
 		while IFS='' read -r REGION || [[ -n "$REGION" ]]; do
 		LINE=${REGION}
 		echo "* ${LINE}"

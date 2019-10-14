@@ -5,7 +5,7 @@
 # * Written by         : Lennart P. L. Landsmeer | lennart@landsmeer.email
 # * Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl
 # * Name               : QTLJobArrayBuilder
-# * Version            : v1.0.1
+# * Version            : v1.0.2
 #
 # * Description        : Before the existence of this script, QTLAnalyzer.sh
 #                        created a huge amount of jobs for each genomic region
@@ -69,12 +69,15 @@ def main(taskdir):
     arrayjobs = set()
 
     for name in order:
-        if name.startswith('GENEX'):
+        if name.startswith('GENQC'):
             hold = name
         tasks = by_name[name]
-        if name.startswith('GENQC') and 'hold_jid' not in tasks[0]:
-            for _task in tasks:
-                _task['hold_jid'] = hold
+        #if name.startswith('GENEX'):
+        #    hold = name
+        #tasks = by_name[name]
+        #if name.startswith('GENQC') and 'hold_jid' not in tasks[0]:
+        #    for _task in tasks:
+        #        _task['hold_jid'] = hold
         if len(tasks) == 1:
             cmd = tasks[0].pop('cmd')
             print('# JOB', name)
