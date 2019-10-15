@@ -6,9 +6,9 @@ print ""
 print ""
 print "* Written by         : Jacco Schaap | jacco_schaap@hotmail.com"
 print "* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl"
-print "* Last update        : 2018-03-02"
+print "* Last update        : 2019-10-15"
 print "* Name               : QTLSumParser"
-print "* Version            : v1.1.0"
+print "* Version            : v1.1.1"
 print ""
 print "* Description        : This script parses QTL summary results to obtain lists of"
 print "                       variants in LD with lead-variants."
@@ -35,7 +35,7 @@ def search():
 
 	try:
 		print '\nWriting the top results, and generating lists of top-variants and mapped genes based on permuted p-values.'
-		with gzip.open(summary_file, 'r') as file, open(summary_direct + '/ctmm_qtl_perm_tophits.csv', 'w') as outfile:
+		with gzip.open(summary_file, 'r') as file, open(summary_direct + '/qtl_perm_tophits.csv', 'w') as outfile:
 			outfile.write(
 				'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' + ',' + 'probe' + ',' + 'nom_p_value' + ',' + 'perm_p_value' + ',' + 'approx_perm_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
 			for regel in file.readlines():
@@ -161,7 +161,7 @@ def second():
 	print 'Number of permuted hits: ' + str(len(permuted_snps))
 	# print nom_summary_file
 	print '\n\nWriting the top results, and generating lists of top-variants and mapped genes based on nominal p-values.'
-	with gzip.open(nom_summary_file, 'r') as file, open(summary_direct + '/ctmm_qtl_nom_tophits.csv', 'w') as outfile:
+	with gzip.open(nom_summary_file, 'r') as file, open(summary_direct + '/qtl_nom_tophits.csv', 'w') as outfile:
 		outfile.write(
 			'lead_SNP' + ',' + 'e_SNP' + ',' + 'chr_tag_snp' + ',' + 'pos_tag_snp' + ',' + 'e_Gene' + ',' + 'probe' + ',' + 'nom_p_value' + ',' + 'rsquared' + ',' + 'FDR' + '\n')
 		for regel in file.readlines():

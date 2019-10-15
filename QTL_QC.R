@@ -3,8 +3,8 @@
 # Alternative shebang for local Mac OS X: "#!/usr/local/bin/Rscript --vanilla"
 # Linux version for HPC: #!/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript --vanilla
 
-VERSION="v2.3.9"
-LASTEDITDATE="2019-06-20"
+VERSION="v2.3.10"
+LASTEDITDATE="2019-10-15"
 SCRIPTNAME="Molecular QTL results Quality Contrl & Parser"
 AUTHOR="Sander W. van der Laan | s.w.vanderlaan@gmail.com | @swvanderlaan | swvanderlaan.github.io"
 THISYEAR = format(as.Date(as.POSIXlt(Sys.time())), "%Y")
@@ -416,8 +416,8 @@ if (!is.na(opt$projectdir) & !is.na(opt$resultfile) & !is.na(opt$outputdir) & !i
   ### Requires a bioconductor package: "qvalue"
   if(opt$resulttype == "NOM") {
     # RESULTS$Q = qvalue(RESULTS$Nominal_P)$qvalues # original code
-    RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
-    # RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
+    # RESULTS$Q = ifelse(RESULTS$Nominal_P > 0, qvalue(RESULTS$Nominal_P)$qvalues, "NA")
+    RESULTS$Q = "Not_calculated._Throws_an_error_when_p-value_is_infinite_or_NA._NEED_FIXING"
     
   } else if(opt$resulttype == "PERM") {
     #print((RESULTS))

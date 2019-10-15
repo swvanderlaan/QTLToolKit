@@ -102,8 +102,8 @@ echobold "+                                                                     
 echobold "+                                                                                                       +"
 echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
 echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2018-08-21                                                                            +"
-echobold "+ * Version     : 1.1.4                                                                                 +"
+echobold "+ * Last update : 2019-10-15                                                                            +"
+echobold "+ * Version     : 1.1.5                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will conveniently summarize the QTL analysis and put the files in a       +"
 echobold "+                 summary directory.                                                                    +"
@@ -401,12 +401,14 @@ else
  				echo "* And re-ordering based on p-value."
  				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 32) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
  				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
  			else 
  				echo "* Non-clumped ${QTL_TYPE}-QTL results."
  				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt
  				
  				echo "* And re-ordering based on p-value."
- 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
+ 				cat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
+ 				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.reorder.txt
  				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
  			fi
  		fi
@@ -414,7 +416,7 @@ else
  	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
  		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 
- 
+ aems450k1_QC_qtlnom_summary.txt
  	fi
 	
 
