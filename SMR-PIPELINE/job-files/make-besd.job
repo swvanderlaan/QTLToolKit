@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #$ -cwd
 
-set -exuo pipefail
+set -euo pipefail
 
 source $1
 
@@ -15,13 +15,17 @@ VARIANT=$(echo "$LINE" | awk '$0=$1')
 GENETIC=$(echo "$LINE" | awk '$0=$2')
 EQTL_FILE_GZ=$(echo "$LINE" | awk '$0=$3')
 BESD_OUTPUT=$(echo "$LINE" | awk '$0=$4')
-BESD_OUTPUT=$(readlink -f $BESD_OUTPUT)
 echo TaskID: $SGE_TASK_ID / "$VARIANT" '->' $BESD_OUTPUT
 echo ===
 
+
+BESD_OUTPUT=$(readlink -f $BESD_OUTPUT)
+CONFIG_PROBEDB=$(readlink -f $CONFIG_PROBEDB)
+
 export BESD_OUTPUT
+export CONFIG_GWAS
 export GENETIC
-export BASE="$(pwd)"
+export CONFIG_PROBEDB
 
 main() {
 
@@ -30,16 +34,6 @@ main() {
     cd $BUILD_DIR
 
     zcat $EQTL_FILE_GZ > $BUILD_DIR/eqtl
-    if $GW; then
-        # PLINK fails for unknown reasons when writing the frequency file
-        #    for an entire chromosome
-        # It isnt really needed so just using bim will do
-        # $PLINK --bfile $GENETIC --freq || true
-        echo 'not including snp frequencies in besd for genome wide analysis'
-    else
-        awk '{print $8}' $BUILD_DIR/eqtl > extract_snps.txt
-        $PLINK --bfile $GENETIC --extract extract_snps.txt --freq
-    fi
     if [ "$CONFIG_QTL_TYPE" = "nom" ]; then
         $SMR --eqtl-summary $BUILD_DIR/eqtl --qtltools-nominal-format --make-besd --out $BESD_OUTPUT
     else
@@ -58,43 +52,36 @@ import sqlite3
 
 esi_out = os.environ['BESD_OUTPUT'] + '.esi'
 esi_in = os.environ['BESD_OUTPUT'] + '.esi.bak'
+gwas_filename = os.environ['CONFIG_GWAS']
 
 src = {}
 
-if os.path.exists('plink.frq'):
-    for idx, line in enumerate(open('plink.frq')):
+with open(esi_in) as f:
+    for line in f:
+        parts = line.split()
+        src[parts[1]] = parts
+
+with open(gwas_filename) as f:
+    for idx, line in enumerate(f):
         if idx == 0:
             continue
+            # header: snp a1 a2 f b se p n
         parts = line.split()
-        # columns: chr snp a1 a2 maf nm
-        src[parts[1]] = parts[2], parts[3], parts[4]
+        if parts[0] in src:
+            src[parts[0]][4] = parts[1] # a1
+            src[parts[0]][5] = parts[2] # a2
+            src[parts[0]][6] = parts[3] # f
 
-    with open(esi_out, 'w') as f, open(esi_in) as dst:
-        for line in dst:
-            parts = line.split()
-            if parts[1] in src:
-                parts[4], parts[5], parts[6] = src[parts[1]]
-            print(*parts, sep='\t', file=f)
-else:
-    for idx, line in enumerate(open(os.environ['GENETIC'] + '.bim')):
-        if idx == 0:
-            continue
-        parts = line.split()
-        src[parts[1]] = parts[4], parts[5]
-
-    with open(esi_out, 'w') as f, open(esi_in) as dst:
-        for line in dst:
-            parts = line.split()
-            if parts[1] in src:
-                parts[4], parts[5] = src[parts[1]]
-            print(*parts, sep='\t', file=f)
+with open(esi_out, 'w') as f:
+    for parts in src.values():
+        print(*parts, sep='\t', file=f)
 
 ## UPDATE PROBE FILE ##
 
 epi_out = os.environ['BESD_OUTPUT'] + '.epi'
 epi_in = os.environ['BESD_OUTPUT'] + '.epi.bak'
 
-db = os.path.join(os.environ['BASE'], 'input/illuminaHumanv4.sqlite')
+db = os.environ['CONFIG_PROBEDB']
 
 if os.path.exists(db):
     conn = sqlite3.connect(db)
@@ -116,7 +103,7 @@ EOF
     test -f ${BESD_OUTPUT}.epi || mv ${BESD_OUTPUT}.epi.bak ${BESD_OUTPUT}.epi
 
     cd ..
-    rm -r $BUILD_DIR ${BESD_OUTPUT}.esi.bak
+    # rm -r $BUILD_DIR ${BESD_OUTPUT}.esi.bak
 }
 
 main

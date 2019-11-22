@@ -34,15 +34,16 @@ $SMR \
  --beqtl-summary $besd \
  --out ${CONFIG_JOBDIR}/${variant}.${gene} \
  --plot --probe $probe --probe-wind 5000 \
- --gene-list input/glist-hg19 \
+ --gene-list $CONFIG_SMR_GENE_LIST \
  | tee ${CONFIG_JOBDIR}/plot/${variant}_${probe}.smr.out
 
 export PLOT_FN="${CONFIG_JOBDIR}/plot/${variant}.${gene}.${probe}.txt"
 export PLOT_OUT="${CONFIG_JOBDIR}/pdf/${variant}.${gene}.${probe}.pdf"
+export CONFIG_SMR_PLOT
 
 $R --no-save <(cat << EOF
 pdf(Sys.getenv("PLOT_OUT"))
-source('input/plot_SMR.r')
+source(Sys.getenv('CONFIG_SMR_PLOT'))
 smr.data = ReadSMRData(Sys.getenv("PLOT_FN"))
 SMRLocusPlot(data=smr.data, smr_thresh=8.4e-6, heidi_thresh=0.05, plotWindow=1000, max_anno_probe=16)
 dev.off()
