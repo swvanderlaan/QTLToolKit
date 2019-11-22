@@ -90,6 +90,8 @@ def build_parser():
             type=os.path.abspath, help='Output .cojo file.')
     parser.add_argument('-r', '--report', dest='report', metavar='txt',
             type=os.path.abspath, help='Report discarded variantss here.')
+    parser.add_argument('-rr', '--report-ok', dest='report_ok', action='store_true',
+            help='Report all decisions made. Warning: very verbose')
     parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
             type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) in PLINK binary format (i.e. bed/bim/fam).')
     parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
@@ -266,10 +268,12 @@ def select_action(args,
             return ACT_REPORT_FREQ
 
 
-def log_error(report, name, gwas, gen=()):
+def log_error(report, name, gwas, gen=(), rest=()):
     parts = list(gwas)
     if gen:
         parts.extend(gen)
+    if rest:
+        parts.extend(rest)
     print(name, *parts, file=report, sep='\t')
 
 
@@ -434,6 +438,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     reporter = ReporterLine('genetic:')
     if output:
         print('SNP A1 A2 freq b se p n', file=output)
+    report_ok = args.report_ok
     counts = collections.defaultdict(int)
     freq_comp = np.zeros((40000, 2)) if np else None
     converted = discarded = 0
@@ -517,6 +522,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                         counts['flip'] += 1
                         freq = 1-freq
                         beta = -beta
+                        if report and report_ok: log_error(report, 'ok', [ 'gwas', gwas_row.ref, gwas_row.oth, gwas_row.f, gwas_row.b, 'gen', parts[heff], parts[hoth], eaf, 'res', parts[heff], parts[hoth], freq, beta, act])
                     elif act is ACT_REM:
                         counts['report:ambiguous_ambivalent'] += 1
                         del gwas[row_pos]
@@ -539,6 +545,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                         discarded += 1
                         continue
                     else:
+                        if report and report_ok: log_error(report, 'ok', [ 'gwas', gwas_row.ref, gwas_row.oth, gwas_row.f, gwas_row.b, 'gen', parts[heff], parts[hoth], eaf, 'res', parts[heff], parts[hoth], freq, beta, act])
                         counts['ok'] += 1
                     del gwas[row_pos]
                     converted += 1
@@ -647,9 +654,9 @@ def prolog():
     print('')
     print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-    print('* Last update        : 2018-12-18')
+    print('* Last update        : 2018-11-21')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.2.2')
+    print('* Version            : v1.3.0')
     print('')
     print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
     print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
@@ -692,5 +699,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('aborted')
     elapsedtime=(time.time()-startime)/60
-    print("Passed time: {}".format(elapsedtime))
+    print("Passed time: {:.2f}min".format(elapsedtime))
     epilog()
