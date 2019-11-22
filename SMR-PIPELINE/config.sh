@@ -16,11 +16,12 @@ CONFIG_R=${CONFIG_SOFTWARE}/R_v340
 CONFIG_R=/hpc/local/CentOS7/dhl_ec/software/R-3.4.0/bin/Rscript
 
 CONFIG_GWAS=./input/bb.cojo
-CONFIG_JOBNAME=88-re-job
+CONFIG_JOBNAME=164-perm-job
 CONFIG_JOBDIR=$CONFIG_JOBNAME
-CONFIG_QTL_TYPE=nom
-
 # What was qtl type? nom or perm
+CONFIG_QTL_TYPE=nom
+CONFIG_QTL_TYPE=perm
+
 # Genome wide? false or true
 # When genome wide, EQTL_ROOT, 
 GW=false
@@ -32,7 +33,8 @@ GW_GEN='/hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_
 # PLINK bfiles are expected to reside in $GENETIC_ROOT/$GENETIC_PRE${CHR}
 GENETIC_ROOT=/hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5
 GENETIC_PRE=ctmm_1kGp3GoNL5_RAW_chr
-EQTL_ROOT=/hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/cardiogramplusc4d_88loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
-EQTL_POST=_cardiogramplusc4d_88loci_4real_complete_with_4pcs
+# EQTL_ROOT=/hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/cardiogramplusc4d_88loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
+# EQTL_POST=_cardiogramplusc4d_88loci_4real_complete_with_4pcs
+EQTL_ROOT=/hpc/dhl_ec/llandsmeer/ctmm_eqtl/cardiogramplusc4d_164loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
+EQTL_POST=_cardiogramplusc4d_164loci_4real_complete_with_4pcs
 REGIONSFILE=input/variants_for_eqtl.164loci.txt
-REGIONSFILE=input/variants_for_eqtl.88loci.txt
