@@ -41,12 +41,12 @@ CONFIG_SMR_PLOT=data-files/plot_SMR.r
 # to make sure the effect/other alleles and beta value are in line with
 # the genetic data and to remove ambigiuous ambivalent alleles
 CONFIG_GWAS=/hpc/dhl_ec/llandsmeer/_ctmm/input/ukbb.cojo
-CONFIG_JOBNAME=redo-164-nom-job
+CONFIG_JOBNAME=fix-163-gw-full
 CONFIG_JOBDIR=/hpc/dhl_ec/llandsmeer/_ctmm/$CONFIG_JOBNAME
 
 # Which QTL data to read from the QTLToolKit output?
-# 'nom' for nominally tested, or 'perm' for permutation tested
-CONFIG_QTL_TYPE=nom
+# 'nom' for nominally tested, or 'nom' for permutation tested
+CONFIG_QTL_TYPE=perm
 
 # Location of the genetic data. The PLINK bfiles are expected to
 # reside in $GENETIC_ROOT/$GENETIC_PRE${CHR}
@@ -58,7 +58,7 @@ GENETIC_PRE=ctmm_1kGp3GoNL5_RAW_chr
 # are used as regions, for region based mode the regions listed
 # in the REGIONSFILE are used
 # Genome wide? false or true
-GW=false
+GW=true
 
 # For genome wide mode (GW=true), the QTL data location is specified in
 # GW_QTL and GW_GEN. In the paths, the ? mark is replaced
@@ -72,6 +72,7 @@ GW_GEN='/hpc/dhl_ec/data/_ctmm_originals/CTMMAxiomTX_IMPUTE2_1000Gp3_GoNL5/ctmm_
 # QTLToolKit.
 # Path: ${EQTL_ROOT}/${REGION}${EQTL_POST}/ctmm_QC_qtl${CONFIG_QTL_TYPE}_${REGION}_excl_EXCL_DEFAULT.txt.gz
 EQTL_ROOT=/hpc/dhl_ec/llandsmeer/_ctmm/eqtl/cardiogramplusc4d_164loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
+EQTL_ROOT=/hpc/dhl_ec/llandsmeer/_archived/ctmm_eqtl/cardiogramplusc4d_164loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
 EQTL_POST=_cardiogramplusc4d_164loci_4real_complete_with_4pcs
 # EQTL_ROOT=/hpc/dhl_ec/svanderlaan/projects/ctmm/ctmm_eqtl/cardiogramplusc4d_88loci_4real_complete_with_4pcs/EXCL_DEFAULT_qtl
 # EQTL_POST=_cardiogramplusc4d_88loci_4real_complete_with_4pcs

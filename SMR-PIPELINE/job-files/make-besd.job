@@ -47,6 +47,7 @@ main() {
 from __future__ import print_function
 import os
 import sqlite3
+from collections import OrderedDict
 
 ## UPDATE ESI FILE ##
 
@@ -54,7 +55,7 @@ esi_out = os.environ['BESD_OUTPUT'] + '.esi'
 esi_in = os.environ['BESD_OUTPUT'] + '.esi.bak'
 gwas_filename = os.environ['CONFIG_GWAS']
 
-src = {}
+src = OrderedDict()
 
 with open(esi_in) as f:
     for line in f:
