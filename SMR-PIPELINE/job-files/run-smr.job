@@ -25,8 +25,8 @@ main() {
         --bfile $GENETIC \
         --gwas-summary $GWAS \
         --beqtl-summary $BESD \
-        --out ${CONFIG_JOBDIR}/smr_${VARIANT}.out $extra_ops_gw \
-             | tee ${CONFIG_JOBDIR}/smr_${VARIANT}_output.txt
+        --out ${CONFIG_JOBDIR}/smr/${VARIANT}.out $extra_ops_gw \
+             | tee ${CONFIG_JOBDIR}/smr/${VARIANT}.stdout
 }
 
 main

@@ -81,6 +81,7 @@ source $CONFIG
 
 setup () {
     mkdir -p ${CONFIG_JOBDIR}/besd ${CONFIG_JOBDIR}/plot
+    mkdir -p ${CONFIG_JOBDIR}/logs ${CONFIG_JOBDIR}/smr
     cp $CONFIG $CONFIG_JOBDIR/config.sh
     if $GW; then
         for chr in $(seq 1 22) X;
@@ -129,6 +130,7 @@ if [ "$NLINES" = "all" ]; then
 fi
 
 J=-$CONFIG_JOBNAME
+LOGNAME_BASE="${CONFIG_JOBDIR}/logs"/'$JOB_NAME.$TASK_ID'
 
 if [ $# -gt 0 ]; then
     if [ "$1" == "--no-dry-run" ]; then
@@ -160,7 +162,7 @@ sub () {
     if $DRY; then
         echo qsub "$@"
     else
-        qsub $(echo "$@" | sed 's/%/ /g')
+        qsub -e $LOGNAME_BASE".err" -o $LOGNAME_BASE".out" $(echo "$@" | sed 's/%/ /g')
     fi
 }
 
@@ -207,6 +209,9 @@ echo ' === OUTPUT FILES ==='
                  echo ${CONFIG_JOBDIR}/smr.out
 $COMBINE_BESD && echo ${CONFIG_JOBDIR}/besd/dense
                  echo ${CONFIG_JOBDIR}/pdf/'{VARIANT}.{GENE}.{PROBE}.pdf'
+                 echo ${CONFIG_JOBDIR}/plot/
+                 echo ${LOGNAME_BASE}.out
+                 echo ${LOGNAME_BASE}.err
 
 echo ' === QSTAT ==='
 

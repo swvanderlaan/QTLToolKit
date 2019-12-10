@@ -11,7 +11,6 @@ SMR=$CONFIG_SMR
 
 export CONFIG_JOBDIR
 
-
 python <(cat << EOF
 from __future__ import print_function
 import os
@@ -22,7 +21,7 @@ with open(paramfile) as stream:
     for line in stream:
         parts = line.split()
         variant = parts[0]
-        smr = os.path.join(jobdir, 'smr_' + variant + '.out.smr')
+        smr = os.path.join(jobdir, 'smr', variant + '.out.smr')
         if os.path.exists(smr):
             with open(smr) as f:
                 for idx, line in enumerate(f, 1):
@@ -48,3 +47,6 @@ for line in sys.stdin:
         sys.stdout.write(line)
 EOF
 ) > "$CONFIG_JOBDIR/smr_lt_1e-3.out" < "$CONFIG_JOBDIR/smr.out"
+
+awk '(FNR==NR||FNR>1){print}' $CONFIG_JOBDIR/smr/*.snp_failed_freq_ck.list \
+    > $CONFIG_JOBDIR/smr.snp_failed_freq_ck.list

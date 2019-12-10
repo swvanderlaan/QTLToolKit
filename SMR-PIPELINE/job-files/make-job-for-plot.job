@@ -22,4 +22,6 @@ fi
 mkdir -p $HOME/R_libs
 mkdir -p ${CONFIG_JOBDIR}/pdf
 
-qsub -cwd -t 1-$NLINES job-files/make-plot.job $1
+LOGNAME_BASE="${CONFIG_JOBDIR}/logs"/'$JOB_NAME.$TASK_ID'
+
+qsub -e $LOGNAME_BASE".err" -o $LOGNAME_BASE".out" -cwd -t 1-$NLINES job-files/make-plot.job $1

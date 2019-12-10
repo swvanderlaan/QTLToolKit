@@ -41,12 +41,12 @@ CONFIG_SMR_PLOT=data-files/plot_SMR.r
 # to make sure the effect/other alleles and beta value are in line with
 # the genetic data and to remove ambigiuous ambivalent alleles
 CONFIG_GWAS=/hpc/dhl_ec/llandsmeer/_ctmm/input/ukbb.cojo
-CONFIG_JOBNAME=fix-163-gw-full
+CONFIG_JOBNAME=fix-163-gw-nom-test-smrdir
 CONFIG_JOBDIR=/hpc/dhl_ec/llandsmeer/_ctmm/$CONFIG_JOBNAME
 
 # Which QTL data to read from the QTLToolKit output?
-# 'nom' for nominally tested, or 'nom' for permutation tested
-CONFIG_QTL_TYPE=perm
+# 'nom' for nominally tested, or 'perm' for permutation tested
+CONFIG_QTL_TYPE=nom
 
 # Location of the genetic data. The PLINK bfiles are expected to
 # reside in $GENETIC_ROOT/$GENETIC_PRE${CHR}
