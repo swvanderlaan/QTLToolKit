@@ -791,7 +791,7 @@ if ${JOBARRAY}; then
 	${PYTHON} ${QTLTOOLKIT}/QTLJobArrayBuilder.py "${RESULTS}/jobarray" > "${RESULTS}/jobarray/qsub.sh"
 	# for job arrays, actually submit jobs
 	# cat "${RESULTS}/jobarray/qsub.sh"
-	bash "${RESULTS}/jobarray/qsub.sh"
+    bash "${RESULTS}/jobarray/qsub.sh"
 fi
 
 

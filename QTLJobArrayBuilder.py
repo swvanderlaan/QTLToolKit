@@ -24,7 +24,7 @@
 
 from __future__ import print_function
 
-
+import re
 import os
 import sys
 import textwrap
@@ -49,19 +49,17 @@ def reconstruct(qsub, cmd):
 
 task_id = 'SLURM_ARRAY_TASK_ID'
 def reconstruct(slurm, cmd):
+    def norm_job_name(jobname):
+        # we need to handle job dependencies via bash variables...
+        # so lets normalize them...
+        return re.sub(r'[^a-zA-Z_0-9]', '_', jobname) 
+    if slurm['N']:
+        slurm['N'] = norm_job_name(slurm['N'])
     if 'S' in slurm:
-        print(slurm['S'])
         assert slurm['S'] == '/bin/bash'
         del slurm['S']
-    trans = {
-        'wd': '--chdir',
-        'e': '--error',
-        'o': '--output',
-        'M': '--mail-user',
-        'm': '--mail-type',
-        'N': '--job-name',
-        't': '--array',
-    }
+    trans = { 'wd': '--chdir', 'e': '--error', 'o': '--output',
+              'M': '--mail-user', 'm': '--mail-type', 'N': '--job-name', 't': '--array', }
     r = ['sbatch']
     if 'm' in slurm:
         if slurm['m']:
@@ -77,10 +75,10 @@ def reconstruct(slurm, cmd):
             v = v.split('=', 1)[1]
         elif k == 'hold_jid_ad':
             k = '--dependency'
-            v = 'aftercorr:' + v
+            v = 'aftercorr:${' + norm_job_name(v) +'}'
         elif k == 'hold_jid':
             k = '--dependency'
-            v = 'afterok:' + v
+            v = 'afterok:${' + norm_job_name(v) +'}'
         else:
             print('ERROR: COULD NOT ARGUMENT FROM SGE TO SLURM:')
             print(k, v)
@@ -92,9 +90,18 @@ def reconstruct(slurm, cmd):
             r.append(k)
         r.append('\\\n')
     r.append(cmd)
-    return ' '.join(r)
+    out = ' '.join(r)
+    if slurm['N']:
+        # SLURM only supports job dependencies via job_IDs
+        # not job names...
+        N = slurm['N']
+        out = 'echo Submitting {{{0}}}\n{0}=$({1})\necho ${{{0}}}\n{0}=${{{0}##* }}'.format(N, out)
+    return out
 
 def main(taskdir):
+    print('#!/usr/bin/bash')
+    print('set -e')
+    print()
     qsubs = []
     for line in open(os.path.join(taskdir, 'qsub')):
         qsub = NS()
@@ -108,7 +115,6 @@ def main(taskdir):
                 qsub[key] = True
         qsub['cmd'] = cmdfile
         qsubs.append(qsub)
-
 
     order = []
     by_name = collections.defaultdict(list)
@@ -129,6 +135,11 @@ def main(taskdir):
                 _task['hold_jid'] = hold
         if len(tasks) == 1:
             cmd = tasks[0].pop('cmd')
+            # rewrite to prepend /usr/bin/bash to keep SLURM happy...
+            with open(cmd, 'r') as f:
+                cmd_content = f.read()
+            with open(cmd, 'w') as f:
+                print('#!/usr/bin/bash\n' + cmd_content, file=f)
             print('# JOB', name)
             print(reconstruct(tasks[0], cmd))
         else:
