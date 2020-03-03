@@ -47,12 +47,14 @@ def reconstruct(qsub, cmd):
     r.append(cmd)
     return ' '.join(r)
 
+def norm_job_name(jobname):
+    # we need to handle job dependencies via bash variables...
+    # so lets normalize them...
+    # also useful for graphviz output
+    return re.sub(r'[^a-zA-Z_0-9]', '_', jobname) 
+
 task_id = 'SLURM_ARRAY_TASK_ID'
 def reconstruct(slurm, cmd):
-    def norm_job_name(jobname):
-        # we need to handle job dependencies via bash variables...
-        # so lets normalize them...
-        return re.sub(r'[^a-zA-Z_0-9]', '_', jobname) 
     if slurm['N']:
         slurm['N'] = norm_job_name(slurm['N'])
     if 'S' in slurm:
@@ -98,6 +100,13 @@ def reconstruct(slurm, cmd):
         out = 'echo Submitting {{{0}}}\n{0}=$({1})\necho ${{{0}}}\n{0}=${{{0}##* }}'.format(N, out)
     return out
 
+def depsolve(f, task, cmdfile):
+    name = norm_job_name(task['N'])
+    print(name + '[shape=box]', file=f)
+    for k in ['hold_jid_ad', 'hold_jid']:
+        if k in task:
+            print(name, '->', norm_job_name(task[k]), file=f)
+
 def main(taskdir):
     print('#!/usr/bin/bash')
     print('set -e')
@@ -118,6 +127,9 @@ def main(taskdir):
 
     order = []
     by_name = collections.defaultdict(list)
+
+    fdeps = open(os.path.join(taskdir, 'qsub-deps.dot'), 'w')
+    print('digraph jobdeps {', file=fdeps)
 
     for qsub in qsubs:
         if qsub.N not in order:
@@ -142,6 +154,7 @@ def main(taskdir):
                 print('#!/usr/bin/bash\n' + cmd_content, file=f)
             print('# JOB', name)
             print(reconstruct(tasks[0], cmd))
+            depsolve(fdeps, tasks[0], cmd)
         else:
             qsub_file = os.path.join(taskdir, name + '.jobfile')
             arrayjobs.add((name, len(tasks)))
@@ -164,6 +177,7 @@ def main(taskdir):
             task['o'] = os.path.join(taskdir, name + '.stdout')
             task['e'] = os.path.join(taskdir, name + '.stderr')
             print(reconstruct(task, qsub_file))
+            depsolve(fdeps, task, cmd)
         try:
             with open(cmd) as g:
                 for line in textwrap.wrap(g.read(), 100):
@@ -174,6 +188,8 @@ def main(taskdir):
                 print('#', line)
         print()
         print()
+
+    print('}', file=fdeps)
 
 taskdir = '/tmp/' if len(sys.argv) == 1 else sys.argv[1]
 

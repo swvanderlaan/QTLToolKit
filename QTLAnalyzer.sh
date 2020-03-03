@@ -792,6 +792,7 @@ if ${JOBARRAY}; then
 	# for job arrays, actually submit jobs
 	# cat "${RESULTS}/jobarray/qsub.sh"
     bash "${RESULTS}/jobarray/qsub.sh"
+    dot "${RESULTS}/jobarray/qsub-deps.dot" -Tpdf > "${PROJECTDIR}/job-dependencies.pdf"
 fi
 
 
