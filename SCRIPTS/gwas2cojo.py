@@ -465,7 +465,12 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
             exit(1)
     try:
         with fopen(stats_filename) as f:
-            for lineno, line in enumerate(f, 1):
+            lineno = 0
+            for line in f:
+                if line.startswith('#'):
+                    # discard comments
+                    continue
+                lineno += 1
                 if lineno == 1:
                     header = line.split()
                     hrsid = select('ident', ['rsid', 'snp', 'variantid'])
