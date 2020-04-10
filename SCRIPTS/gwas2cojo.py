@@ -70,16 +70,16 @@ if not hasattr(os.path, 'commonpath'):
 # case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
 GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr']
-GWAS_H_BP_OPTIONS =              ['bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos']
+GWAS_H_BP_OPTIONS =              ['bp_hg18', 'bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos']
 GWAS_H_REF_OPTIONS =             ['reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
 GWAS_H_OTH_OPTIONS =             ['other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
-GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF']
-GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta']
+GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF', 'Freq.A1.1000G.EUR']
+GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta', 'b', 'OR']
 GWAS_H_SE_OPTIONS =              ['log_odds_se', 'se_gc', 'se', 'stderr', 'SE_FIXED', 'SE']
 GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
 GWAS_H_NTOTAL_OPTIONS =          ['n_samples', 'TotalSampleSize', 'n_eff', 'N_EFF', 'N', 'neff', 'Neff']
-GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls']
-GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases']
+GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls', 'controls']
+GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases', 'cases']
 GWAS_HG18_HINTS =                ['hg18', 'b36']
 GWAS_HG19_HINTS =                ['hg19']
 
@@ -125,6 +125,8 @@ def build_parser():
     gwas_header.add_argument('--gwas:n',metavar='COLUMN(S)',
             help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
                  'are specified, their sum is stored.')
+    gwas_header.add_argument('--gwas:sep',metavar='DELIMITER', help='Delimiter character. Defaults to any whitespace character', default=None)
+    gwas_header.add_argument('--gwas:header:remove',metavar='STRING', help='Remove this string from header before processing', default=None)
     gwas_default = parser.add_argument_group('gwas default values')
     gwas_default.add_argument('--gwas:default:p', metavar='VALUE')
     gwas_default.add_argument('--gwas:default:beta', metavar='VALUE')
@@ -197,9 +199,12 @@ class ReporterLine:
 
 
 def inv(dna):
-    if len(dna) == 1:
-        return INV[dna]
-    return ''.join(INV[bp] for bp in dna)
+    try:
+        if len(dna) == 1:
+            return INV[dna]
+        return ''.join(INV[bp] for bp in dna)
+    except KeyError:
+        return 'non-invertible' # <CN2> / N
 
 
 def select_action(args,
@@ -278,7 +283,8 @@ def log_error(report, name, gwas, gen=(), rest=()):
 
 
 def fopen(filename):
-    if filename.endswith('.gz'):
+    if (filename.endswith('.gz') or
+        filename.endswith('.tgz')): # iibdgc-trans-ancestry-filtered-summary-stats.tgz is just a normal gzip file?
         return gzip.open(filename, 'rt')
     else:
         return open(filename)
@@ -323,7 +329,12 @@ def read_gwas(args, filename, report=None):
                         desc['build'] = 'hg19'
                     elif any(hint in line for hint in GWAS_HG18_HINTS):
                         desc['build'] = 'hg18'
-                    header = line.split()
+                    if '\0' in line: # iibdgc-trans-ancestry-filtered-summary-stats.tgz contains zero byte garbage
+                        garbage_end = line.rindex('\0')
+                        line = line[garbage_end+1:]
+                    if args['gwas:header:remove']:
+                        line = line.replace(args['gwas:header:remove'], '')
+                    header = line.split(args['gwas:sep'])
                     hpos = select('chr_bp', GWAS_H_CHR_AND_BP_COMB_OPTIONS, fail=False)
                     if hpos is None:
                         postype_combined = False
@@ -372,9 +383,9 @@ def read_gwas(args, filename, report=None):
                     print('= Converting =')
                     reporter = ReporterLine('Reading gwas data.')
                     continue
-                parts = line.split()
+                parts = line.split(args['gwas:sep'])
                 if postype_combined:
-                    ch, bp = parts[hpos].split(':', 1)
+                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
                     if default_chr:
                         print('Default chromosome specified but reading chr:bp column.')
                         exit(1)
@@ -382,7 +393,15 @@ def read_gwas(args, filename, report=None):
                     ch = default_chr or parts[hpos_ch]
                     bp = parts[hpos_bp]
                 try:
-                    n = default_n or sum(int(float(parts[col])+0.5) for col in hn)
+                    if default_n:
+                        n = default_n
+                    else:
+                        n = sum(int(float(parts[col])+0.5) for col in hn)
+                        # some GWASs default to n=-9, which is then picked up
+                        # by the header autodetector as valid data..
+                        if n < 0:
+                            print('Negative N!!!')
+                            exit(1)
                 except ValueError:
                     n = 'NA'
                 gwas_freq = parts[hfreq]
@@ -443,6 +462,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     freq_comp = np.zeros((40000, 2)) if np else None
     converted = discarded = 0
     stopped = False
+    rsids_seen = {} # some summary stat files have duplicate rsids...
     def select(name, options, can_fail=False):
         option_name = 'gen:' + name
         option_val = getattr(args, option_name)
@@ -510,6 +530,11 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     parts = line.split()
                     if hmaf is not None:
                         minor = parts[hminor]
+                        if minor == 'NA': # for bi-allelic alles as reported by QCtool
+                            counts['report:maf_na'] += 1
+                            if report: log_error(report, 'maf_NA', gwas=gwas_row, gen=parts)
+                            discarded += 1
+                            continue
                         if minor == parts[heff]:
                             eaf = float(parts[hmaf])
                         else:
@@ -556,8 +581,15 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     converted += 1
                     if np:
                         freq_comp[converted % freq_comp.shape[0]] = freq, eaf
+                    rsid = parts[hrsid]
+                    if rsid in rsids_seen:
+                        counts['report:duplicate_rsid'] += 1
+                        if report: log_error(report, 'duplicate_rsid', gwas=gwas_row, gen=parts)
+                        discarded += 1
+                        continue
+                    rsids_seen.add(rsid)
                     if output:
-                        print(parts[hrsid], parts[heff], parts[hoth], freq, beta,
+                        print(rsid, parts[heff], parts[hoth], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
@@ -659,9 +691,9 @@ def prolog():
     print('')
     print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-    print('* Last update        : 2019-11-21')
+    print('* Last update        : 2020-04-01')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.3.0')
+    print('* Version            : v1.4.0')
     print('')
     print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
     print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
@@ -673,7 +705,7 @@ def prolog():
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print('+ The MIT License (MIT)                                                                                 +')
-    print('+ Copyright (c) 1979-2019 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+    print('+ Copyright (c) 1979-2020 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
     print('+                                                                                                       +')
     print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
     print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
