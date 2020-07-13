@@ -42,9 +42,10 @@ import os
 import sys
 import argparse
 import collections
-import gzip
-import time
 import datetime
+import gzip
+import math
+import time
 
 try:
     import numpy as np
@@ -69,19 +70,19 @@ if not hasattr(os.path, 'commonpath'):
 
 # case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr']
-GWAS_H_BP_OPTIONS =              ['bp_hg18', 'bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos']
-GWAS_H_REF_OPTIONS =             ['reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
-GWAS_H_OTH_OPTIONS =             ['other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
-GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF', 'Freq.A1.1000G.EUR']
-GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta', 'b', 'OR']
+GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr', 'Chr(GCF1405.25)']
+GWAS_H_BP_OPTIONS =              ['bp_hg18', 'bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos', 'Start(GCF1405.25)']
+GWAS_H_EFF_OPTIONS =             ['A1', 'Allele1', 'reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
+GWAS_H_OTH_OPTIONS =             ['A2', 'Allele2', 'other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
+GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF', 'Freq1', 'freq(A1)', 'Freq.A1.1000G.EUR']
+GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta', 'b', 'Effect']
 GWAS_H_SE_OPTIONS =              ['log_odds_se', 'se_gc', 'se', 'stderr', 'SE_FIXED', 'SE']
-GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
+GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue', 'P-value']
 GWAS_H_NTOTAL_OPTIONS =          ['n_samples', 'TotalSampleSize', 'n_eff', 'N_EFF', 'N', 'neff', 'Neff']
-GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls', 'controls']
-GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases', 'cases']
+GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls', 'controls', 'TotalCases']
+GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases', 'cases', 'TotalSampleSize']
 GWAS_HG18_HINTS =                ['hg18', 'b36']
-GWAS_HG19_HINTS =                ['hg19']
+GWAS_HG19_HINTS =                ['hg19', 'GCF1405.25']
 
 
 def build_parser():
@@ -116,6 +117,7 @@ def build_parser():
     gwas_header.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect/Other/Major allele column name.')
     gwas_header.add_argument('--gwas:freq', metavar='COLUMN', help='Effect/Risk/Coded/Minor allele frequency column name.')
     gwas_header.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name [beta/effect], relative to effect/risk/coded/minor allele.')
+    gwas_header.add_argument('--gwas:or', metavar='COLUMN', help='Odds-ratio column name [OR], relative to effect/risk/coded/minor allele.')
     gwas_header.add_argument('--gwas:se', metavar='COLUMN', help='Log-odds standard error column name.')
     gwas_header.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name.')
     gwas_header.add_argument('--gwas:chr-bp', metavar='COLUMN', help='Position column name when encoded as chr:pos.')
@@ -292,7 +294,7 @@ def fopen(filename):
 
 def read_gwas(args, filename, report=None):
     liftover = None
-    float_conv_failed = yes = no = 0
+    wrong_column_count = float_conv_failed = yes = no = 0
     desc = {}
     default_p, default_std = args['gwas:default:p'], args['gwas:default:se']
     default_n, default_chr = args['gwas:default:n'], args['gwas:default:chr']
@@ -342,12 +344,18 @@ def read_gwas(args, filename, report=None):
                         hpos_bp = select('bp', GWAS_H_BP_OPTIONS)
                     else:
                         postype_combined = True
-                    href = select('effect', GWAS_H_REF_OPTIONS)
+                    href = select('effect', GWAS_H_EFF_OPTIONS)
                     hoth = select('other', GWAS_H_OTH_OPTIONS)
                     hfreq = select('freq', GWAS_H_FREQ_OPTIONS)
-                    hb = select('beta', GWAS_H_BETA_OPTIONS)
                     hse = select('se', GWAS_H_SE_OPTIONS)
                     hp = select('p', GWAS_H_PVALUE_OPTIONS)
+                    if args['gwas:beta'] is not None:
+                        hb = select('beta', GWAS_H_BETA_OPTIONS)
+                    elif args['gwas:or'] is not None:
+                        hb = None
+                        hor = select('or', [])
+                    else:
+                        hb = select('beta', GWAS_H_BETA_OPTIONS) # select default or fail
                     if not args['gwas:n'] is None:
                         hn = [header.index(col) for col in args['gwas:n'].split(',')]
                         desc['n'] = '+'.join(args['gwas:n'].split(','))
@@ -384,6 +392,12 @@ def read_gwas(args, filename, report=None):
                     reporter = ReporterLine('Reading gwas data.')
                     continue
                 parts = line.split(args['gwas:sep'])
+                if len(parts) != len(header):
+                    # MDD switches halfway to a different format for a small number of non-significant SNPs
+                    if report:
+                        log_error(report, 'wrong_column_count', gwas=parts)
+                    wrong_column_count += 1
+                    continue
                 if postype_combined:
                     ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
                     if default_chr:
@@ -405,9 +419,18 @@ def read_gwas(args, filename, report=None):
                 except ValueError:
                     n = 'NA'
                 gwas_freq = parts[hfreq]
-                gwas_beta = default_beta or parts[hb]
                 try:
-                    gwas_freq, gwas_beta = float(gwas_freq), float(gwas_beta)
+                    if default_beta:
+                        gwas_beta = default_beta
+                    elif hb is None:
+                        or_ = float(parts[hor])
+                        if or_ < 0:
+                            print('negative ODDS ratio. is this a beta?')
+                            exit(1)
+                        gwas_beta = math.log(or_)
+                    else:
+                        gwas_beta = float(parts[hb])
+                    gwas_freq = float(gwas_freq)
                 except ValueError:
                     row = GWASRow(parts[href].upper(), parts[hoth].upper(),
                             gwas_freq, gwas_beta,
@@ -446,11 +469,18 @@ def read_gwas(args, filename, report=None):
                     reporter.update(lineno, f.fileno())
     except KeyboardInterrupt:
         print('Aborted reading gwas data at line', lineno)
+    except UnicodeDecodeError:
+        # IBD turns into gibberish after 95%, we can probably discard that
+        print('UnicodeDecodeError, aborted reading gwas data at line', lineno)
     if liftover:
         print('Successfully', desc['build'], '->', args['gen:build'], 'converted', yes, 'rows')
         print('Build conversion failed for', no, 'rows (reported as gwas_build_conv_failed).')
     if float_conv_failed:
         print('Numeric conversion failed for', float_conv_failed, 'rows (reported as gwas_float_conv_failed).')
+    if wrong_column_count:
+        print('Invalid number of columns for', wrong_column_count, 'rows (reported as wrong_column_count).')
+        print()
+    print()
 
 
 def update_read_stats(args, gwas, stats_filename, output=None, report=None):
@@ -462,7 +492,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     freq_comp = np.zeros((40000, 2)) if np else None
     converted = discarded = 0
     stopped = False
-    rsids_seen = {} # some summary stat files have duplicate rsids...
+    rsids_seen = set() # some summary stat files have duplicate rsids...
     def select(name, options, can_fail=False):
         option_name = 'gen:' + name
         option_val = getattr(args, option_name)
