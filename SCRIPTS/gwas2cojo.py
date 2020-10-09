@@ -399,7 +399,8 @@ def read_gwas(args, filename, report=None):
                     wrong_column_count += 1
                     continue
                 if postype_combined:
-                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
+#                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
+                    ch, bp = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
                     if default_chr:
                         print('Default chromosome specified but reading chr:bp column.')
                         exit(1)
@@ -517,13 +518,13 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
         with fopen(stats_filename) as f:
             lineno = 0
             for line in f:
-                if line.startswith('#'):
+                if line.startswith('##'):
                     # discard comments
                     continue
                 lineno += 1
                 if lineno == 1:
                     header = line.split()
-                    hrsid = select('ident', ['rsid', 'snp', 'variantid'])
+                    hrsid = select('ident', ['rsid', 'SNP', 'variantid'])
                     hch = select('chr', ['chr', 'chromosome'])
                     hbp = select('bp', ['bp', 'position', 'pos'])
                     heff = select('effect', [])
@@ -619,7 +620,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                         continue
                     rsids_seen.add(rsid)
                     if output:
-                        print(rsid, parts[heff], parts[hoth], freq, beta,
+                        print(parts[hrsid], parts[heff], parts[hoth], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
