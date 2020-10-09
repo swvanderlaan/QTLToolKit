@@ -42,9 +42,10 @@ import os
 import sys
 import argparse
 import collections
-import gzip
-import time
 import datetime
+import gzip
+import math
+import time
 
 try:
     import numpy as np
@@ -56,8 +57,8 @@ try:
     from pyliftover import LiftOver
 except ImportError:
     def LiftOver(*a):
-        print('error: genome build conversion relies on pyliftover')
-        print('run pip install pyliftover')
+        print('Error: genome build conversion relies on `pyliftover`.')
+        print('Run: `pip install pyliftover`')
         exit(1)
 
 
@@ -69,19 +70,19 @@ if not hasattr(os.path, 'commonpath'):
 
 # case insensitive
 GWAS_H_CHR_AND_BP_COMB_OPTIONS = ['chr_pos_(b36)']
-GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr']
-GWAS_H_BP_OPTIONS =              ['bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos']
-GWAS_H_REF_OPTIONS =             ['reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
-GWAS_H_OTH_OPTIONS =             ['other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
-GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF']
-GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta']
+GWAS_H_CHR_OPTIONS =             ['chr', 'chromosome', 'Chromosome', 'CHR', 'Chr', 'Chr(GCF1405.25)']
+GWAS_H_BP_OPTIONS =              ['bp_hg18', 'bp_hg19', 'bp', 'pos', 'position', 'Position', 'BP', 'POS', 'Pos', 'Start(GCF1405.25)']
+GWAS_H_EFF_OPTIONS =             ['A1', 'Allele1', 'reference_allele', 'effect_allele', 'riskallele', 'CODEDALLELE', 'EA']
+GWAS_H_OTH_OPTIONS =             ['A2', 'Allele2', 'other_allele', 'noneffect_allele', 'nonriskallele', 'OTHERALLELE', 'NEA']
+GWAS_H_FREQ_OPTIONS =            ['ref_allele_frequency', 'effect_allele_freq', 'eaf', 'raf', 'CAF', 'EAF', 'Freq1', 'freq(A1)', 'Freq.A1.1000G.EUR']
+GWAS_H_BETA_OPTIONS =            ['log_odds', 'logOR', 'beta', 'effect', 'BETA_FIXED', 'BETA', 'Beta', 'b', 'Effect']
 GWAS_H_SE_OPTIONS =              ['log_odds_se', 'se_gc', 'se', 'stderr', 'SE_FIXED', 'SE']
-GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue']
+GWAS_H_PVALUE_OPTIONS =          ['pvalue', 'p-value_gc', 'p-value', 'p.value', 'pval', 'p', 'P_FIXED', 'P', 'Pvalue', 'P-value']
 GWAS_H_NTOTAL_OPTIONS =          ['n_samples', 'TotalSampleSize', 'n_eff', 'N_EFF', 'N', 'neff', 'Neff']
-GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls']
-GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases']
+GWAS_H_NCONTROL_OPTIONS =        ['N_control', 'N_controls', 'controls', 'TotalCases']
+GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases', 'cases', 'TotalSampleSize']
 GWAS_HG18_HINTS =                ['hg18', 'b36']
-GWAS_HG19_HINTS =                ['hg19']
+GWAS_HG19_HINTS =                ['hg19', 'b37', 'GCF1405.25']
 
 
 def build_parser():
@@ -89,11 +90,11 @@ def build_parser():
     parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
             type=os.path.abspath, help='Output .cojo file.')
     parser.add_argument('-r', '--report', dest='report', metavar='txt',
-            type=os.path.abspath, help='Report discarded variantss here.')
+            type=os.path.abspath, help='Report discarded variants here.')
     parser.add_argument('-rr', '--report-ok', dest='report_ok', action='store_true',
             help='Report all decisions made. Warning: very verbose')
     parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
-            type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) in PLINK binary format (i.e. bed/bim/fam).')
+            type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) in with chromosomal base pair positional information, alleles, and frequency. Raw and gzip supported.')
     parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
             type=os.path.abspath, help='GWAS summary statistics location.', required=True)
     parser.add_argument('--header-only', dest='header_only', action='store_true',
@@ -116,15 +117,18 @@ def build_parser():
     gwas_header.add_argument('--gwas:other', metavar='COLUMN', help='Non-effect/Other/Major allele column name.')
     gwas_header.add_argument('--gwas:freq', metavar='COLUMN', help='Effect/Risk/Coded/Minor allele frequency column name.')
     gwas_header.add_argument('--gwas:beta', metavar='COLUMN', help='Log-odds column name [beta/effect], relative to effect/risk/coded/minor allele.')
+    gwas_header.add_argument('--gwas:or', metavar='COLUMN', help='Odds-ratio column name [OR], relative to effect/risk/coded/minor allele.')
     gwas_header.add_argument('--gwas:se', metavar='COLUMN', help='Log-odds standard error column name.')
     gwas_header.add_argument('--gwas:p', metavar='COLUMN', help='P-value column name.')
     gwas_header.add_argument('--gwas:chr-bp', metavar='COLUMN', help='Position column name when encoded as chr:pos.')
     gwas_header.add_argument('--gwas:chr', metavar='COLUMN', help='Chromosome column name.')
     gwas_header.add_argument('--gwas:bp',metavar='COLUMN', help='Chromosomal position column name.')
-    gwas_header.add_argument('--gwas:build',metavar='BUILDID', help='hg18, hg19, etc.')
+    gwas_header.add_argument('--gwas:build',metavar='BUILDID', help='hg18 or b36, hg19 or b37, etc.')
     gwas_header.add_argument('--gwas:n',metavar='COLUMN(S)',
             help='Column name(s) of the sample counts. Separated by commas. If multiple colums ' +
                  'are specified, their sum is stored.')
+    gwas_header.add_argument('--gwas:sep',metavar='DELIMITER', help='Delimiter character. Defaults to any whitespace character', default=None)
+    gwas_header.add_argument('--gwas:header:remove',metavar='STRING', help='Remove this string from header before processing', default=None)
     gwas_default = parser.add_argument_group('gwas default values')
     gwas_default.add_argument('--gwas:default:p', metavar='VALUE')
     gwas_default.add_argument('--gwas:default:beta', metavar='VALUE')
@@ -197,9 +201,12 @@ class ReporterLine:
 
 
 def inv(dna):
-    if len(dna) == 1:
-        return INV[dna]
-    return ''.join(INV[bp] for bp in dna)
+    try:
+        if len(dna) == 1:
+            return INV[dna]
+        return ''.join(INV[bp] for bp in dna)
+    except KeyError:
+        return 'non-invertible' # <CN2> / N
 
 
 def select_action(args,
@@ -278,7 +285,8 @@ def log_error(report, name, gwas, gen=(), rest=()):
 
 
 def fopen(filename):
-    if filename.endswith('.gz'):
+    if (filename.endswith('.gz') or
+        filename.endswith('.tgz')): # iibdgc-trans-ancestry-filtered-summary-stats.tgz is just a normal gzip file?
         return gzip.open(filename, 'rt')
     else:
         return open(filename)
@@ -286,7 +294,7 @@ def fopen(filename):
 
 def read_gwas(args, filename, report=None):
     liftover = None
-    float_conv_failed = yes = no = 0
+    wrong_column_count = float_conv_failed = yes = no = 0
     desc = {}
     default_p, default_std = args['gwas:default:p'], args['gwas:default:se']
     default_n, default_chr = args['gwas:default:n'], args['gwas:default:chr']
@@ -323,7 +331,12 @@ def read_gwas(args, filename, report=None):
                         desc['build'] = 'hg19'
                     elif any(hint in line for hint in GWAS_HG18_HINTS):
                         desc['build'] = 'hg18'
-                    header = line.split()
+                    if '\0' in line: # iibdgc-trans-ancestry-filtered-summary-stats.tgz contains zero byte garbage
+                        garbage_end = line.rindex('\0')
+                        line = line[garbage_end+1:]
+                    if args['gwas:header:remove']:
+                        line = line.replace(args['gwas:header:remove'], '')
+                    header = line.split(args['gwas:sep'])
                     hpos = select('chr_bp', GWAS_H_CHR_AND_BP_COMB_OPTIONS, fail=False)
                     if hpos is None:
                         postype_combined = False
@@ -331,12 +344,18 @@ def read_gwas(args, filename, report=None):
                         hpos_bp = select('bp', GWAS_H_BP_OPTIONS)
                     else:
                         postype_combined = True
-                    href = select('effect', GWAS_H_REF_OPTIONS)
+                    href = select('effect', GWAS_H_EFF_OPTIONS)
                     hoth = select('other', GWAS_H_OTH_OPTIONS)
                     hfreq = select('freq', GWAS_H_FREQ_OPTIONS)
-                    hb = select('beta', GWAS_H_BETA_OPTIONS)
                     hse = select('se', GWAS_H_SE_OPTIONS)
                     hp = select('p', GWAS_H_PVALUE_OPTIONS)
+                    if args['gwas:beta'] is not None:
+                        hb = select('beta', GWAS_H_BETA_OPTIONS)
+                    elif args['gwas:or'] is not None:
+                        hb = None
+                        hor = select('or', [])
+                    else:
+                        hb = select('beta', GWAS_H_BETA_OPTIONS) # select default or fail
                     if not args['gwas:n'] is None:
                         hn = [header.index(col) for col in args['gwas:n'].split(',')]
                         desc['n'] = '+'.join(args['gwas:n'].split(','))
@@ -372,9 +391,15 @@ def read_gwas(args, filename, report=None):
                     print('= Converting =')
                     reporter = ReporterLine('Reading gwas data.')
                     continue
-                parts = line.split()
+                parts = line.split(args['gwas:sep'])
+                if len(parts) != len(header):
+                    # MDD switches halfway to a different format for a small number of non-significant SNPs
+                    if report:
+                        log_error(report, 'wrong_column_count', gwas=parts)
+                    wrong_column_count += 1
+                    continue
                 if postype_combined:
-                    ch, bp = parts[hpos].split(':', 1)
+                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
                     if default_chr:
                         print('Default chromosome specified but reading chr:bp column.')
                         exit(1)
@@ -382,13 +407,30 @@ def read_gwas(args, filename, report=None):
                     ch = default_chr or parts[hpos_ch]
                     bp = parts[hpos_bp]
                 try:
-                    n = default_n or sum(int(float(parts[col])+0.5) for col in hn)
+                    if default_n:
+                        n = default_n
+                    else:
+                        n = sum(int(float(parts[col])+0.5) for col in hn)
+                        # some GWASs default to n=-9, which is then picked up
+                        # by the header autodetector as valid data..
+                        if n < 0:
+                            print('Negative N!!!')
+                            exit(1)
                 except ValueError:
                     n = 'NA'
                 gwas_freq = parts[hfreq]
-                gwas_beta = default_beta or parts[hb]
                 try:
-                    gwas_freq, gwas_beta = float(gwas_freq), float(gwas_beta)
+                    if default_beta:
+                        gwas_beta = default_beta
+                    elif hb is None:
+                        or_ = float(parts[hor])
+                        if or_ < 0:
+                            print('negative ODDS ratio. is this a beta?')
+                            exit(1)
+                        gwas_beta = math.log(or_)
+                    else:
+                        gwas_beta = float(parts[hb])
+                    gwas_freq = float(gwas_freq)
                 except ValueError:
                     row = GWASRow(parts[href].upper(), parts[hoth].upper(),
                             gwas_freq, gwas_beta,
@@ -427,11 +469,18 @@ def read_gwas(args, filename, report=None):
                     reporter.update(lineno, f.fileno())
     except KeyboardInterrupt:
         print('Aborted reading gwas data at line', lineno)
+    except UnicodeDecodeError:
+        # IBD turns into gibberish after 95%, we can probably discard that
+        print('UnicodeDecodeError, aborted reading gwas data at line', lineno)
     if liftover:
         print('Successfully', desc['build'], '->', args['gen:build'], 'converted', yes, 'rows')
         print('Build conversion failed for', no, 'rows (reported as gwas_build_conv_failed).')
     if float_conv_failed:
         print('Numeric conversion failed for', float_conv_failed, 'rows (reported as gwas_float_conv_failed).')
+    if wrong_column_count:
+        print('Invalid number of columns for', wrong_column_count, 'rows (reported as wrong_column_count).')
+        print()
+    print()
 
 
 def update_read_stats(args, gwas, stats_filename, output=None, report=None):
@@ -443,6 +492,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     freq_comp = np.zeros((40000, 2)) if np else None
     converted = discarded = 0
     stopped = False
+    rsids_seen = set() # some summary stat files have duplicate rsids...
     def select(name, options, can_fail=False):
         option_name = 'gen:' + name
         option_val = getattr(args, option_name)
@@ -465,7 +515,12 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
             exit(1)
     try:
         with fopen(stats_filename) as f:
-            for lineno, line in enumerate(f, 1):
+            lineno = 0
+            for line in f:
+                if line.startswith('#'):
+                    # discard comments
+                    continue
+                lineno += 1
                 if lineno == 1:
                     header = line.split()
                     hrsid = select('ident', ['rsid', 'snp', 'variantid'])
@@ -505,6 +560,11 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     parts = line.split()
                     if hmaf is not None:
                         minor = parts[hminor]
+                        if minor == 'NA': # for bi-allelic alles as reported by QCtool
+                            counts['report:maf_na'] += 1
+                            if report: log_error(report, 'maf_NA', gwas=gwas_row, gen=parts)
+                            discarded += 1
+                            continue
                         if minor == parts[heff]:
                             eaf = float(parts[hmaf])
                         else:
@@ -551,8 +611,15 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                     converted += 1
                     if np:
                         freq_comp[converted % freq_comp.shape[0]] = freq, eaf
+                    rsid = parts[hrsid]
+                    if rsid in rsids_seen:
+                        counts['report:duplicate_rsid'] += 1
+                        if report: log_error(report, 'duplicate_rsid', gwas=gwas_row, gen=parts)
+                        discarded += 1
+                        continue
+                    rsids_seen.add(rsid)
                     if output:
-                        print(parts[hrsid], parts[heff], parts[hoth], freq, beta,
+                        print(rsid, parts[heff], parts[hoth], freq, beta,
                               gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
@@ -649,18 +716,20 @@ def main(args):
 
 def prolog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    print('                                    QTLTools CONVERT GWAS FOR SMR')
+    print('               Convert GWAS summary statistics to \'COJO\'-format for post-GWAS analyses')
     print('')
     print('')
     print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-    print('* Last update        : 2019-11-21')
+    print('* Last update        : 2020-10-09')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.3.0')
+    print('* Version            : v1.4.1')
     print('')
-    print('* Description        : To assess pleiotropic effects using Summarized-data Mendelian Randomization (SMR) ')
-    print('                       of molecular QTLs on (selected) traits, summary statistics from genome-wide ')
-    print('                       association studies (GWAS) are converted to the GWAS-COJO format.')
+    print('* Description        : Summary statistics from genome-wide association studies (GWAS) are converted to ')
+    print('                       the GWAS-COJO format for post-GWAS analyses. These may include assessing ')
+    print('                       pleiotropic effects using Summarized-data Mendelian Randomization (SMR)of ')
+    print('                       molecular QTLs on (selected) traits, or functional annotation and gene mappping ')
+    print('                       using FUMA (https://fuma.ctglab.nl/).')
     print('')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 #    print('Start: {}'.format(datetime.datetime.now()))
@@ -668,7 +737,7 @@ def prolog():
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print('+ The MIT License (MIT)                                                                                 +')
-    print('+ Copyright (c) 1979-2019 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+    print('+ Copyright (c) 1979-2020 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
     print('+                                                                                                       +')
     print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
     print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
