@@ -13,7 +13,7 @@
 #                        was more time consuming than building this script. It reads
 #                        all qsub commands from QTLAnalyzer.sh (and possible other
 #                        scripts, it does not make too much assumptions about the jobs)
-#                        and folds jobs with the same nane into a single jobarray.
+#                        and folds jobs with the same name into a single jobarray.
 #                        -hold_jid to -hold_jid_ad conversion is applied where
 #                        applicable. Region specific output and error log file
 #                        locations are respected.
