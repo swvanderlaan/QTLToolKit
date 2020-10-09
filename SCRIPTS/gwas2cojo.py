@@ -518,7 +518,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
         with fopen(stats_filename) as f:
             lineno = 0
             for line in f:
-                if line.startswith('##'):
+                if line.startswith('#'):
                     # discard comments
                     continue
                 lineno += 1
