@@ -1,15 +1,16 @@
 
+# System files
 .DS_Store
+
+# GoodSync files
+_gsdata_
+
+# R files
 .Rhistory
-.DS_Store
-<<<<<<< HEAD
-=======
-.DS_Store
->>>>>>> d89405d6a4dd5fbc036a8188ca185fbc35c24cee
-.DS_Store
-.DS_Store
-.DS_Store
+
+# Data
 RESOURCES/*.encode.alltissues.bed.gz
 *.encode.alltissues.narrowPeak.bed.gz
-.DS_Store
+
+# Server files
 .nfs000*

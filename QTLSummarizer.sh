@@ -393,6 +393,12 @@ else
  				zcat ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt.gz | (head -n 1 && tail -n +3  | sort -t , -k 24) > ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
  				gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_clumped_summary.txt
  			fi	
+            # So it looks like gzipping qtlnom_summary.txt was deliberately left out
+            # if CLUMP=Y
+            # but downstream task QTLParse depends on its existance... 
+            # so I'm including it anyway
+ 		    gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt || true
+            gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlperm_summary.txt || true
  		else
  			if [[ ${ANALYSIS_TYPE} == "MQTL" ]]; then
  				echo "* Non-clumped ${QTL_TYPE}-${ANALYSIS_TYPE} results."
@@ -416,7 +422,8 @@ else
  	elif [[ ${QTL_TYPE} == "TRANS" ]]; then
  		gzip -fv ${SUMMARY}/${STUDYNAME}_QC_qtlnom_summary.txt
 
- aems450k1_QC_qtlnom_summary.txt
+ # aems450k1_QC_qtlnom_summary.txt <- I found this line, on its own?
+ # I think it's meant to be gzipped? but I can't find any other references to it..
  	fi
 	
 
