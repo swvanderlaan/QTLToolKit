@@ -81,7 +81,7 @@ def prolog():
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print('+ The MIT License (MIT)                                                                                 +')
-    print('+ Copyright (c) 1979-2018 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+    print('+ Copyright (c) 1979-2024 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
     print('+                                                                                                       +')
     print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
     print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')

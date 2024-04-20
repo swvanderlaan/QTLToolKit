@@ -101,10 +101,10 @@ echobold "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echobold "+                                       QUANTITATIVE TRAIT LOCUS ANALYZER                               +"
 echobold "+                                                                                                       +"
 echobold "+                                                                                                       +"
-echobold "+ * Written by  : Sander W. van der Laan; Jacco Schaap                                                  +"
-echobold "+ * E-mail      : s.w.vanderlaan-2@umcutrecht.nl; jacco_schaap@hotmail.com                              +"
-echobold "+ * Last update : 2019-10-14                                                                            +"
-echobold "+ * Version     : 2.7.3                                                                                 +"
+echobold "+ * Written by  : Sander W. van der Laan; Lennart L.P. Landsmeer; Jacco Schaap                                                  +"
+echobold "+ * E-mail      : s.w.vanderlaan@gmail.com; ; jacco_schaap@hotmail.com                              +"
+echobold "+ * Last update : 2024-04-20                                                                            +"
+echobold "+ * Version     : 2.7.4                                                                                 +"
 echobold "+                                                                                                       +"
 echobold "+ * Description : This script will set some directories, and execute a cis- or -trans-QTL analysis      +"
 echobold "+                 according to your specifications and using  your methylation or expression data.      +"
@@ -245,6 +245,7 @@ else
 			echo "The main QTL analysis directory already exists."
 		fi
 	RESULTS=${PROJECTDIR}/${EXCLUSION_TYPE}_qtl
+	
 	# Summary directory
 	if [ ! -d ${PROJECTDIR}/${EXCLUSION_TYPE}_qtl_summary ]; then
 		echo "The main QTL analysis summary  directory doesn't exist; Mr. Bourne will make it for you."

@@ -35,9 +35,24 @@
 #   ## freqs close and mid
 #   G C | C G | 0.5 0.6 | throw away
 #   G C | G C | 0.5 0.6 | throw away
+#
+# REFERENCE
+# A reference based on for example 1000G is expected with the following columns:
+#
+# CHROM POS ID REF ALT CHROM:POS:REF:ALT AF EAS_AF AMR_AF AFR_AF EUR_AF SAS_AF
+# 1 10177 rs367896724 A AC chr1:10177:A:A 0.425319 0.3363 0.3602 0.4909 0.4056 0.4949
+# 1 10235 rs540431307 T TA chr1:10235:T:T 0.00119808 0 0.0014 0 0 0.0051
+# 1 10352 rs555500075 T TA chr1:10352:T:T 0.4375 0.4306 0.4107 0.4788 0.4264 0.4192
+# 1 10505 rs548419688 A T chr1:10505:A:A 0.000199681 0 0 0.0008 0 0
+# 1 10506 rs568405545 C G chr1:10506:C:C 0.000199681 0 0 0.0008 0 0
+# 1 10511 rs534229142 G A chr1:10511:G:G 0.000199681 0 0.0014 0 0 0
+# 1 10539 rs537182016 C A chr1:10539:C:C 0.000599042 0 0.0014 0 0.001 0.001
+# 1 10542 rs572818783 C T chr1:10542:C:C 0.000199681 0.001 0 0 0 0
+# 1 10579 rs538322974 C A chr1:10579:C:C 0.000199681 0 0 0.0008 0 0
 
 from __future__ import print_function
 
+# python 2/3 compatibility
 import os
 import sys
 import argparse
@@ -47,18 +62,19 @@ import gzip
 import math
 import time
 
+# try to import numpy
 try:
     import numpy as np
 except ImportError:
     np = None
 
-
+# try to import pyliftover
 try:
     from pyliftover import LiftOver
 except ImportError:
     def LiftOver(*a):
-        print('Error: genome build conversion relies on `pyliftover`.')
-        print('Run: `pip install pyliftover`')
+        print('Error: genome build conversion relies on `pyliftover`')
+        print('Run: `pip install pyliftover``')
         exit(1)
 
 
@@ -84,7 +100,7 @@ GWAS_H_NCASE_OPTIONS =           ['N_case', 'N_cases', 'cases', 'TotalSampleSize
 GWAS_HG18_HINTS =                ['hg18', 'b36']
 GWAS_HG19_HINTS =                ['hg19', 'b37', 'GCF1405.25']
 
-
+# ArgumentParser error message
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--out', dest='outfile', metavar='cojo',
@@ -94,12 +110,14 @@ def build_parser():
     parser.add_argument('-rr', '--report-ok', dest='report_ok', action='store_true',
             help='Report all decisions made. Warning: very verbose')
     parser.add_argument('-g', '--gen', dest='gen', metavar='file.stats.gz',
-            type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) in with chromosomal base pair positional information, alleles, and frequency. Raw and gzip supported.')
+            type=os.path.abspath, help='Genetic reference data. Could be an in-house GWAS or a reference dataset (e.g. 1000G phase1, phase3, etc.) with the following columns: CHROM, POS, ID, REF, ALT, CHROM:POS:REF:ALT, AF, EAS_AF, AMR_AF, AFR_AF, EUR_AF, SAS_AF.')
     parser.add_argument('--gwas', dest='gwas', metavar='file.txt.gz.',
             type=os.path.abspath, help='GWAS summary statistics location.', required=True)
     parser.add_argument('--header-only', dest='header_only', action='store_true',
             help='Exit after reading GWAS header. ' +
                  'Useful for testing whether a file is readable by this program.')
+    parser.add_argument('--output-pos', dest='output_pos', action='store_true',
+            help='Write chr and bp columns to output file (breaks COJO format assumptions)')
     filter_parser = parser.add_argument_group('filter snps')
     filter_parser.add_argument('--fmid', dest='fmid', metavar='MID',
             help='Ambivalent variants are ambiguous when effect frequency ' +
@@ -108,7 +126,7 @@ def build_parser():
             default='0.05', type=float)
     filter_parser.add_argument('--fclose', dest='fclose', metavar='CLOSE',
             help='Fequencies are considered close when their difference is less than CLOSE. ' +
-                 'Default is 0.1',
+                 'Set to 1 to prevent discarding. Default is 0.1',
             default='0.1', type=float)
     filter_parser.add_argument('--ignore-indels', action='store_true',
             help='Should insertions and deletions be ignored? Only SNPs are retained.')
@@ -154,7 +172,7 @@ GWASRow = collections.namedtuple('GWASRow', 'ref oth f b se p lineno ch bp n')
 INV = { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C' }
 ACT_NOP, ACT_SKIP, ACT_FLIP, ACT_REM, ACT_REPORT_FREQ, ACT_INDEL_SKIP = 1, 2, 3, 4, 5, 6
 
-
+# Support multiple notations for the same chromosome
 def conv_chr_letter(ch, full=False):
     if full:
         ch = ch.upper()
@@ -399,8 +417,7 @@ def read_gwas(args, filename, report=None):
                     wrong_column_count += 1
                     continue
                 if postype_combined:
-#                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
-                    ch, bp = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
+                    ch, bp, *_ = parts[hpos].split(':', 2) # Some append :<SNP>/:<INDEL>, just ignore
                     if default_chr:
                         print('Default chromosome specified but reading chr:bp column.')
                         exit(1)
@@ -486,8 +503,12 @@ def read_gwas(args, filename, report=None):
 
 def update_read_stats(args, gwas, stats_filename, output=None, report=None):
     reporter = ReporterLine('genetic:')
+    output_pos = args.output_pos
     if output:
-        print('SNP A1 A2 freq b se p n', file=output)
+        if output_pos:
+            print('chr bp SNP A1 A2 freq b se p n', file=output)
+        else:
+            print('SNP A1 A2 freq b se p n', file=output)
     report_ok = args.report_ok
     counts = collections.defaultdict(int)
     freq_comp = np.zeros((40000, 2)) if np else None
@@ -524,7 +545,7 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                 lineno += 1
                 if lineno == 1:
                     header = line.split()
-                    hrsid = select('ident', ['rsid', 'SNP', 'variantid'])
+                    hrsid = select('ident', ['rsid', 'snp', 'variantid'])
                     hch = select('chr', ['chr', 'chromosome'])
                     hbp = select('bp', ['bp', 'position', 'pos'])
                     heff = select('effect', [])
@@ -620,8 +641,12 @@ def update_read_stats(args, gwas, stats_filename, output=None, report=None):
                         continue
                     rsids_seen.add(rsid)
                     if output:
-                        print(parts[hrsid], parts[heff], parts[hoth], freq, beta,
-                              gwas_row.se, gwas_row.p, gwas_row.n, file=output)
+                        if output_pos:
+                            print(ch.lstrip('0'), parts[hbp], rsid, parts[heff], parts[hoth], freq, beta,
+                                  gwas_row.se, gwas_row.p, gwas_row.n, file=output)
+                        else:
+                            print(rsid, parts[heff], parts[hoth], freq, beta,
+                                  gwas_row.se, gwas_row.p, gwas_row.n, file=output)
                 if lineno % 100000 == 0:
                     message = '#{0}+{1}'.format(converted,discarded)
                     if np and converted > freq_comp.shape[0]:
@@ -671,7 +696,7 @@ def gwas_header_auto(gwas_filename):
         if sum(mask) == 1:
             return mask.index(True)
 
-
+# Main
 def main(args):
     paths = [args.gwas]
     output = report = None
@@ -714,31 +739,31 @@ def main(args):
     if args.report:
         report.close()
 
-
+# Prolog.
 def prolog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-    print('               Convert GWAS summary statistics to \'COJO\'-format for post-GWAS analyses')
+    print('                                        CONVERT GWAS FOR SMR')
     print('')
     print('')
     print('* Written by         : Lennart Landsmeer | l.p.l.landsmeer@umcutrecht.nl')
     print('* Suggested for by   : Sander W. van der Laan | s.w.vanderlaan-2@umcutrecht.nl')
-    print('* Last update        : 2020-10-09')
+    print('* Last update        : 2024-04-20')
     print('* Name               : gwas2cojo')
-    print('* Version            : v1.4.1')
+    print('* Version            : v1.4.3')
     print('')
-    print('* Description        : Summary statistics from genome-wide association studies (GWAS) are converted to ')
-    print('                       the GWAS-COJO format for post-GWAS analyses. These may include assessing ')
-    print('                       pleiotropic effects using Summarized-data Mendelian Randomization (SMR)of ')
-    print('                       molecular QTLs on (selected) traits, or functional annotation and gene mappping ')
-    print('                       using FUMA (https://fuma.ctglab.nl/).')
+    print('* Description        : Converts a given set of summary statistics from genome-wide association studies  ')
+    print('                       (GWAS) to the GWAS-COJO format used by Summarized-data Mendelian Randomization ')
+    print('                       (SMR). This format is also usable for many other post-GWAS analyses. ')
+    print('                       A reference, e.g. 1000G phase 3, is used to map GWAS SumStats to.')
     print('')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-#    print('Start: {}'.format(datetime.datetime.now()))
+    print('Start: {}'.format(datetime.datetime.now()))
 
+# Epilog.
 def epilog():
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
     print('+ The MIT License (MIT)                                                                                 +')
-    print('+ Copyright (c) 1979-2020 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
+    print('+ Copyright (c) 1979-2023 Lennart P.L. Landsmeer & Sander W. van der Laan                               +')
     print('+                                                                                                       +')
     print('+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and     +')
     print('+ associated documentation files (the \'Software\'), to deal in the Software without restriction,         +')
@@ -757,8 +782,9 @@ def epilog():
     print('+                                                                                                       +')
     print('+ Reference: http://opensource.org.                                                                     +')
     print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-#    print('End: {}'.format(datetime.datetime.now()))
+    print('End: {}'.format(datetime.datetime.now()))
 
+# Start the program
 if __name__ == '__main__':
     startime=time.time()
     prolog()
