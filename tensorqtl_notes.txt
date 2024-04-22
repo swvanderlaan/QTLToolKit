@@ -1,0 +1,61 @@
+TensorQTL --help
+
+python -m tensorqtl --help
+usage: __main__.py [-h] [--mode {cis,cis_nominal,cis_independent,cis_susie,trans,trans_susie}] [--covariates COVARIATES] [--paired_covariate PAIRED_COVARIATE] [--permutations PERMUTATIONS]
+                   [--interaction INTERACTION] [--cis_output CIS_OUTPUT] [--phenotype_groups PHENOTYPE_GROUPS] [--window WINDOW] [--pval_threshold PVAL_THRESHOLD] [--maf_threshold MAF_THRESHOLD]
+                   [--maf_threshold_interaction MAF_THRESHOLD_INTERACTION] [--dosages] [--return_dense] [--return_r2] [--best_only] [--output_text] [--batch_size BATCH_SIZE] [--chunk_size CHUNK_SIZE]
+                   [--susie_loci SUSIE_LOCI] [--disable_beta_approx] [--warn_monomorphic] [--max_effects MAX_EFFECTS] [--fdr FDR] [--qvalue_lambda QVALUE_LAMBDA] [--seed SEED] [-o OUTPUT_DIR]
+                   genotype_path phenotypes prefix
+
+tensorQTL: GPU-based QTL mapper
+
+positional arguments:
+  genotype_path         Genotypes in PLINK format
+  phenotypes            Phenotypes in BED format (.bed, .bed.gz, .bed.parquet), or optionally for 'trans' mode, parquet or tab-delimited.
+  prefix                Prefix for output file names
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --mode {cis,cis_nominal,cis_independent,cis_susie,trans,trans_susie}
+                        Mapping mode. Default: cis
+  --covariates COVARIATES
+                        Covariates file, tab-delimited, covariates x samples
+  --paired_covariate PAIRED_COVARIATE
+                        Single phenotype-specific covariate. Tab-delimited file, phenotypes x samples
+  --permutations PERMUTATIONS
+                        Number of permutations. Default: 10000
+  --interaction INTERACTION
+                        Interaction term(s)
+  --cis_output CIS_OUTPUT
+                        Output from 'cis' mode with q-values. Required for independent cis-QTL mapping.
+  --phenotype_groups PHENOTYPE_GROUPS
+                        Phenotype groups. Header-less TSV with two columns: phenotype_id, group_id
+  --window WINDOW       Cis-window size, in bases. Default: 1000000.
+  --pval_threshold PVAL_THRESHOLD
+                        Output only significant phenotype-variant pairs with a p-value below threshold. Default: 1e-5 for trans-QTL
+  --maf_threshold MAF_THRESHOLD
+                        Include only genotypes with minor allele frequency >= maf_threshold. Default: 0
+  --maf_threshold_interaction MAF_THRESHOLD_INTERACTION
+                        MAF threshold for interactions, applied to lower and upper half of samples
+  --dosages             Load dosages instead of genotypes (only applies to PLINK2 bgen input).
+  --return_dense        Return dense output for trans-QTL.
+  --return_r2           Return r2 (only for sparse trans-QTL output)
+  --best_only           Only write lead association for each phenotype (interaction mode only)
+  --output_text         Write output in txt.gz format instead of parquet (trans-QTL mode only)
+  --batch_size BATCH_SIZE
+                        GPU batch size (trans-QTLs only). Reduce this if encountering OOM errors.
+  --chunk_size CHUNK_SIZE
+                        For cis-QTL mapping, load genotypes into CPU memory in chunks of chunk_size variants, or by chromosome if chunk_size is 'chr'.
+  --susie_loci SUSIE_LOCI
+                        Table (parquet or tsv) with loci to fine-map (phenotype_id, chr, pos) with mode 'trans_susie'.
+  --disable_beta_approx
+                        Disable Beta-distribution approximation of empirical p-values (not recommended).
+  --warn_monomorphic    Warn if monomorphic variants are found.
+  --max_effects MAX_EFFECTS
+                        Maximum number of non-zero effects in the SuSiE regression model.
+  --fdr FDR             FDR for cis-QTLs
+  --qvalue_lambda QVALUE_LAMBDA
+                        lambda parameter for pi0est in qvalue.
+  --seed SEED           Seed for permutations.
+  -o OUTPUT_DIR, --output_dir OUTPUT_DIR
+                        Output directory

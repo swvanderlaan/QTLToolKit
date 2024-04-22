@@ -2,9 +2,9 @@ QTLToolKit
 ============
 [![DOI](https://zenodo.org/badge/101641410.svg)](https://zenodo.org/badge/latestdoi/101641410)
 
-**QTLToolKit** is a pipeline written in the BASH, Perl and Python languages to run *cis-* or *trans-* [quantitative trait loci analyses](https://www.nature.com/scitable/topicpage/quantitative-trait-locus-qtl-analysis-53904) using [QTLtools](https://qtltools.github.io/qtltools/) efficiently. It will aid in selecting the region, get descriptive statistics on the variants used, parse results, create diagnostic plots where necessary, create [LocusZoom style](https://genome.sph.umich.edu/wiki/LocusZoom_Standalone) plots when needed, and concatenate everything in tables. 
+**QTLToolKit** is a pipeline written in the BASH, Perl and Python languages to run *cis-* or *trans-* [quantitative trait loci analyses](https://www.nature.com/scitable/topicpage/quantitative-trait-locus-qtl-analysis-53904) using [QTLtools](https://qtltools.github.io/qtltools/) and [tensorQTL]() efficiently. It will aid in selecting the region, get descriptive statistics on the variants used, parse results, create diagnostic plots where necessary, create [LocusZoom style](https://genome.sph.umich.edu/wiki/LocusZoom_Standalone) regional association plots when needed, and concatenate everything in tables. 
 
-All scripts are annotated for debugging purposes - and future reference. The scripts will work within the context of a certain Linux environment (in this case a CentOS7 system on a SUN Grid Engine background). As such we have tested **QTLToolKit** on CentOS6.6, CentOS7, and OS X El Capitan (version 10.11.[x]). 
+All scripts are annotated for debugging purposes - and future reference. The scripts will work within the context of a certain Linux environment, in this case a CentOS7 system on a SUN Grid Engine background, using `qsub` submission systems. As such we have tested **QTLToolKit** on CentOS6.6, CentOS7, and OS X El Capitan+ (version 10.11.[x]). 
 
 
 _[back-to-top](#qtltoolkit)_
@@ -13,7 +13,7 @@ _[back-to-top](#qtltoolkit)_
 
 #### INSTALLATION
 
-You can use the scripts locally to run analyses on a Unix-based system, like Mac OS X (Mountain Lion+). We need to make an appropriate directory to download 'gits' to, and install this 'git'.
+You can use the scripts locally to run analyses on a Unix-based system, like Mac OS X (El Capitan+). We need to make an appropriate directory to download `git` to, and install this `git`.
 
 ##### Step 1: make a directory, and go there.
 
@@ -102,7 +102,7 @@ _[back-to-top](#qtltoolkit)_
 
 #### COMMON WORKFLOW 
 
-![QTLToolKit Workflow (version: beta 1.0.0)](/FIGURES/QTLToolKit_WorkFlow_version_beta_1.0.0.png)
+![QTLToolKit Workflow (version: beta 1.9.0)](/images/)
 
 
 _[back-to-top](#qtltoolkit)_
@@ -134,7 +134,7 @@ _[back-to-top](#qtltoolkit)_
 --------------
 
 #### The MIT License (MIT)
-##### Copyright (c) 2014-2018 Sander W. van der Laan | s.w.vanderlaan [at] gmail [dot] com.
+##### Copyright (c) 1979-2024 Sander W. van der Laan (s.w.vanderlaan [at] gmail [dot] com) | Lennart L.P. Landsmeer | Jacco Schaap.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:   
 
