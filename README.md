@@ -2,6 +2,8 @@ QTLToolKit
 ============
 [![DOI](https://zenodo.org/badge/101641410.svg)](https://zenodo.org/badge/latestdoi/101641410)
 
+[![Languages](https://skillicons.dev/icons?i=bash,r,py)](https://skillicons.dev) 
+
 **QTLToolKit** is a pipeline written in the BASH, Perl and Python languages to run *cis-* or *trans-* [quantitative trait loci analyses](https://www.nature.com/scitable/topicpage/quantitative-trait-locus-qtl-analysis-53904) using [QTLtools](https://qtltools.github.io/qtltools/) and [tensorQTL]() efficiently. It will aid in selecting the region, get descriptive statistics on the variants used, parse results, create diagnostic plots where necessary, create [LocusZoom style](https://genome.sph.umich.edu/wiki/LocusZoom_Standalone) regional association plots when needed, and concatenate everything in tables. 
 
 All scripts are annotated for debugging purposes - and future reference. The scripts will work within the context of a certain Linux environment, in this case a CentOS7 system on a SUN Grid Engine background, using `qsub` submission systems. As such we have tested **QTLToolKit** on CentOS6.6, CentOS7, and OS X El Capitan+ (version 10.11.[x]). 
